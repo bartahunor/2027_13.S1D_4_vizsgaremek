@@ -1,6 +1,6 @@
 import TudasterIntro from "../../assets/tudaster-logo-transparent.webm";
 import { useState } from "react";
-
+import { Link } from "react-router-dom";
 
 function Hero() {
 
@@ -60,25 +60,18 @@ function Hero() {
                     {/* BAL OLDAL - KÉP / VIDEÓ */}
                     {/* ======================================== */}
 
-                    <div className="order-2 w-full lg:order-1 lg:w-[62%]">
-
+                    <div className="order-2 w-full lg:order-1 lg:w-[72%] lg:-ml-20">
                         <div className="group relative overflow-hidden rounded-2xl md:rounded-3xl">
                             <div className="aspect-video w-full overflow-hidden relative">
-
                                 <video
                                     src={TudasterIntro}
                                     autoPlay
                                     muted
                                     playsInline
-                                    className="absolute left-0 top-1/2 h-[130%] w-full -translate-y-1/2 object-cover transition-transform duration-500 "
+                                    className="absolute left-0 top-1/2 h-[135%] w-full -translate-y-1/2 object-cover transition-transform duration-500"
                                 />
-
                             </div>
-
-                            
-
                         </div>
-
                     </div>
 
 
@@ -122,25 +115,21 @@ function Hero() {
                         <div className="mb-5 flex w-full flex-col items-center gap-3 sm:w-auto sm:flex-row">
 
                             {/* Fő CTA */}
-                            <a
-                                href="#"
+                            <Link
+                                to="/tasktype"
                                 className="inline-flex w-full items-center justify-center gap-2.5 rounded-xl bg-[#200646] px-6 py-3.5 text-[15px] font-bold text-white shadow-lg shadow-[#351f5b]/20 transition-all duration-150 hover:scale-[1.01] hover:bg-[#351f5b] hover:shadow-xl sm:w-auto"
                             >
-
-                               
-
                                 <span>
-                                    Gyakorlás indítása 
+                                    Gyakorlás indítása
                                 </span>
 
                                 <span className="material-symbols-outlined text-[18px]">
                                     arrow_forward
                                 </span>
+                            </Link>
 
-                            </a>
 
 
-                            
                         </div>
 
                         {/* ======================================== */}

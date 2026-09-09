@@ -4,6 +4,7 @@ import Footer from './components/layout/Footer'
 import HomePage from './components/pages/HomePage'
 import LoginPage from './components/pages/LoginPage'
 import RegisterPage from './components/pages/RegisterPage'
+import TaskSelection from './components/pages/TaskType'
 
 export default function App() {
   return (
@@ -14,6 +15,7 @@ export default function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/tasktype" element={<TaskSelection />} />
         </Routes>
       </main>
       <Footer />
