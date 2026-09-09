@@ -1,0 +1,127 @@
+<UserControl x:Class="TudasterAdmin.DashboardView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="#F7F6F9">
+
+    <Grid Margin="40">
+
+        <StackPanel>
+
+            <TextBlock Text="Áttekintés"
+                       FontSize="30"
+                       FontWeight="Bold"
+                       Foreground="#27222E"/>
+
+            <TextBlock Text="A Tudástér adminisztrációs rendszer áttekintése."
+                       FontSize="14"
+                       Foreground="#8A8491"
+                       Margin="0,8,0,30"/>
+
+            <Grid>
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Border Grid.Column="0"
+                        Background="White"
+                        CornerRadius="12"
+                        Padding="24"
+                        Margin="0,0,12,0">
+
+                    <StackPanel>
+                        <TextBlock Text="Feladatok"
+                                   Foreground="#8A8491"/>
+
+                        <TextBlock Text="0"
+                                   FontSize="30"
+                                   FontWeight="Bold"
+                                   Foreground="#351F5B"
+                                   Margin="0,8,0,0"/>
+
+                        <TextBlock Text="összes feladat"
+                                   Foreground="#8A8491"
+                                   FontSize="11"/>
+                    </StackPanel>
+
+                </Border>
+
+                <Border Grid.Column="1"
+                        Background="White"
+                        CornerRadius="12"
+                        Padding="24"
+                        Margin="12,0">
+
+                    <StackPanel>
+                        <TextBlock Text="Témakörök"
+                                   Foreground="#8A8491"/>
+
+                        <TextBlock Text="0"
+                                   FontSize="30"
+                                   FontWeight="Bold"
+                                   Foreground="#351F5B"
+                                   Margin="0,8,0,0"/>
+
+                        <TextBlock Text="aktív témakör"
+                                   Foreground="#8A8491"
+                                   FontSize="11"/>
+                    </StackPanel>
+
+                </Border>
+
+                <Border Grid.Column="2"
+                        Background="White"
+                        CornerRadius="12"
+                        Padding="24"
+                        Margin="12,0">
+
+                    <StackPanel>
+                        <TextBlock Text="Felhasználók"
+                                   Foreground="#8A8491"/>
+
+                        <TextBlock Text="0"
+                                   FontSize="30"
+                                   FontWeight="Bold"
+                                   Foreground="#351F5B"
+                                   Margin="0,8,0,0"/>
+
+                        <TextBlock Text="regisztrált felhasználó"
+                                   Foreground="#8A8491"
+                                   FontSize="11"/>
+                    </StackPanel>
+
+                </Border>
+
+                <Border Grid.Column="3"
+                        Background="White"
+                        CornerRadius="12"
+                        Padding="24"
+                        Margin="12,0,0,0">
+
+                    <StackPanel>
+                        <TextBlock Text="Ellenőrzés"
+                                   Foreground="#8A8491"/>
+
+                        <TextBlock Text="0"
+                                   FontSize="30"
+                                   FontWeight="Bold"
+                                   Foreground="#351F5B"
+                                   Margin="0,8,0,0"/>
+
+                        <TextBlock Text="ellenőrzésre vár"
+                                   Foreground="#8A8491"
+                                   FontSize="11"/>
+                    </StackPanel>
+
+                </Border>
+
+            </Grid>
+
+        </StackPanel>
+
+    </Grid>
+
+</UserControl>

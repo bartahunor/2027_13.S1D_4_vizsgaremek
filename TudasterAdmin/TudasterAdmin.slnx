@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/Views/">
+    <File Path="DashboardView.xaml" />
+    <File Path="DashboardView.xaml.cs" />
+    <File Path="ImportView.xaml" />
+    <File Path="ImportView.xaml.cs" />
+    <File Path="ProcessorView.xaml" />
+    <File Path="ProcessorView.xaml.cs" />
+  </Folder>
+  <Project Path="TudasterAdmin/TudasterAdmin.csproj" />
+</Solution>

@@ -1,0 +1,68 @@
+<UserControl x:Class="TudasterAdmin.ProcessorView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d"
+             d:DesignHeight="300" d:DesignWidth="400">
+
+    <Grid Background="#F7F6F9">
+
+        <StackPanel Margin="40">
+
+            <TextBlock Text="Feldolgozó"
+                       FontSize="30"
+                       FontWeight="Bold"
+                       Foreground="#17121F"/>
+
+            <TextBlock Text="Az érettségi dokumentum automatikus feldolgozása"
+                       FontSize="15"
+                       Foreground="#77727D"
+                       Margin="0,8,0,30"/>
+
+            <Border Background="White"
+                    CornerRadius="16"
+                    Padding="30">
+
+                <StackPanel>
+
+                    <TextBlock Text="Feldolgozási folyamat"
+                               FontSize="21"
+                               FontWeight="SemiBold"/>
+
+                    <TextBlock Text="PDF → Szöveg → Feladatok → Megoldókulcs → Adatbázis"
+                               Foreground="#77727D"
+                               Margin="0,8,0,25"/>
+
+                    <ProgressBar Height="12"
+                                 Value="65"
+                                 Maximum="100"/>
+
+                    <TextBlock Text="Feldolgozás folyamatban... 65%"
+                               Margin="0,12,0,25"
+                               FontWeight="SemiBold"/>
+
+                    <TextBlock Text="✓ Dokumentum beolvasása"
+                               Margin="0,5"/>
+
+                    <TextBlock Text="✓ Szöveg felismerése"
+                               Margin="0,5"/>
+
+                    <TextBlock Text="✓ Feladatok keresése"
+                               Margin="0,5"/>
+
+                    <TextBlock Text="○ Megoldókulcs feldolgozása"
+                               Margin="0,5"/>
+
+                    <TextBlock Text="○ Adatbázisba mentés"
+                               Margin="0,5"/>
+
+                </StackPanel>
+
+            </Border>
+
+        </StackPanel>
+
+    </Grid>
+
+</UserControl>
