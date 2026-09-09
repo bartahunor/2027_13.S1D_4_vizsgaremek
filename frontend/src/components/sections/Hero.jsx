@@ -1,4 +1,4 @@
-import TudasterIntro from "../../assets/Tudaster-intro.mp4";
+import TudasterIntro from "../../assets/tudaster-logo-transparent.webm";
 import { useState } from "react";
 
 
@@ -60,28 +60,22 @@ function Hero() {
                     {/* BAL OLDAL - KÉP / VIDEÓ */}
                     {/* ======================================== */}
 
-                    <div className="order-2 w-full max-w-xl flex-1 lg:order-1 lg:max-w-2xl">
+                    <div className="order-2 w-full lg:order-1 lg:w-[62%]">
 
-                        <div className="group relative overflow-hidden rounded-2xl border border-purple-100 bg-white shadow-2xl md:rounded-3xl">
-
-                            {/* VIDEÓ */}
-                            <div className="aspect-[4/3] w-full overflow-hidden">
+                        <div className="group relative overflow-hidden rounded-2xl md:rounded-3xl">
+                            <div className="aspect-video w-full overflow-hidden relative">
 
                                 <video
                                     src={TudasterIntro}
                                     autoPlay
                                     muted
-                                    loop
                                     playsInline
-                                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+                                    className="absolute left-0 top-1/2 h-[130%] w-full -translate-y-1/2 object-cover transition-transform duration-500 "
                                 />
 
                             </div>
 
-                            {/* Alsó információs sáv */}
-                            <div className="absolute right-4 bottom-4 left-4 ...">
-                                ...
-                            </div>
+                            
 
                         </div>
 
@@ -92,7 +86,7 @@ function Hero() {
                     {/* JOBB OLDAL - HERO SZÖVEG */}
                     {/* ======================================== */}
 
-                    <div className="order-1 flex max-w-xl flex-1 flex-col items-start text-left lg:order-2">
+                    <div className="order-1 flex max-w-xl flex-col items-start text-left lg:order-2 lg:w-[38%] lg:max-w-none">
 
                         {/* ======================================== */}
                         {/* FŐCÍM */}
