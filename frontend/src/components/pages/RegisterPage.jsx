@@ -1,7 +1,24 @@
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
 import LogoFeher from '../../assets/logofeher.png';
 
 function RegisterPage() {
+    const [formData, setFormData] = useState({
+        username: '',
+        email: '',
+        password: ''
+    });
+
+    function handleInputChange(e) {
+        setFormData((prevData) => {
+            return{
+                ...prevData,
+                [e.target.name]: e.target.value
+            }
+        });
+    }
+           
+    
 
     return (
         <div className="min-h-screen pt-20 bg-grid-pattern font-display min-h-screen flex items-center justify-center">
@@ -87,6 +104,7 @@ function RegisterPage() {
                                         name="username"
                                         placeholder="Felhasználónév"
                                         required
+                                        onChange={handleInputChange}
                                         className="w-full pl-11 pr-4 py-3 bg-primary/5 border border-primary/20 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all dark:text-white"
                                     />
                                 </div>
@@ -107,6 +125,7 @@ function RegisterPage() {
                                         type="email"
                                         placeholder="pelda@email.hu"
                                         required
+                                        onChange={handleInputChange}
                                         className="w-full pl-11 pr-4 py-3 bg-primary/5 border border-primary/20 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all dark:text-white"
                                     />
                                 </div>
@@ -127,6 +146,7 @@ function RegisterPage() {
                                         type="password"
                                         placeholder="••••••••"
                                         required
+                                        onChange={handleInputChange}
                                         className="w-full pl-11 pr-4 py-3 bg-primary/5 border border-primary/20 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all dark:text-white"
                                     />
                                 </div>
