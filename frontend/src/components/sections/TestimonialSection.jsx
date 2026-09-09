@@ -68,7 +68,7 @@ function TestimonialSection() {
     return (
         <section
             ref={sectionRef}
-            className="py-24 px-4 bg-secondary"
+            className="py-50 px-4 bg-secondary"
             data-purpose="user-testimonials"
             id="testimonials"
         >
@@ -76,29 +76,73 @@ function TestimonialSection() {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-stretch">
 
                     <div className="relative group cursor-pointer">
-                        <div className="bg-white rounded-3xl h-full flex items-center justify-center overflow-hidden shadow-2xl relative">
-                            <div className="absolute inset-0 bg-brand-purple opacity-20"></div>
+
+                        {/* Bal felső lila fény */}
+                        <div
+                            className="
+                                absolute
+                                -top-16
+                                -left-16
+                                w-100
+                                h-100
+                                rounded-full
+                                bg-violet-500/20
+                                blur-[100px]
+                                pointer-events-none
+                                z-0
+                            "
+                        />
+
+                        <div className="bg-white rounded-3xl h-full flex items-center justify-center overflow-hidden shadow-2xl relative z-10">
+
                             <div className="w-20 h-20 bg-black rounded-full flex items-center justify-center shadow-xl z-10 group-hover:scale-110 transition-transform">
-                                <svg className="w-10 h-10 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
+                                <svg
+                                    className="w-10 h-10 text-white ml-1"
+                                    fill="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
                                     <path d="M8 5v14l11-7z"></path>
                                 </svg>
                             </div>
+
                         </div>
                     </div>
 
-                    <div className="testimonial-scroll flex flex-col gap-6">
-                        {texts.map((text, index) => (
-                            <TestimonialCard
-                                key={index}
-                                initals={text.initials}
-                                name={text.name}
-                                title={text.title}
-                                testimonial={text.testimonial}
-                                startAnimation={index <= activeIndex}
-                                onComplete={() => handleCardComplete(index)}
-                                reducedMotion={reducedMotion}
-                            />
-                        ))}
+                    <div className="relative testimonial-scroll flex flex-col gap-6">
+
+                        {/* Halvány fény a kommentek mögött */}
+                        <div
+                            className="
+                                absolute
+                                top-1/2
+                                left-1/2
+                                -translate-x-1/2
+                                -translate-y-1/2
+                                w-[100%]
+                                h-[100%]
+                                rounded-full
+                                bg-violet-500/20
+                                blur-[110px]
+                                pointer-events-none
+                            "
+                        />
+
+                        {/* Komment kártyák */}
+                        <div className="relative z-10 flex flex-col gap-6">
+                            {texts.map((text, index) => (
+                                <TestimonialCard
+                                    key={index}
+                                    initals={text.initials}
+                                    name={text.name}
+                                    title={text.title}
+                                    testimonial={text.testimonial}
+                                    startAnimation={index <= activeIndex}
+                                    onComplete={() => handleCardComplete(index)}
+                                    reducedMotion={reducedMotion}
+                                />
+                            ))}
+                        </div>
+
                     </div>
                 </div>
             </div>

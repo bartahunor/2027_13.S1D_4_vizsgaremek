@@ -146,27 +146,7 @@ function Hero() {
                             </a>
 
 
-                            {/* Bemutató */}
-                            <a
-                                href="#"
-                                className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white/90 px-6 py-3.5 text-[15px] font-medium text-slate-800 shadow-sm backdrop-blur-md transition-all duration-150 hover:border-slate-300 hover:bg-slate-50 sm:w-auto"
-                            >
-
-                                <span
-                                    className="material-symbols-outlined text-[18px] text-secondary"
-                                    style={{
-                                        fontVariationSettings: "'FILL' 1"
-                                    }}
-                                >
-                                    play_circle
-                                </span>
-
-                                <span>
-                                    Interaktív bemutató
-                                </span>
-
-                            </a>
-
+                            
                         </div>
 
                         {/* ======================================== */}
