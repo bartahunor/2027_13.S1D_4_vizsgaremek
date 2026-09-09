@@ -355,3 +355,55 @@ html {
 }
 
 
+/*Mozgó lila fények*/
+@keyframes ctaGlow {
+    0% {
+        transform: translate(0, 0) scale(1);
+    }
+
+    25% {
+        transform: translate(-40px, 30px) scale(1.08);
+    }
+
+    50% {
+        transform: translate(-10px, 70px) scale(0.95);
+    }
+
+    75% {
+        transform: translate(40px, 20px) scale(1.08);
+    }
+
+    100% {
+        transform: translate(0, 0) scale(1);
+    }
+}
+
+@keyframes ctaGlowReverse {
+    0% {
+        transform: translate(0, 0) scale(1);
+    }
+
+    25% {
+        transform: translate(40px, -30px) scale(1.08);
+    }
+
+    50% {
+        transform: translate(10px, -70px) scale(0.95);
+    }
+
+    75% {
+        transform: translate(-40px, -20px) scale(1.08);
+    }
+
+    100% {
+        transform: translate(0, 0) scale(1);
+    }
+}
+
+.animate-cta-glow {
+    animation: ctaGlow 9s ease-in-out infinite;
+}
+
+.animate-cta-glow-reverse {
+    animation: ctaGlowReverse 11s ease-in-out infinite;
+}
