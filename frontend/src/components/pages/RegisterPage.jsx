@@ -1,14 +1,19 @@
 import { Link } from 'react-router-dom';
 import React, { useState } from 'react';
-import { supabse } from  '../../lib/supabaseClient';
+import { supabase } from  '../../lib/supabaseClient';
 import LogoFeher from '../../assets/logofeher.png';
 
 function RegisterPage() {
     const [formData, setFormData] = useState({
         username: '',
         email: '',
-        password: ''
+        password: '',
+        password_confirm: ''
     });
+
+    const [error, setError] = useState(null);
+    const [successMessage, setSuccessMessage] = useState(null);
+    const [loading, setLoading] = useState(false);
 
     function handleInputChange(e) {
         setFormData((prevData) => {
@@ -16,9 +21,80 @@ function RegisterPage() {
                 ...prevData,
                 [e.target.name]: e.target.value
             }
+            
         });
     }
-           
+
+    // Felhasználónév foglaltság ellenőrzése
+    async function isUsernameTaken(username) {
+        const { data, error } = await supabase.rpc('felhasznalonev_foglalt', {
+            nev: username
+        })
+
+        if (error) {
+            console.error('Hiba a felhasználónév ellenőrzése közben:', error.message)
+            throw error
+        }
+
+        return data // true vagy false
+    }
+
+    // Regisztráció
+    async function handleSignUp(email, password, username) {
+        const trimmedNev = username?.trim()
+
+        if (!trimmedNev) {
+            return { success: false, error: { message: 'A felhasználónév megadása kötelező.' } }
+        }
+
+        try {
+            const taken = await isUsernameTaken(trimmedNev)
+            if (taken) {
+                return { success: false, error: { message: 'Ez a felhasználónév már foglalt.' } }
+            }
+        } catch (err) {
+            return { success: false, error: { message: 'Nem sikerült ellenőrizni a felhasználónevet. Próbáld újra.' } }
+        }
+
+        const { data, error } = await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+                data: {
+                    felhasznalonev: trimmedNev
+                }
+            }
+        })
+
+        if (error) {
+            console.error('Regisztrációs hiba:', error.message)
+            return { success: false, error }
+        }
+
+        return { success: true, data }
+    }
+
+    async function onSubmit(e) {
+        e.preventDefault()
+        setError(null)
+        setSuccessMessage(null)
+
+        if (formData.password !== formData.password_confirm) {
+            setError('A jelszavak nem egyeznek.')
+            return
+        }
+
+        setLoading(true)
+        const result = await handleSignUp(formData.email, formData.password, formData.username)
+        setLoading(false)
+
+        if (!result.success) {
+            setError(result.error.message)
+            return
+        }
+
+        setSuccessMessage('Sikeres regisztráció! Ellenőrizd az emailedet a megerősítéshez.')
+    }
     
 
     return (
@@ -88,7 +164,23 @@ function RegisterPage() {
                             </p>
                         </div>
 
-                        <form id="auth-form" className="space-y-6">
+                        {(error || successMessage) && (
+                            <div
+                                role="alert"
+                                className={`mb-6 px-4 py-3 rounded-xl text-sm font-medium flex items-start gap-2 ${
+                                    error
+                                        ? 'bg-red-50 text-red-600 border border-red-200 dark:bg-red-500/10 dark:border-red-500/30 dark:text-red-400'
+                                        : 'bg-green-50 text-green-600 border border-green-200 dark:bg-green-500/10 dark:border-green-500/30 dark:text-green-400'
+                                }`}
+                            >
+                                <span className="material-symbols-outlined text-base mt-0.5">
+                                    {error ? 'error' : 'check_circle'}
+                                </span>
+                                <span>{error || successMessage}</span>
+                            </div>
+                        )}
+
+                        <form id="auth-form" className="space-y-6" onSubmit={onSubmit}>
 
                             <div id="username-container">
                                 <label htmlFor="username" className="block text-sm font-medium mb-2 text-primary">
@@ -164,10 +256,11 @@ function RegisterPage() {
                                     </span>
                                     <input
                                         id="password-confirm"
-                                        name="password-confirm"
+                                        name="password_confirm"
                                         type="password"
                                         placeholder="••••••••"
                                         required
+                                        onChange={handleInputChange}
                                         className="w-full pl-11 pr-4 py-3 bg-primary/5 border border-primary/20 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all dark:text-white"
                                     />
                                 </div>
@@ -191,9 +284,10 @@ function RegisterPage() {
                             <button
                                 type="submit"
                                 id="submit-btn"
-                                className="w-full bg-primary hover:bg-primaryLight text-white font-bold py-3.5 rounded-xl transition-all transform active:scale-[0.98] shadow-lg shadow-primary/30"
+                                disabled={loading}
+                                className="w-full bg-primary hover:bg-primaryLight text-white font-bold py-3.5 rounded-xl transition-all transform active:scale-[0.98] shadow-lg shadow-primary/30 disabled:opacity-60 disabled:cursor-not-allowed"
                             >
-                                Regisztráció
+                                {loading ? 'Folyamatban...' : 'Regisztráció'}
                             </button>
                         </form>
 
