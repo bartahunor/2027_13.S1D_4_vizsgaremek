@@ -1,0 +1,202 @@
+﻿<Window x:Class="TudasterAdmin.TaskWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Új feladat"
+        Width="750"
+        Height="750"
+        WindowStartupLocation="CenterOwner"
+        Background="{StaticResource BackgroundBrush}">
+
+    <Grid Margin="35">
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- FEJLÉC -->
+
+        <StackPanel Grid.Row="0">
+
+            <TextBlock Text="Új feladat"
+                       FontSize="28"
+                       FontWeight="Bold"
+                       Foreground="{StaticResource TextBrush}"/>
+
+            <TextBlock Text="Új érettségi feladat létrehozása"
+                       FontSize="14"
+                       Foreground="{StaticResource MutedTextBrush}"
+                       Margin="0,6,0,25"/>
+
+        </StackPanel>
+
+
+        <!-- ŰRLAP -->
+
+        <ScrollViewer Grid.Row="1"
+                      VerticalScrollBarVisibility="Auto">
+
+            <StackPanel>
+
+                <!-- FELADAT -->
+
+                <TextBlock Text="Feladat szövege"
+                           FontSize="13"
+                           FontWeight="SemiBold"
+                           Foreground="{StaticResource TextBrush}"/>
+
+                <TextBox x:Name="TaskTextBox"
+                         Height="120"
+                         Margin="0,8,0,20"
+                         Padding="12"
+                         FontSize="14"
+                         TextWrapping="Wrap"
+                         AcceptsReturn="True"
+                         VerticalScrollBarVisibility="Auto"/>
+
+
+                <!-- TANTÁRGY -->
+
+                <TextBlock Text="Tantárgy"
+                           FontSize="13"
+                           FontWeight="SemiBold"
+                           Foreground="{StaticResource TextBrush}"/>
+
+                <ComboBox x:Name="SubjectComboBox"
+                          Height="42"
+                          Margin="0,8,0,20"
+                          FontSize="14">
+
+                    <ComboBoxItem Content="Történelem"/>
+                    <ComboBoxItem Content="Irodalom"/>
+
+                </ComboBox>
+
+
+                <!-- TÉMAKÖR -->
+
+                <TextBlock Text="Témakör"
+                           FontSize="13"
+                           FontWeight="SemiBold"
+                           Foreground="{StaticResource TextBrush}"/>
+
+                <TextBox x:Name="TopicTextBox"
+                         Height="42"
+                         Margin="0,8,0,20"
+                         Padding="12"
+                         FontSize="14"/>
+
+
+                <!-- ÉV -->
+
+                <TextBlock Text="Érettségi éve"
+                           FontSize="13"
+                           FontWeight="SemiBold"
+                           Foreground="{StaticResource TextBrush}"/>
+
+                <TextBox x:Name="YearTextBox"
+                         Height="42"
+                         Margin="0,8,0,20"
+                         Padding="12"
+                         FontSize="14"/>
+
+
+                <!-- SZINT -->
+
+                <TextBlock Text="Szint"
+                           FontSize="13"
+                           FontWeight="SemiBold"
+                           Foreground="{StaticResource TextBrush}"/>
+
+                <ComboBox x:Name="LevelComboBox"
+                          Height="42"
+                          Margin="0,8,0,20"
+                          FontSize="14">
+
+                    <ComboBoxItem Content="Középszint"/>
+                    <ComboBoxItem Content="Emelt szint"/>
+
+                </ComboBox>
+
+
+                <!-- PONTSZÁM -->
+
+                <TextBlock Text="Maximális pontszám"
+                           FontSize="13"
+                           FontWeight="SemiBold"
+                           Foreground="{StaticResource TextBrush}"/>
+
+                <TextBox x:Name="PointsTextBox"
+                         Height="42"
+                         Margin="0,8,0,20"
+                         Padding="12"
+                         FontSize="14"/>
+
+
+                <!-- HELYES VÁLASZ -->
+
+                <TextBlock Text="Helyes válasz / megoldás"
+                           FontSize="13"
+                           FontWeight="SemiBold"
+                           Foreground="{StaticResource TextBrush}"/>
+
+                <TextBox x:Name="AnswerTextBox"
+                         Height="100"
+                         Margin="0,8,0,20"
+                         Padding="12"
+                         FontSize="14"
+                         TextWrapping="Wrap"
+                         AcceptsReturn="True"/>
+
+
+                <!-- MAGYARÁZAT -->
+
+                <TextBlock Text="Magyarázat"
+                           FontSize="13"
+                           FontWeight="SemiBold"
+                           Foreground="{StaticResource TextBrush}"/>
+
+                <TextBox x:Name="ExplanationTextBox"
+                         Height="100"
+                         Margin="0,8,0,20"
+                         Padding="12"
+                         FontSize="14"
+                         TextWrapping="Wrap"
+                         AcceptsReturn="True"/>
+
+            </StackPanel>
+
+        </ScrollViewer>
+
+
+        <!-- GOMBOK -->
+
+        <StackPanel Grid.Row="2"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right"
+                    Margin="0,20,0,0">
+
+            <Button Content="MÉGSE"
+                    Width="110"
+                    Height="42"
+                    Margin="0,0,10,0"
+                    Background="Transparent"
+                    Foreground="{StaticResource TextBrush}"
+                    BorderBrush="{StaticResource BorderBrush}"
+                    Click="CancelButton_Click"/>
+
+            <Button Content="MENTÉS"
+                    Width="120"
+                    Height="42"
+                    Background="{StaticResource PrimaryBrush}"
+                    Foreground="{StaticResource WhiteBrush}"
+                    BorderThickness="0"
+                    FontWeight="SemiBold"
+                    Click="SaveButton_Click"/>
+
+        </StackPanel>
+
+    </Grid>
+
+</Window>
