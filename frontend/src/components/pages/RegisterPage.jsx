@@ -8,12 +8,27 @@ function RegisterPage() {
         username: '',
         email: '',
         password: '',
-        password_confirm: ''
+        password_confirm: '',
+        szerep: 'diak'
     });
 
     const [error, setError] = useState(null);
     const [successMessage, setSuccessMessage] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [passwordFocused, setPasswordFocused] = useState(false);
+
+    function getPasswordRequirements(password) {
+        return {
+            length: password.length >= 8 && password.length <= 12,
+            uppercase: /[A-Z]/.test(password),
+            lowercase: /[a-z]/.test(password),
+            number: /[0-9]/.test(password),
+            punctuation: /[!"#$%&'()*+,\-./:;<=>?@[\]^_`{|}~]/.test(password)
+        }
+    }
+
+    const passwordRequirements = getPasswordRequirements(formData.password)
+    const isPasswordValid = Object.values(passwordRequirements).every(Boolean)
 
     function handleInputChange(e) {
         setFormData((prevData) => {
@@ -40,7 +55,7 @@ function RegisterPage() {
     }
 
     // Regisztráció
-    async function handleSignUp(email, password, username) {
+    async function handleSignUp(email, password, username, szerep) {
         const trimmedNev = username?.trim()
 
         if (!trimmedNev) {
@@ -61,7 +76,8 @@ function RegisterPage() {
             password,
             options: {
                 data: {
-                    felhasznalonev: trimmedNev
+                    felhasznalonev: trimmedNev,
+                    szerep: szerep
                 }
             }
         })
@@ -79,13 +95,18 @@ function RegisterPage() {
         setError(null)
         setSuccessMessage(null)
 
+        if (!isPasswordValid) {
+            setError('A jelszó nem felel meg a követelményeknek.')
+            return
+        }
+
         if (formData.password !== formData.password_confirm) {
             setError('A jelszavak nem egyeznek.')
             return
         }
 
         setLoading(true)
-        const result = await handleSignUp(formData.email, formData.password, formData.username)
+        const result = await handleSignUp(formData.email, formData.password, formData.username, formData.szerep)
         setLoading(false)
 
         if (!result.success) {
@@ -203,6 +224,38 @@ function RegisterPage() {
                                 </div>
                             </div>
 
+                            <div id="szerep-container">
+                                <label className="block text-sm font-medium mb-2 text-primary">
+                                    Fiók típusa
+                                </label>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <button
+                                        type="button"
+                                        onClick={() => setFormData((prev) => ({ ...prev, szerep: 'diak' }))}
+                                        className={`flex flex-col items-center gap-1.5 py-3 px-4 rounded-xl border transition-all ${
+                                            formData.szerep === 'diak'
+                                                ? 'border-primary bg-primary/10 text-primary font-semibold'
+                                                : 'border-primary/20 bg-primary/5 text-gray-600 dark:text-gray-300 hover:border-primary/40'
+                                        }`}
+                                    >
+                                        <span className="material-symbols-outlined">school</span>
+                                        Diák
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setFormData((prev) => ({ ...prev, szerep: 'tanar' }))}
+                                        className={`flex flex-col items-center gap-1.5 py-3 px-4 rounded-xl border transition-all ${
+                                            formData.szerep === 'tanar'
+                                                ? 'border-primary bg-primary/10 text-primary font-semibold'
+                                                : 'border-primary/20 bg-primary/5 text-gray-600 dark:text-gray-300 hover:border-primary/40'
+                                        }`}
+                                    >
+                                        <span className="material-symbols-outlined">cast_for_education</span>
+                                        Tanár
+                                    </button>
+                                </div>
+                            </div>
+
                             <div>
                                 <label htmlFor="email" className="block text-sm font-medium mb-2 text-primary">
                                     Email cím
@@ -239,10 +292,41 @@ function RegisterPage() {
                                         type="password"
                                         placeholder="••••••••"
                                         required
+                                        maxLength={12}
+                                        value={formData.password}
                                         onChange={handleInputChange}
+                                        onFocus={() => setPasswordFocused(true)}
+                                        onBlur={() => setPasswordFocused(false)}
                                         className="w-full pl-11 pr-4 py-3 bg-primary/5 border border-primary/20 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all dark:text-white"
                                     />
                                 </div>
+
+                                {(passwordFocused || (formData.password.length > 0 && !isPasswordValid)) && (
+                                    <ul className="mt-3 space-y-1.5">
+                                        {[
+                                            { key: 'length', label: '8–12 karakter hosszú' },
+                                            { key: 'uppercase', label: 'Legalább egy nagybetű (A-Z)' },
+                                            { key: 'lowercase', label: 'Legalább egy kisbetű (a-z)' },
+                                            { key: 'number', label: 'Legalább egy szám (0-9)' },
+                                            { key: 'punctuation', label: 'Legalább egy írásjel (pl. ! ? . , @)' }
+                                        ].map(({ key, label }) => {
+                                            const met = passwordRequirements[key]
+                                            return (
+                                                <li
+                                                    key={key}
+                                                    className={`flex items-center gap-2 text-xs transition-colors ${
+                                                        met ? 'text-green-600 dark:text-green-400' : 'text-gray-400 dark:text-gray-500'
+                                                    }`}
+                                                >
+                                                    <span className="material-symbols-outlined text-sm">
+                                                        {met ? 'check_circle' : 'radio_button_unchecked'}
+                                                    </span>
+                                                    {label}
+                                                </li>
+                                            )
+                                        })}
+                                    </ul>
+                                )}
                             </div>
 
                             <div id="password-confirm-container">
