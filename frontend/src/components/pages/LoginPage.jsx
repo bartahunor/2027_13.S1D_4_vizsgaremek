@@ -3,13 +3,16 @@ import React, { useState } from 'react';
 import { supabase } from  '../../lib/supabaseClient';
 import LogoFeher from '../../assets/logofeher.png';
 
-function LoginPage({ setToken }) {
+function LoginPage() {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
     email: '',
     password: ''
   });
+
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   function handleInputChange(e) {
     setFormData((prevData) => {
@@ -23,20 +26,24 @@ function LoginPage({ setToken }) {
 
   async function onSubmit(e) {
     e.preventDefault();
+    setError(null);
+    setLoading(true);
 
-    try {
-      let { data, error } = await supabase.auth.signInWithPassword({
-        email: formData.email,
-        password: formData.password
-      })
-      if (error) throw error;
-      console.log('Signed in successfully:', data);
-      setToken(data);
-      navigate('/');
+    const { error } = await supabase.auth.signInWithPassword({
+      email: formData.email,
+      password: formData.password
+    })
+
+    setLoading(false);
+
+    if (error) {
+      setError('Hibás email cím vagy jelszó.');
+      return;
     }
-    catch (error) {
-      console.error('Error signing in:', error);
-    }
+
+    // Az onAuthStateChange (AuthContext) automatikusan frissíti a session-t,
+    // itt csak navigálunk tovább.
+    navigate('/');
   }
 
   return (
@@ -101,6 +108,16 @@ function LoginPage({ setToken }) {
               </p>
             </div>
 
+            {error && (
+              <div
+                role="alert"
+                className="mb-6 px-4 py-3 rounded-xl text-sm font-medium flex items-start gap-2 bg-red-50 text-red-600 border border-red-200 dark:bg-red-500/10 dark:border-red-500/30 dark:text-red-400"
+              >
+                <span className="material-symbols-outlined text-base mt-0.5">error</span>
+                <span>{error}</span>
+              </div>
+            )}
+
             <form id="auth-form" className="space-y-6" onSubmit={onSubmit}>
               <div>
                 <label
@@ -149,20 +166,8 @@ function LoginPage({ setToken }) {
               </div>
 
 
-              <div id="remember-container" className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <input
-                    id="remember"
-                    type="checkbox"
-                    className="h-4 w-4 text-primary focus:ring-primary border-primary/30 rounded"
-                  />
-                  <label
-                    htmlFor="remember"
-                    className="ml-2 text-sm text-gray-600 dark:text-gray-300"
-                  >
-                    Emlékezz rám
-                  </label>
-                </div>
+              <div id="remember-container" className="flex items-center justify-end">
+                
                 <a
                   href="#"
                   className="text-sm font-semibold text-primary hover:text-primaryLight transition-colors"
@@ -175,9 +180,10 @@ function LoginPage({ setToken }) {
               <button
                 type="submit"
                 id="submit-btn"
-                className="w-full bg-primary hover:bg-primaryLight text-white font-bold py-3.5 rounded-xl transition-all transform active:scale-[0.98] shadow-lg shadow-primary/30"
+                disabled={loading}
+                className="w-full bg-primary hover:bg-primaryLight text-white font-bold py-3.5 rounded-xl transition-all transform active:scale-[0.98] shadow-lg shadow-primary/30 disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                Bejelentkezés
+                {loading ? 'Bejelentkezés...' : 'Bejelentkezés'}
               </button>
             </form>
 
