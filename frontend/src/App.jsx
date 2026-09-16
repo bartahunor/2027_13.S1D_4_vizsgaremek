@@ -8,6 +8,7 @@ import HomePage from './components/pages/HomePage'
 import LoginPage from './components/pages/LoginPage'
 import RegisterPage from './components/pages/RegisterPage'
 import TaskSelection from './components/pages/TaskType'
+import ProfilePage from './components/pages/Profile'
 
 export default function App() {
   return (
@@ -24,6 +25,14 @@ export default function App() {
               element={
                 <ProtectedRoute>
                   <TaskSelection />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profil"
+              element={
+                <ProtectedRoute>
+                  <ProfilePage />
                 </ProtectedRoute>
               }
             />
