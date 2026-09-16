@@ -208,6 +208,7 @@ namespace TudasterAdmin
                 BorderBrush = (System.Windows.Media.Brush)FindResource("BorderBrush"),
                 BorderThickness = new Thickness(1)
             };
+            searchBox.TextChanged += SearchBox_TextChanged;
 
             searchBox.Text = "Keresés a feladatok között...";
 
@@ -226,12 +227,35 @@ namespace TudasterAdmin
 
             addButton.Click += AddTaskButton_Click;
 
-            Grid.SetColumn(searchBox, 0);
-            Grid.SetColumn(addButton, 1);
+            Button editButton = new Button
+            {
+                Content = "SZERKESZTÉS",
+                Height = 42,
+                Width = 140,
+                Margin = new Thickness(15, 0, 0, 0),
+                Background = (System.Windows.Media.Brush)FindResource("PrimaryLightBrush"),
+                Foreground = (System.Windows.Media.Brush)FindResource("WhiteBrush"),
+                BorderThickness = new Thickness(0),
+                FontWeight = FontWeights.SemiBold,
+                Cursor = System.Windows.Input.Cursors.Hand
+            };
 
+            editButton.Click += EditTaskButton_Click;
+
+            Grid.SetColumn(searchBox, 0);
+
+            StackPanel buttonPanel = new StackPanel
+            {
+                Orientation = Orientation.Horizontal
+            };
+
+            buttonPanel.Children.Add(addButton);
+            buttonPanel.Children.Add(editButton);
+
+            Grid.SetColumn(buttonPanel, 1);
 
             toolbar.Children.Add(searchBox);
-            toolbar.Children.Add(addButton);
+            toolbar.Children.Add(buttonPanel);
 
 
             // Táblázat
@@ -250,6 +274,7 @@ namespace TudasterAdmin
             };
 
             _taskGrid.ItemsSource = _tasks;
+            _taskGrid.MouseDoubleClick += TaskGrid_MouseDoubleClick;
 
             Button deleteButton = new Button
             {
@@ -271,7 +296,7 @@ namespace TudasterAdmin
             {
                 Header = "ID",
                 Binding = new System.Windows.Data.Binding("Id"),
-                Width = 70
+                Width = 60
             });
 
             _taskGrid.Columns.Add(new DataGridTextColumn
@@ -285,14 +310,35 @@ namespace TudasterAdmin
             {
                 Header = "Tantárgy",
                 Binding = new System.Windows.Data.Binding("Subject"),
-                Width = 150
+                Width = 130
             });
 
             _taskGrid.Columns.Add(new DataGridTextColumn
             {
                 Header = "Témakör",
                 Binding = new System.Windows.Data.Binding("Topic"),
-                Width = 180
+                Width = 160
+            });
+
+            _taskGrid.Columns.Add(new DataGridTextColumn
+            {
+                Header = "Szint",
+                Binding = new System.Windows.Data.Binding("Level"),
+                Width = 110
+            });
+
+            _taskGrid.Columns.Add(new DataGridTextColumn
+            {
+                Header = "Év",
+                Binding = new System.Windows.Data.Binding("Year"),
+                Width = 70
+            });
+
+            _taskGrid.Columns.Add(new DataGridTextColumn
+            {
+                Header = "Pont",
+                Binding = new System.Windows.Data.Binding("Points"),
+                Width = 70
             });
 
             _taskGrid.Columns.Add(new DataGridTextColumn
@@ -300,10 +346,10 @@ namespace TudasterAdmin
                 Header = "Állapot",
                 Binding = new System.Windows.Data.Binding("Status"),
                 Width = 140
-            }
+            });
 
             // Tesztadatok
-            );
+            
 
 
             mainPanel.Children.Add(title);
@@ -325,6 +371,16 @@ namespace TudasterAdmin
 
             public string Topic { get; set; } = "";
 
+            public string Level { get; set; } = "";
+
+            public string Year { get; set; } = "";
+
+            public string Points { get; set; } = "";
+
+            public string Answer { get; set; } = "";
+
+            public string Explanation { get; set; } = "";
+
             public string Status { get; set; } = "";
         }
 
@@ -339,12 +395,11 @@ namespace TudasterAdmin
 
             if (result == true && taskWindow.CreatedTask != null)
             {
-                taskWindow.CreatedTask.Id = _nextTaskId;
-                _nextTaskId++;
+                taskWindow.CreatedTask.Id = _nextTaskId++;
 
                 _tasks.Add(taskWindow.CreatedTask);
 
-                ShowTasksPage();
+                _taskGrid?.Items.Refresh();
             }
         }
 
@@ -378,7 +433,83 @@ namespace TudasterAdmin
             }
         }
 
+        private void EditTaskButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (_taskGrid == null)
+                return;
 
+            if (_taskGrid.SelectedItem is not TaskItem selectedTask)
+            {
+                MessageBox.Show(
+                    "Először válassz ki egy feladatot.",
+                    "Nincs kiválasztott feladat",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+
+                return;
+            }
+
+            TaskWindow taskWindow = new TaskWindow(selectedTask)
+            {
+                Owner = this
+            };
+
+            bool? result = taskWindow.ShowDialog();
+
+            if (result == true)
+            {
+                _taskGrid.Items.Refresh();
+            }
+        }
+
+        private void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (_taskGrid == null)
+                return;
+
+            if (sender is not TextBox searchBox)
+                return;
+
+            string searchText = searchBox.Text.Trim().ToLower();
+
+            if (string.IsNullOrWhiteSpace(searchText))
+            {
+                _taskGrid.ItemsSource = _tasks;
+                return;
+            }
+
+            var filteredTasks = _tasks.Where(task =>
+                task.Title.ToLower().Contains(searchText) ||
+                task.Subject.ToLower().Contains(searchText) ||
+                task.Topic.ToLower().Contains(searchText) ||
+                task.Level.ToLower().Contains(searchText) ||
+                task.Year.ToLower().Contains(searchText)
+            ).ToList();
+
+            _taskGrid.ItemsSource = filteredTasks;
+        }
+
+        private void TaskGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            if (_taskGrid == null)
+                return;
+
+            if (_taskGrid.SelectedItem is not TaskItem selectedTask)
+                return;
+
+            MessageBox.Show(
+                $"Feladat:\n\n{selectedTask.Title}\n\n" +
+                $"Tantárgy: {selectedTask.Subject}\n" +
+                $"Témakör: {selectedTask.Topic}\n" +
+                $"Szint: {selectedTask.Level}\n" +
+                $"Év: {selectedTask.Year}\n" +
+                $"Pontszám: {selectedTask.Points}\n\n" +
+                $"Helyes válasz:\n{selectedTask.Answer}\n\n" +
+                $"Magyarázat:\n{selectedTask.Explanation}",
+                "Feladat részletei",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
+        }
 
 
     }

@@ -31,9 +31,15 @@ namespace TudasterAdmin
 
             _editingTask = task;
 
+            // Szöveges mezők visszatöltése
             TaskTextBox.Text = task.Title;
             TopicTextBox.Text = task.Topic;
+            YearTextBox.Text = task.Year;
+            PointsTextBox.Text = task.Points;
+            AnswerTextBox.Text = task.Answer;
+            ExplanationTextBox.Text = task.Explanation;
 
+            // Tantárgy visszatöltése
             foreach (ComboBoxItem item in SubjectComboBox.Items)
             {
                 if (item.Content?.ToString() == task.Subject)
@@ -42,7 +48,18 @@ namespace TudasterAdmin
                     break;
                 }
             }
+
+            // Szint visszatöltése
+            foreach (ComboBoxItem item in LevelComboBox.Items)
+            {
+                if (item.Content?.ToString() == task.Level)
+                {
+                    LevelComboBox.SelectedItem = item;
+                    break;
+                }
+            }
         }
+        
 
         private void CancelButton_Click(object sender, RoutedEventArgs e)
         {
@@ -53,6 +70,10 @@ namespace TudasterAdmin
         {
             string taskText = TaskTextBox.Text.Trim();
             string topic = TopicTextBox.Text.Trim();
+            string year = YearTextBox.Text.Trim();
+            string points = PointsTextBox.Text.Trim();
+            string answer = AnswerTextBox.Text.Trim();
+            string explanation = ExplanationTextBox.Text.Trim();
 
             if (string.IsNullOrWhiteSpace(taskText))
             {
@@ -90,19 +111,30 @@ namespace TudasterAdmin
             ComboBoxItem subjectItem =
                 (ComboBoxItem)SubjectComboBox.SelectedItem;
 
+            ComboBoxItem levelItem =
+                (ComboBoxItem)LevelComboBox.SelectedItem;
+
             string subject =
                 subjectItem.Content?.ToString() ?? "";
 
-            // Ha szerkesztünk
+            string level =
+                levelItem.Content?.ToString() ?? "";
+
+            // Szerkesztés
             if (_editingTask != null)
             {
                 _editingTask.Title = taskText;
                 _editingTask.Subject = subject;
                 _editingTask.Topic = topic;
+                _editingTask.Level = level;
+                _editingTask.Year = year;
+                _editingTask.Points = points;
+                _editingTask.Answer = answer;
+                _editingTask.Explanation = explanation;
 
                 CreatedTask = _editingTask;
             }
-            // Ha új feladatot hozunk létre
+            // Új feladat
             else
             {
                 CreatedTask = new TaskItem
@@ -110,6 +142,11 @@ namespace TudasterAdmin
                     Title = taskText,
                     Subject = subject,
                     Topic = topic,
+                    Level = level,
+                    Year = year,
+                    Points = points,
+                    Answer = answer,
+                    Explanation = explanation,
                     Status = "Ellenőrzésre vár"
                 };
             }
