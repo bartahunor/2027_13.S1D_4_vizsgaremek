@@ -35,9 +35,12 @@ export default function Navbar() {
 
             {loading ? null : user ? (
               <div className="flex items-center gap-4">
-                <span className="text-slate-700 font-medium">
+                <Link
+                  to="/profil"
+                  className="text-slate-700 hover:text-primary font-medium transition-colors"
+                >
                   {user.user_metadata?.felhasznalonev ?? user.email}
-                </span>
+                </Link>
                 <button
                   onClick={handleSignOut}
                   className="bg-slate-900 text-white px-6 py-2.5 rounded-lg font-bold hover:bg-primary/90 transition-all shadow-md"
