@@ -10,6 +10,9 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using static TudasterAdmin.MainWindow;
+using System.Linq;
+
+
 
 namespace TudasterAdmin
 {
@@ -19,10 +22,12 @@ namespace TudasterAdmin
 
         private readonly ObservableCollection<TaskItem> _tasks = new();
         private int _nextTaskId = 5;
+        private DataGrid? _taskGrid;
         public MainWindow()
         {
             InitializeComponent();
 
+            LoadTestTasks();
             LoadDashboardData();
         }
 
@@ -224,11 +229,13 @@ namespace TudasterAdmin
             Grid.SetColumn(searchBox, 0);
             Grid.SetColumn(addButton, 1);
 
+
             toolbar.Children.Add(searchBox);
             toolbar.Children.Add(addButton);
 
+
             // Táblázat
-            DataGrid taskGrid = new DataGrid
+            _taskGrid = new DataGrid
             {
                 Margin = new Thickness(0, 20, 0, 0),
                 AutoGenerateColumns = false,
@@ -236,42 +243,59 @@ namespace TudasterAdmin
                 HeadersVisibility = DataGridHeadersVisibility.Column,
                 RowHeight = 48,
                 FontSize = 13,
-                Background = (System.Windows.Media.Brush)FindResource("WhiteBrush"),
-                BorderBrush = (System.Windows.Media.Brush)FindResource("BorderBrush"),
-                BorderThickness = new Thickness(1)
+                Background = (Brush)FindResource("WhiteBrush"),
+                BorderBrush = (Brush)FindResource("BorderBrush"),
+                BorderThickness = new Thickness(1),
+                SelectionMode = DataGridSelectionMode.Single
             };
 
-            taskGrid.ItemsSource = _tasks;
+            _taskGrid.ItemsSource = _tasks;
 
-            taskGrid.Columns.Add(new DataGridTextColumn
+            Button deleteButton = new Button
+            {
+                Content = "KIVÁLASZTOTT FELADAT TÖRLÉSE",
+                Height = 42,
+                Width = 230,
+                Margin = new Thickness(0, 15, 0, 0),
+                Background = Brushes.Transparent,
+                Foreground = (Brush)FindResource("TextBrush"),
+                BorderBrush = (Brush)FindResource("BorderBrush"),
+                BorderThickness = new Thickness(1),
+                FontWeight = FontWeights.SemiBold,
+                Cursor = Cursors.Hand
+            };
+
+            deleteButton.Click += DeleteTaskButton_Click;
+
+            _taskGrid.Columns.Add(new DataGridTextColumn
             {
                 Header = "ID",
                 Binding = new System.Windows.Data.Binding("Id"),
                 Width = 70
             });
 
-            taskGrid.Columns.Add(new DataGridTextColumn
+            _taskGrid.Columns.Add(new DataGridTextColumn
             {
                 Header = "Feladat",
                 Binding = new System.Windows.Data.Binding("Title"),
                 Width = new DataGridLength(1, DataGridLengthUnitType.Star)
             });
 
-            taskGrid.Columns.Add(new DataGridTextColumn
+            _taskGrid.Columns.Add(new DataGridTextColumn
             {
                 Header = "Tantárgy",
                 Binding = new System.Windows.Data.Binding("Subject"),
                 Width = 150
             });
 
-            taskGrid.Columns.Add(new DataGridTextColumn
+            _taskGrid.Columns.Add(new DataGridTextColumn
             {
                 Header = "Témakör",
                 Binding = new System.Windows.Data.Binding("Topic"),
                 Width = 180
             });
 
-            taskGrid.Columns.Add(new DataGridTextColumn
+            _taskGrid.Columns.Add(new DataGridTextColumn
             {
                 Header = "Állapot",
                 Binding = new System.Windows.Data.Binding("Status"),
@@ -281,10 +305,12 @@ namespace TudasterAdmin
             // Tesztadatok
             );
 
+
             mainPanel.Children.Add(title);
             mainPanel.Children.Add(subtitle);
             mainPanel.Children.Add(toolbar);
-            mainPanel.Children.Add(taskGrid);
+            mainPanel.Children.Add(_taskGrid);
+            mainPanel.Children.Add(deleteButton);
 
             ContentArea.Content = mainPanel;
         }
@@ -304,8 +330,10 @@ namespace TudasterAdmin
 
         private void AddTaskButton_Click(object sender, RoutedEventArgs e)
         {
-            TaskWindow taskWindow = new TaskWindow();
-            taskWindow.Owner = this;
+            TaskWindow taskWindow = new TaskWindow
+            {
+                Owner = this
+            };
 
             bool? result = taskWindow.ShowDialog();
 
@@ -319,7 +347,39 @@ namespace TudasterAdmin
                 ShowTasksPage();
             }
         }
-        
+
+        private void DeleteTaskButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (_taskGrid == null)
+            {
+                return;
+            }
+
+            if (_taskGrid.SelectedItem is not TaskItem selectedTask)
+            {
+                MessageBox.Show(
+                    "Először válassz ki egy feladatot.",
+                    "Nincs kiválasztott feladat",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+
+                return;
+            }
+
+            MessageBoxResult result = MessageBox.Show(
+                $"Biztosan törölni szeretnéd ezt a feladatot?\n\n{selectedTask.Title}",
+                "Feladat törlése",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+
+            if (result == MessageBoxResult.Yes)
+            {
+                _tasks.Remove(selectedTask);
+            }
+        }
+
+
+
 
     }
 }
