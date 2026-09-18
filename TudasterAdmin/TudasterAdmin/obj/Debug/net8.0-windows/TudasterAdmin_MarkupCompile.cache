@@ -10,11 +10,11 @@ none
 false
 TRACE;DEBUG;NET;NET8_0;NETCOREAPP;WINDOWS;WINDOWS7_0;NET5_0_OR_GREATER;NET6_0_OR_GREATER;NET7_0_OR_GREATER;NET8_0_OR_GREATER;NETCOREAPP3_0_OR_GREATER;NETCOREAPP3_1_OR_GREATER;WINDOWS7_0_OR_GREATER
 C:\Users\KeseruFruzsina\Documents\GitHub\2027_13.S1D_4_vizsgaremek\TudasterAdmin\TudasterAdmin\App.xaml
-31192102717
+41240395763
 
-61050960453
+7-609679622
 198-1551921639
-LoginWindow.xaml;MainWindow.xaml;TaskWindow.xaml;
+LoginWindow.xaml;MainWindow.xaml;TaskDetailsWindow.xaml;TaskWindow.xaml;
 
 False
 

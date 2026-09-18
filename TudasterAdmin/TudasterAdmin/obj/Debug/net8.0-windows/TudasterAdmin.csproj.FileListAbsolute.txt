@@ -23,3 +23,5 @@ C:\Users\KeseruFruzsina\Documents\GitHub\2027_13.S1D_4_vizsgaremek\TudasterAdmin
 C:\Users\KeseruFruzsina\Documents\GitHub\2027_13.S1D_4_vizsgaremek\TudasterAdmin\TudasterAdmin\obj\Debug\net8.0-windows\LoginWindow.g.cs
 C:\Users\KeseruFruzsina\Documents\GitHub\2027_13.S1D_4_vizsgaremek\TudasterAdmin\TudasterAdmin\obj\Debug\net8.0-windows\TaskWindow.baml
 C:\Users\KeseruFruzsina\Documents\GitHub\2027_13.S1D_4_vizsgaremek\TudasterAdmin\TudasterAdmin\obj\Debug\net8.0-windows\TaskWindow.g.cs
+C:\Users\KeseruFruzsina\Documents\GitHub\2027_13.S1D_4_vizsgaremek\TudasterAdmin\TudasterAdmin\obj\Debug\net8.0-windows\TaskDetailsWindow.baml
+C:\Users\KeseruFruzsina\Documents\GitHub\2027_13.S1D_4_vizsgaremek\TudasterAdmin\TudasterAdmin\obj\Debug\net8.0-windows\TaskDetailsWindow.g.cs
