@@ -1,9 +1,12 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { apiFetch } from  '../../lib/apiClient';
 
 function TaskSelection() {
     // =========================
     // ÁLLAPOTOK
     // =========================
+    const navigate = useNavigate();
 
     const [subjects, setSubjects] = useState([]);
     const [levels, setLevels] = useState([]);
@@ -25,85 +28,11 @@ function TaskSelection() {
 
     useEffect(() => {
 
-        const loadData = async () => {
+        const loadSubjects = async () => {
             try {
                 setLoading(true);
-
-                /*
-                 * MOST MÉG TESZT ADATOK
-                 *
-                 * Később ezt az egész részt lecserélheted
-                 * API hívásokra.
-                 */
-
-                const subjectData = [
-                    {
-                        id: 1,
-                        name: "Angol nyelv",
-                    },
-                    {
-                        id: 2,
-                        name: "Történelem",
-                    },
-                    {
-                        id: 3,
-                        name: "Irodalom",
-                    },
-                    {
-                        id: 4,
-                        name: "Biológia",
-                    },
-                ];
-
-                const levelData = [
-                    {
-                        id: 1,
-                        value: "kozep",
-                        name: "Középszint",
-                    },
-                    {
-                        id: 2,
-                        value: "emelt",
-                        name: "Emelt szint",
-                    },
-                ];
-
-                const yearData = [
-                    {
-                        id: 1,
-                        value: "2024",
-                        name: "2024",
-                    },
-                    {
-                        id: 2,
-                        value: "2023",
-                        name: "2023",
-                    },
-                    {
-                        id: 3,
-                        value: "2022",
-                        name: "2022",
-                    },
-                ];
-
-                const topicData = [
-                    {
-                        id: 1,
-                        value: "Irodalom",
-                        name: "Irodalom",
-                    },
-                    {
-                        id: 2,
-                        value: "Történelem",
-                        name: "Történelem",
-                    },
-                ];
-
-                setSubjects(subjectData);
-                setLevels(levelData);
-                setYears(yearData);
-                setTopics(topicData);
-
+                const data = await apiFetch('/taskroutes/subjects');
+                setSubjects(data);
             } catch (err) {
                 setError("Nem sikerült betölteni az adatokat.");
                 console.error(err);
@@ -111,19 +40,56 @@ function TaskSelection() {
                 setLoading(false);
             }
         };
+        loadSubjects();
 
-        loadData();
 
     }, []);
+
+    const LEVEL_LABELS = {
+        kozep: 'Közép szint',
+        emelt: 'Emelt szint',
+    };
+
+    useEffect(() => {
+        if (!selectedSubject) {
+            setLevels([]);
+            setYears([]);
+            setTopics([]);
+            return;
+        }
+
+        const loadDependentData = async () => {
+            try {
+                const [levelData, yearData, topicData] = await Promise.all([
+                    apiFetch(`/taskroutes/level?tantargy_id=${selectedSubject}`),
+                    apiFetch(`/taskroutes/year?tantargy_id=${selectedSubject}`),
+                    apiFetch(`/taskroutes/topics?tantargy_id=${selectedSubject}`),
+                ]);
+
+                const formattedLevels = levelData.map((item) => ({
+                    id: item.szint,
+                    value: item.szint,
+                    name: LEVEL_LABELS[item.szint] ?? item.szint,
+                }));
+
+                setLevels(formattedLevels);
+                setYears(yearData);
+                setTopics(topicData);
+            } catch (err) {
+                setError("Nem sikerült betölteni a tantárgyhoz tartozó adatokat.");
+                console.error(err);
+            }
+        };
+
+        loadDependentData();
+    }, [selectedSubject]);
 
 
     // =========================
     // KIVÁLASZTÁSOK
     // =========================
 
-    const handleSubjectSelect = (subject) => {
-        setSelectedSubject(subject);
-    };
+    
 
 
     const handleLevelSelect = (level) => {
@@ -166,32 +132,17 @@ function TaskSelection() {
 
 
     const handleStart = () => {
-
         if (!isReady) return;
 
-        const selection = {
+        const params = new URLSearchParams({
             subject: selectedSubject,
             level: selectedLevel,
-            year: selectedYear || null,
-            topic: selectedTopic || null,
-        };
+        });
 
-        console.log("Kiválasztott paraméterek:", selection);
+        if (selectedYear) params.set('year', selectedYear);
+        if (selectedTopic) params.set('topic', selectedTopic);
 
-        /*
-         * KÉSŐBB IDE JÖHET:
-         *
-         * navigate("/gyakorlas", {
-         *     state: selection
-         * });
-         *
-         * vagy API kérés:
-         *
-         * fetch("/api/feladatok", {
-         *     method: "POST",
-         *     body: JSON.stringify(selection)
-         * });
-         */
+        navigate(`/practice?${params.toString()}`);
     };
 
 
@@ -220,11 +171,6 @@ function TaskSelection() {
         );
     }
 
-
-    // =========================
-    // JSX
-    // =========================
-
     return (
         <div className="relative min-h-screen bg-backgroundLight overflow-hidden">
 
@@ -239,10 +185,7 @@ function TaskSelection() {
                     backgroundSize: "40px 40px",
                 }}
             />
-            {/* =========================
-                MAIN
-            ========================= */}
-
+            
             <main className="max-w-7xl mx-auto px-6 py-50">
 
 
@@ -286,8 +229,8 @@ function TaskSelection() {
                                 <option value="">Válassz tantárgyat</option>
 
                                 {subjects.map((subject) => (
-                                    <option key={subject.id} value={subject.name}>
-                                        {subject.name}
+                                    <option key={subject.id} value={subject.id}>
+                                        {subject.nev}
                                     </option>
                                 ))}
                             </select>
@@ -384,9 +327,9 @@ function TaskSelection() {
 
                                         <option
                                             key={year.id}
-                                            value={year.value}
+                                            value={year.ev}
                                         >
-                                            {year.name}
+                                            {year.ev}
                                         </option>
 
                                     ))}
@@ -420,9 +363,9 @@ function TaskSelection() {
 
                                         <option
                                             key={topic.id}
-                                            value={topic.value}
+                                            value={topic.nev}
                                         >
-                                            {topic.name}
+                                            {topic.nev}
                                         </option>
 
                                     ))}
