@@ -9,6 +9,7 @@ import LoginPage from './components/pages/LoginPage'
 import RegisterPage from './components/pages/RegisterPage'
 import TaskSelection from './components/pages/TaskType'
 import ProfilePage from './components/pages/Profile'
+import PracticePage from './components/pages/Practice'
 
 export default function App() {
   return (
@@ -33,6 +34,14 @@ export default function App() {
               element={
                 <ProtectedRoute>
                   <ProfilePage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/practice"
+              element={
+                <ProtectedRoute>
+                  <PracticePage />
                 </ProtectedRoute>
               }
             />

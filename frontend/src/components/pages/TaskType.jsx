@@ -363,7 +363,7 @@ function TaskSelection() {
 
                                         <option
                                             key={topic.id}
-                                            value={topic.nev}
+                                            value={topic.id}
                                         >
                                             {topic.nev}
                                         </option>

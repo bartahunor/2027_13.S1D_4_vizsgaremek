@@ -110,4 +110,66 @@ router.get('/level', async (req, res, next) => {
   }
 })
 
+//Feladatok lekérése tantárgy id/szint/év vagy témakör id alapján
+router.get('/chosentasks', async (req, res, next) => {
+  try {
+    const { tantargy_id, szint, ev, temakor_id } = req.query
+
+    const tantargyIdSzam = Number(tantargy_id)
+    if (!Number.isInteger(tantargyIdSzam) || tantargyIdSzam <= 0) {
+      return res.status(400).json({ error: 'A tantargy_id paraméter kötelező és érvényes egész szám kell legyen' })
+    }
+
+    if (!szint || typeof szint !== 'string') {
+      return res.status(400).json({ error: 'A szint paraméter kötelező' })
+    }
+
+    if (!ev && !temakor_id) {
+      return res.status(400).json({ error: 'Az ev vagy a temakor_id paraméterek közül legalább az egyik kötelező' })
+    }
+
+    if (ev && temakor_id) {
+      return res.status(400).json({ error: 'Az ev és a temakor_id paraméterek közül csak az egyik adható meg' })
+    }
+
+    let szuroFeltetel
+    if (ev) {
+      const evSzam = Number(ev)
+      if (!Number.isInteger(evSzam) || evSzam <= 0) {
+        return res.status(400).json({ error: 'Az ev paraméter érvényes egész szám kell legyen' })
+      }
+      szuroFeltetel = sql`and ev.ev = ${evSzam}`
+    } else {
+      const temakorIdSzam = Number(temakor_id)
+      if (!Number.isInteger(temakorIdSzam) || temakorIdSzam <= 0) {
+        return res.status(400).json({ error: 'A temakor_id paraméter érvényes egész szám kell legyen' })
+      }
+      szuroFeltetel = sql`and temakorok.id = ${temakorIdSzam}`
+    }
+
+    const rows = await sql`
+      select
+        feladatok.id,
+        feladatok.tipus,
+        feladatok.kerdes,
+        feladatok.valaszok,
+        forrasok.szoveg as forras_szoveg,
+        forrasok.kep as forras_kep
+      from feladatok
+      join temakorok on temakorok.id = feladatok.temakor_id
+      join ev on ev.id = feladatok.ev_id
+      left join forrasok on forrasok.id = feladatok.forras_id
+      where temakorok.tantargy_id = ${tantargyIdSzam}
+        and ev.szint = ${szint}
+        ${szuroFeltetel}
+      order by feladatok.id
+    `
+
+
+    res.json(rows)
+  } catch (err) {
+    next(err)
+  }
+})
+
 export default router
