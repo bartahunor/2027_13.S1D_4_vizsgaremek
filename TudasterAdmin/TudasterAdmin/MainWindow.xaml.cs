@@ -257,12 +257,12 @@ namespace TudasterAdmin
 
         private void StatisticsButton_Click(object sender, RoutedEventArgs e)
         {
-            ShowPage("Statisztikák", "Felhasználói és rendszerstatisztikák.");
+            ShowStatisticsPage();
         }
 
         private void SettingsButton_Click(object sender, RoutedEventArgs e)
         {
-            ShowPage("Beállítások", "A rendszer beállításainak kezelése.");
+            ShowSettingsPage();
         }
 
         private void ShowPage(string title, string description)
@@ -434,6 +434,390 @@ namespace TudasterAdmin
             };
 
             ContentArea.Content = scrollViewer;
+        }
+
+        private void ShowSettingsPage()
+        {
+            PageTitleText.Text = "Beállítások";
+            PageSubtitleText.Text = "A Tudástér adminisztrációs alkalmazás beállításai.";
+
+            var mainPanel = new StackPanel();
+
+            // Értesítések
+            var notificationCard = new Border
+            {
+                Background = Brushes.White,
+                CornerRadius = new CornerRadius(12),
+                Padding = new Thickness(20),
+                Margin = new Thickness(0, 0, 0, 15)
+            };
+
+            var notificationPanel = new StackPanel();
+
+            notificationPanel.Children.Add(new TextBlock
+            {
+                Text = "Értesítések",
+                FontSize = 18,
+                FontWeight = FontWeights.SemiBold,
+                Foreground = (Brush)FindResource("TextBrush")
+            });
+
+            notificationPanel.Children.Add(new TextBlock
+            {
+                Text = "Rendszerértesítések megjelenítése.",
+                FontSize = 14,
+                Foreground = (Brush)FindResource("MutedTextBrush"),
+                Margin = new Thickness(0, 5, 0, 15)
+            });
+
+            var notificationCheckBox = new CheckBox
+            {
+                Content = "Értesítések engedélyezése",
+                IsChecked = true,
+                FontSize = 14,
+                Foreground = (Brush)FindResource("TextBrush")
+            };
+
+            notificationPanel.Children.Add(notificationCheckBox);
+
+            notificationCard.Child = notificationPanel;
+            mainPanel.Children.Add(notificationCard);
+
+
+            // Automatikus mentés
+            var backupCard = new Border
+            {
+                Background = Brushes.White,
+                CornerRadius = new CornerRadius(12),
+                Padding = new Thickness(20),
+                Margin = new Thickness(0, 0, 0, 15)
+            };
+
+            var backupPanel = new StackPanel();
+
+            backupPanel.Children.Add(new TextBlock
+            {
+                Text = "Automatikus mentés",
+                FontSize = 18,
+                FontWeight = FontWeights.SemiBold,
+                Foreground = (Brush)FindResource("TextBrush")
+            });
+
+            backupPanel.Children.Add(new TextBlock
+            {
+                Text = "Az alkalmazás adatainak automatikus mentése.",
+                FontSize = 14,
+                Foreground = (Brush)FindResource("MutedTextBrush"),
+                Margin = new Thickness(0, 5, 0, 15)
+            });
+
+            var backupCheckBox = new CheckBox
+            {
+                Content = "Automatikus mentés engedélyezése",
+                IsChecked = true,
+                FontSize = 14,
+                Foreground = (Brush)FindResource("TextBrush")
+            };
+
+            backupPanel.Children.Add(backupCheckBox);
+
+            backupPanel.Children.Add(new TextBlock
+            {
+                Text = "Mentés gyakorisága",
+                FontSize = 14,
+                Foreground = (Brush)FindResource("TextBrush"),
+                Margin = new Thickness(0, 20, 0, 8)
+            });
+
+            var backupComboBox = new ComboBox
+            {
+                Width = 180,
+                Height = 38,
+                FontSize = 14
+            };
+
+            backupComboBox.Items.Add("5 perc");
+            backupComboBox.Items.Add("15 perc");
+            backupComboBox.Items.Add("30 perc");
+            backupComboBox.Items.Add("60 perc");
+
+            backupComboBox.SelectedIndex = 1;
+
+            backupPanel.Children.Add(backupComboBox);
+
+            backupCard.Child = backupPanel;
+            mainPanel.Children.Add(backupCard);
+
+
+            // Alkalmazás információ
+            var infoCard = new Border
+            {
+                Background = Brushes.White,
+                CornerRadius = new CornerRadius(12),
+                Padding = new Thickness(20),
+                Margin = new Thickness(0, 0, 0, 15)
+            };
+
+            var infoPanel = new StackPanel();
+
+            infoPanel.Children.Add(new TextBlock
+            {
+                Text = "Alkalmazás információ",
+                FontSize = 18,
+                FontWeight = FontWeights.SemiBold,
+                Foreground = (Brush)FindResource("TextBrush")
+            });
+
+            infoPanel.Children.Add(new TextBlock
+            {
+                Text = "Tudástér Admin",
+                FontSize = 15,
+                Foreground = (Brush)FindResource("TextBrush"),
+                Margin = new Thickness(0, 12, 0, 5)
+            });
+
+            infoPanel.Children.Add(new TextBlock
+            {
+                Text = "Adminisztrációs alkalmazás",
+                FontSize = 14,
+                Foreground = (Brush)FindResource("MutedTextBrush")
+            });
+
+            infoPanel.Children.Add(new TextBlock
+            {
+                Text = "Verzió: 1.0.0",
+                FontSize = 14,
+                Foreground = (Brush)FindResource("MutedTextBrush"),
+                Margin = new Thickness(0, 5, 0, 0)
+            });
+
+            infoCard.Child = infoPanel;
+            mainPanel.Children.Add(infoCard);
+
+
+            // Mentés gomb
+            var saveButton = new Button
+            {
+                Content = "BEÁLLÍTÁSOK MENTÉSE",
+                Width = 220,
+                Height = 42,
+                HorizontalAlignment = HorizontalAlignment.Left,
+                Margin = new Thickness(0, 5, 0, 20)
+            };
+
+            saveButton.Click += (sender, e) =>
+            {
+                MessageBox.Show(
+                    "A beállítások mentése sikeres.",
+                    "Beállítások",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+            };
+
+            mainPanel.Children.Add(saveButton);
+
+
+            var scrollViewer = new ScrollViewer
+            {
+                VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+                Content = mainPanel
+            };
+
+            ContentArea.Content = scrollViewer;
+        }
+
+        private void ShowStatisticsPage()
+        {
+            PageTitleText.Text = "Statisztikák";
+            PageSubtitleText.Text = "A Tudástér rendszer adatainak összesítése.";
+
+            var mainPanel = new StackPanel();
+
+            int totalTasks = _tasks.Count;
+            int totalExamSets = _examSets.Count;
+            int totalSubjects = _subjects.Count;
+            int totalUsers = _users.Count;
+
+            int checkedTasks = _tasks.Count(t => t.Status == "Ellenőrzött");
+            int pendingTasks = _tasks.Count(t => t.Status == "Ellenőrzésre vár");
+
+            var title = new TextBlock
+            {
+                Text = "Rendszer áttekintése",
+                FontSize = 22,
+                FontWeight = FontWeights.Bold,
+                Foreground = (Brush)FindResource("TextBrush"),
+                Margin = new Thickness(0, 0, 0, 20)
+            };
+
+            mainPanel.Children.Add(title);
+
+            var statsGrid = new Grid();
+
+            for (int i = 0; i < 4; i++)
+            {
+                statsGrid.ColumnDefinitions.Add(
+                    new ColumnDefinition
+                    {
+                        Width = new GridLength(1, GridUnitType.Star)
+                    });
+            }
+
+            AddStatisticCard(
+                statsGrid,
+                0,
+                "FELADATOK",
+                totalTasks.ToString());
+
+            AddStatisticCard(
+                statsGrid,
+                1,
+                "FELADATSOROK",
+                totalExamSets.ToString());
+
+            AddStatisticCard(
+                statsGrid,
+                2,
+                "TANTÁRGYAK",
+                totalSubjects.ToString());
+
+            AddStatisticCard(
+                statsGrid,
+                3,
+                "FELHASZNÁLÓK",
+                totalUsers.ToString());
+
+            mainPanel.Children.Add(statsGrid);
+
+            var taskStatusTitle = new TextBlock
+            {
+                Text = "Feladatok állapota",
+                FontSize = 20,
+                FontWeight = FontWeights.SemiBold,
+                Foreground = (Brush)FindResource("TextBrush"),
+                Margin = new Thickness(0, 30, 0, 15)
+            };
+
+            mainPanel.Children.Add(taskStatusTitle);
+
+            var statusGrid = new Grid();
+
+            statusGrid.ColumnDefinitions.Add(
+                new ColumnDefinition
+                {
+                    Width = new GridLength(1, GridUnitType.Star)
+                });
+
+            statusGrid.ColumnDefinitions.Add(
+                new ColumnDefinition
+                {
+                    Width = new GridLength(1, GridUnitType.Star)
+                });
+
+            AddStatisticCard(
+                statusGrid,
+                0,
+                "ELLENŐRZÖTT",
+                checkedTasks.ToString());
+
+            AddStatisticCard(
+                statusGrid,
+                1,
+                "ELLENŐRZÉSRE VÁR",
+                pendingTasks.ToString());
+
+            mainPanel.Children.Add(statusGrid);
+
+            var subjectTitle = new TextBlock
+            {
+                Text = "Feladatok tantárgyanként",
+                FontSize = 20,
+                FontWeight = FontWeights.SemiBold,
+                Foreground = (Brush)FindResource("TextBrush"),
+                Margin = new Thickness(0, 30, 0, 15)
+            };
+
+            mainPanel.Children.Add(subjectTitle);
+
+            foreach (var subject in _subjects)
+            {
+                var subjectCard = new Border
+                {
+                    Background = Brushes.White,
+                    CornerRadius = new CornerRadius(12),
+                    Padding = new Thickness(20),
+                    Margin = new Thickness(0, 0, 0, 10)
+                };
+
+                var subjectPanel = new StackPanel();
+
+                subjectPanel.Children.Add(new TextBlock
+                {
+                    Text = subject.Name,
+                    FontSize = 17,
+                    FontWeight = FontWeights.SemiBold,
+                    Foreground = (Brush)FindResource("TextBrush")
+                });
+
+                subjectPanel.Children.Add(new TextBlock
+                {
+                    Text = $"{subject.TaskCount} feladat",
+                    FontSize = 14,
+                    Foreground = (Brush)FindResource("MutedTextBrush"),
+                    Margin = new Thickness(0, 5, 0, 0)
+                });
+
+                subjectCard.Child = subjectPanel;
+
+                mainPanel.Children.Add(subjectCard);
+            }
+
+            var scrollViewer = new ScrollViewer
+            {
+                VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+                Content = mainPanel
+            };
+
+            ContentArea.Content = scrollViewer;
+        }
+
+        private void AddStatisticCard(
+            Grid grid,
+            int column,
+            string title,
+            string value)
+        {
+            var card = new Border
+            {
+                Background = Brushes.White,
+                CornerRadius = new CornerRadius(12),
+                Padding = new Thickness(20),
+                Margin = new Thickness(0, 0, 10, 0)
+            };
+
+            var panel = new StackPanel();
+
+            panel.Children.Add(new TextBlock
+            {
+                Text = title,
+                FontSize = 12,
+                FontWeight = FontWeights.SemiBold,
+                Foreground = (Brush)FindResource("MutedTextBrush")
+            });
+
+            panel.Children.Add(new TextBlock
+            {
+                Text = value,
+                FontSize = 28,
+                FontWeight = FontWeights.Bold,
+                Foreground = (Brush)FindResource("PrimaryBrush"),
+                Margin = new Thickness(0, 5, 0, 0)
+            });
+
+            card.Child = panel;
+
+            Grid.SetColumn(card, column);
+            grid.Children.Add(card);
         }
         private void ShowImportPage()
         {
@@ -786,7 +1170,6 @@ namespace TudasterAdmin
             var searchBox = new TextBox
             {
                 Height = 42,
-                Width = 320,
                 FontSize = 14,
                 Padding = new Thickness(12, 0, 12, 0),
                 Background = Brushes.Transparent,
@@ -797,6 +1180,7 @@ namespace TudasterAdmin
             var searchBorder = new Border
             {
                 Height = 42,
+                Width = 320,
                 Background = Brushes.White,
                 BorderBrush = (Brush)FindResource("BorderBrush"),
                 BorderThickness = new Thickness(1),
