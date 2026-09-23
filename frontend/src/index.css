@@ -407,3 +407,21 @@ html {
 .animate-cta-glow-reverse {
     animation: ctaGlowReverse 11s ease-in-out infinite;
 }
+
+/*Profil oldal*/
+ .pie-slice {
+    transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.28s ease, opacity 0.2s ease;
+    transform-origin: 150px 150px;
+    cursor: pointer;
+  }
+  .pie-slice:hover {
+    filter: drop-shadow(0 8px 16px rgba(53, 31, 91, 0.25));
+  }
+  .segmented-tab-active {
+    background-color: #351F5B !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 12px rgba(53, 31, 91, 0.22);
+  }
+  .chart-node-circle {
+    transition: r 0.2s ease, transform 0.2s ease;
+  }
