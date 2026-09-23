@@ -147,10 +147,11 @@ router.get('/chosentasks', async (req, res, next) => {
       szuroFeltetel = sql`and temakorok.id = ${temakorIdSzam}`
     }
 
+    // Alap feladat adatok - most már a tipus_id-t feloldjuk a nevére
     const rows = await sql`
       select
         feladatok.id,
-        feladatok.tipus,
+        feladat_tipusok.nev as tipus,
         feladatok.kerdes,
         feladatok.valaszok,
         forrasok.szoveg as forras_szoveg,
@@ -158,6 +159,7 @@ router.get('/chosentasks', async (req, res, next) => {
       from feladatok
       join temakorok on temakorok.id = feladatok.temakor_id
       join ev on ev.id = feladatok.ev_id
+      join feladat_tipusok on feladat_tipusok.id = feladatok.tipus_id
       left join forrasok on forrasok.id = feladatok.forras_id
       where temakorok.tantargy_id = ${tantargyIdSzam}
         and ev.szint = ${szint}
@@ -165,6 +167,51 @@ router.get('/chosentasks', async (req, res, next) => {
       order by feladatok.id
     `
 
+    // Táblázatos feladatok azonosítása és adataik hozzácsatolása
+    const TABLAZATOS_TIPUS_NEV = 'tablazatos_feladat' // <-- ellenőrizd, ez egyezzen a feladat_tipusok.nev tényleges értékével!
+
+    const tablazatosIdk = rows
+      .filter(r => r.tipus === TABLAZATOS_TIPUS_NEV)
+      .map(r => r.id)
+
+    if (tablazatosIdk.length > 0) {
+      const oszlopok = await sql`
+        select feladat_id, oszlop_sorszam, oszlop_nev
+        from tablazatos_feladat_oszlopok
+        where feladat_id in ${sql(tablazatosIdk)}
+        order by feladat_id, oszlop_sorszam
+      `
+
+      // A lathato=false celláknál az érték NEM kerül a válaszba - ez a helyes válasz
+      const cellak = await sql`
+        select
+          feladat_id,
+          sor_sorszam,
+          oszlop_sorszam,
+          lathato,
+          case when lathato then ertek else null end as ertek
+        from tablazatos_feladat_cellak
+        where feladat_id in ${sql(tablazatosIdk)}
+        order by feladat_id, sor_sorszam, oszlop_sorszam
+      `
+
+      const oszlopokMap = {}
+      for (const o of oszlopok) {
+        (oszlopokMap[o.feladat_id] ??= []).push(o)
+      }
+
+      const cellakMap = {}
+      for (const c of cellak) {
+        (cellakMap[c.feladat_id] ??= []).push(c)
+      }
+
+      for (const row of rows) {
+        if (row.tipus === TABLAZATOS_TIPUS_NEV) {
+          row.oszlopok = oszlopokMap[row.id] || []
+          row.cellak = cellakMap[row.id] || []
+        }
+      }
+    }
 
     res.json(rows)
   } catch (err) {
