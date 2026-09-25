@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Net.Mail;
 using System.Text;
 using System.Text.Json;
@@ -102,16 +103,33 @@ namespace TudasterAdmin
                     return;
                 }
 
-                // ================================
-                // SIKERES BEJELENTKEZÉS
-                // ================================
-
                 // Token(ek) és felhasználó adatok elmentése, hogy a backend
                 // hívásoknál Authorization: Bearer fejlécként tudd használni.
                 SessionStore.AccessToken = authResult.AccessToken;
                 SessionStore.RefreshToken = authResult.RefreshToken;
                 SessionStore.UserId = authResult.User?.Id;
                 SessionStore.UserEmail = authResult.User?.Email;
+
+                // ================================
+                // ADMIN JOGOSULTSÁG ELLENŐRZÉSE
+                // ================================
+                // A Supabase login önmagában csak azt igazolja, hogy létező
+                // felhasználó vagyunk érvényes jelszóval - ez még nem admin jog.
+                // Ezért megkérdezzük a saját backendünket is.
+                bool isAdmin = await CheckIsAdminAsync(authResult.AccessToken);
+
+                if (!isAdmin)
+                {
+                    // Nem admin felhasználó - nem engedjük be az admin felületre.
+                    // A tokent is töröljük, hiszen erre a sessionre itt nincs szükség.
+                    SessionStore.Clear();
+                    ShowError("Ehhez a fiókhoz nincs admin jogosultság!");
+                    return;
+                }
+
+                // ================================
+                // SIKERES BEJELENTKEZÉS + ADMIN JOGOSULTSÁG
+                // ================================
 
                 MainWindow mainWindow = new MainWindow();
                 mainWindow.Show();
@@ -171,6 +189,36 @@ namespace TudasterAdmin
             return JsonSerializer.Deserialize<SupabaseAuthResponse>(responseBody, options);
         }
 
+        // Saját backend hívás: megkérdezzük, hogy a bejelentkezett felhasználó admin-e
+        private async Task<bool> CheckIsAdminAsync(string accessToken)
+        {
+            string url = $"{ApiConfig.BackendApiUrl}/adminroutes/checkadmin";
+
+            using var request = new HttpRequestMessage(HttpMethod.Get, url);
+
+            // Ugyanazt a Supabase access tokent küldjük tovább, amit a bejelentkezéskor kaptunk.
+            // A backend requireAuth middleware-je ebből azonosítja a felhasználót.
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+
+            HttpResponseMessage response = await _httpClient.SendAsync(request);
+            string responseBody = await response.Content.ReadAsStringAsync();
+
+            if (!response.IsSuccessStatusCode)
+            {
+                // pl. 401 = érvénytelen/lejárt token, 404 = nincs profil sor a userhez
+                throw new Exception($"Admin ellenőrzés sikertelen ({(int)response.StatusCode}): {responseBody}");
+            }
+
+            var options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            };
+
+            var result = JsonSerializer.Deserialize<IsAdminResponse>(responseBody, options);
+
+            return result?.IsAdmin ?? false;
+        }
+
         // Hiba megjelenítése
         private void ShowError(string message)
         {
@@ -210,6 +258,15 @@ namespace TudasterAdmin
     }
 
     // ================================
+    // Saját backend /me/is-admin válaszának modellje
+    // ================================
+    public class IsAdminResponse
+    {
+        [JsonPropertyName("isAdmin")]
+        public bool IsAdmin { get; set; }
+    }
+
+    // ================================
     // Egyszerű, alkalmazás-szintű session tároló
     // ================================
     // Ide kerül a bejelentkezés után kapott token, amit aztán
@@ -221,5 +278,15 @@ namespace TudasterAdmin
         public static string RefreshToken { get; set; }
         public static string UserId { get; set; }
         public static string UserEmail { get; set; }
+
+        // Session törlése - pl. amikor a bejelentkezés sikeres volt,
+        // de a felhasználó nem admin, így nem kapott hozzáférést.
+        public static void Clear()
+        {
+            AccessToken = null;
+            RefreshToken = null;
+            UserId = null;
+            UserEmail = null;
+        }
     }
 }

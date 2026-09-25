@@ -1,5 +1,10 @@
 ﻿using System.Collections.ObjectModel;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -17,7 +22,7 @@ using System.Linq;
 
 namespace TudasterAdmin
 {
-    
+
     public partial class MainWindow : Window
     {
 
@@ -30,6 +35,9 @@ namespace TudasterAdmin
         private DataGrid? _taskGrid;
         private DataGrid? _examSetGrid;
 
+        // Egyetlen közös HttpClient példány a backend hívásokhoz
+        private static readonly HttpClient _httpClient = new HttpClient();
+
         private TextBox? _examSetSearchBox;
         private TextBox? _taskSearchBox;
         private ComboBox? _taskStatusFilter;
@@ -41,18 +49,68 @@ namespace TudasterAdmin
             LoadTestTasks();
             LoadTestExamSets();
             LoadTestSubjects();
-            LoadDashboardData();
+            _ = LoadDashboardDataAsync();
             LoadTestTopics();
             LoadTestUsers();
         }
 
-        private void LoadDashboardData()
+        private async Task LoadDashboardDataAsync()
         {
-            // Ideiglenes tesztadatok
-            TaskCountText.Text = "125";
-            ExamSetCountText.Text = "10";
-            UserCountText.Text = "48";
-            ReviewCountText.Text = "7";
+            try
+            {
+                DashboardStatsResponse stats = await FetchDashboardStatsAsync();
+
+                TaskCountText.Text = stats.FeladatokSzama.ToString();
+                ExamSetCountText.Text = stats.FeladatsorokSzama.ToString();
+                UserCountText.Text = stats.FelhasznalokSzama.ToString();
+
+                // Az "ellenőrzésre váró" számhoz még nincs backend végpont,
+                // ezt egyelőre meghagyjuk placeholdernek.
+                ReviewCountText.Text = "-";
+            }
+            catch (Exception ex)
+            {
+                // Ha a hívás elszáll (hálózat, backend hiba, stb.), ne dőljön össze
+                // a dashboard - inkább jelezzük, és hagyjuk üresen/placeholderen a számokat.
+                TaskCountText.Text = "-";
+                ExamSetCountText.Text = "-";
+                UserCountText.Text = "-";
+                ReviewCountText.Text = "-";
+
+                MessageBox.Show(
+                    "Nem sikerült betölteni a dashboard statisztikákat: " + ex.Message,
+                    "Hiba",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+            }
+        }
+
+        // Saját backend hívás: GET /admin/stats
+        private async Task<DashboardStatsResponse> FetchDashboardStatsAsync()
+        {
+            string url = $"{ApiConfig.BackendApiUrl}/adminroutes/stats";
+
+            using var request = new HttpRequestMessage(HttpMethod.Get, url);
+
+            // A bejelentkezéskor kapott Supabase tokent küldjük tovább,
+            // ez alapján azonosít és enged be a requireAuth + requireAdmin middleware.
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", SessionStore.AccessToken);
+
+            HttpResponseMessage response = await _httpClient.SendAsync(request);
+            string responseBody = await response.Content.ReadAsStringAsync();
+
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new Exception($"Stats hívás sikertelen ({(int)response.StatusCode}): {responseBody}");
+            }
+
+            var options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            };
+
+            return JsonSerializer.Deserialize<DashboardStatsResponse>(responseBody, options)
+                ?? throw new Exception("A backend üres választ adott vissza.");
         }
 
         private void LoadTestTasks()
@@ -1065,7 +1123,7 @@ namespace TudasterAdmin
             toolbar.Children.Add(searchBorder);
 
             // Új feladatsor
-            
+
 
 
 
@@ -1149,7 +1207,7 @@ namespace TudasterAdmin
             _examSetGrid.ItemsSource = _examSets;
 
             // Törlés gomb
-            
+
 
 
 
@@ -1275,10 +1333,10 @@ namespace TudasterAdmin
             PageTitleText.Text = "Feladatok";
             PageSubtitleText.Text = "A Tudástér feladatainak kezelése.";
             StackPanel mainPanel = new StackPanel();
-            
+
 
             // Cím
-           
+
 
             // Keresősáv + új feladat gomb
             Grid toolbar = new Grid
@@ -1631,6 +1689,21 @@ namespace TudasterAdmin
             public string Status { get; set; } = "";
         }
 
+        // ================================
+        // GET /admin/stats válaszának modellje
+        // ================================
+        public class DashboardStatsResponse
+        {
+            [JsonPropertyName("feladatokSzama")]
+            public int FeladatokSzama { get; set; }
+
+            [JsonPropertyName("feladatsorokSzama")]
+            public int FeladatsorokSzama { get; set; }
+
+            [JsonPropertyName("felhasznalokSzama")]
+            public int FelhasznalokSzama { get; set; }
+        }
+
         private void AddTaskButton_Click(object sender, RoutedEventArgs e)
         {
             TaskWindow taskWindow = new TaskWindow
@@ -1758,7 +1831,7 @@ namespace TudasterAdmin
 
             IEnumerable<TaskItem> result = _tasks;
 
- 
+
 
             // Keresés
             if (!string.IsNullOrWhiteSpace(searchText))
@@ -1813,15 +1886,15 @@ namespace TudasterAdmin
             _examSetGrid.ItemsSource = result;
         }
 
-        private void SubjectFilter_SelectionChanged(object sender,SelectionChangedEventArgs e)
-                {
-                    ApplyTaskFilters();
-                }
+        private void SubjectFilter_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            ApplyTaskFilters();
+        }
 
-        private void LevelFilter_SelectionChanged(object sender,SelectionChangedEventArgs e)
-                {
-                    ApplyTaskFilters();
-                }
+        private void LevelFilter_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            ApplyTaskFilters();
+        }
 
         private void ExamSetSearchBox_TextChanged(object sender, TextChangedEventArgs e)
         {
