@@ -48,17 +48,38 @@ namespace TudasterAdmin
             InitializeComponent();
             LoadTestTasks();
             LoadTestExamSets();
-            LoadTestSubjects();
+            _ = LoadSubjectsAsync();
             _ = LoadDashboardDataAsync();
-            LoadTestTopics();
-            LoadTestUsers();
+            _ = LoadTopicsAsync();
+            _ = LoadUsersAsync();
+        }
+
+        private async Task<T> GetFromBackendAsync<T>(string path)
+        {
+            string url = $"{ApiConfig.BackendApiUrl}/adminroutes/{path}";
+
+            using var request = new HttpRequestMessage(HttpMethod.Get, url);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", SessionStore.AccessToken);
+
+            HttpResponseMessage response = await _httpClient.SendAsync(request);
+            string responseBody = await response.Content.ReadAsStringAsync();
+
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new Exception($"{path} hívás sikertelen ({(int)response.StatusCode}): {responseBody}");
+            }
+
+            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+
+            return JsonSerializer.Deserialize<T>(responseBody, options)
+                ?? throw new Exception("A backend üres választ adott vissza.");
         }
 
         private async Task LoadDashboardDataAsync()
         {
             try
             {
-                DashboardStatsResponse stats = await FetchDashboardStatsAsync();
+                DashboardStatsResponse stats = await GetFromBackendAsync<DashboardStatsResponse>("stats");
 
                 TaskCountText.Text = stats.FeladatokSzama.ToString();
                 ExamSetCountText.Text = stats.FeladatsorokSzama.ToString();
@@ -67,15 +88,19 @@ namespace TudasterAdmin
                 // Az "ellenőrzésre váró" számhoz még nincs backend végpont,
                 // ezt egyelőre meghagyjuk placeholdernek.
                 ReviewCountText.Text = "-";
+
+                DbStatusText.Text = "Csatlakoztatva";
+                DbStatusText.Foreground = Brushes.Green;
             }
             catch (Exception ex)
             {
-                // Ha a hívás elszáll (hálózat, backend hiba, stb.), ne dőljön össze
-                // a dashboard - inkább jelezzük, és hagyjuk üresen/placeholderen a számokat.
                 TaskCountText.Text = "-";
                 ExamSetCountText.Text = "-";
                 UserCountText.Text = "-";
                 ReviewCountText.Text = "-";
+
+                DbStatusText.Text = "Nincs kapcsolat";
+                DbStatusText.Foreground = Brushes.Red;
 
                 MessageBox.Show(
                     "Nem sikerült betölteni a dashboard statisztikákat: " + ex.Message,
@@ -83,34 +108,6 @@ namespace TudasterAdmin
                     MessageBoxButton.OK,
                     MessageBoxImage.Warning);
             }
-        }
-
-        // Saját backend hívás: GET /admin/stats
-        private async Task<DashboardStatsResponse> FetchDashboardStatsAsync()
-        {
-            string url = $"{ApiConfig.BackendApiUrl}/adminroutes/stats";
-
-            using var request = new HttpRequestMessage(HttpMethod.Get, url);
-
-            // A bejelentkezéskor kapott Supabase tokent küldjük tovább,
-            // ez alapján azonosít és enged be a requireAuth + requireAdmin middleware.
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", SessionStore.AccessToken);
-
-            HttpResponseMessage response = await _httpClient.SendAsync(request);
-            string responseBody = await response.Content.ReadAsStringAsync();
-
-            if (!response.IsSuccessStatusCode)
-            {
-                throw new Exception($"Stats hívás sikertelen ({(int)response.StatusCode}): {responseBody}");
-            }
-
-            var options = new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            };
-
-            return JsonSerializer.Deserialize<DashboardStatsResponse>(responseBody, options)
-                ?? throw new Exception("A backend üres választ adott vissza.");
         }
 
         private void LoadTestTasks()
@@ -191,91 +188,105 @@ namespace TudasterAdmin
             });
         }
 
-        private void LoadTestSubjects()
+
+        private async Task LoadSubjectsAsync()
         {
-            _subjects.Clear();
-
-            _subjects.Add(new SubjectItem
+            try
             {
-                Id = 1,
-                Name = "Történelem",
-                TaskCount = 65
-            });
+                var subjects = await GetFromBackendAsync<List<SubjectResponse>>("tantargyak");
 
-            _subjects.Add(new SubjectItem
+                _subjects.Clear();
+
+                foreach (var s in subjects)
+                {
+                    _subjects.Add(new SubjectItem
+                    {
+                        Id = s.Id,
+                        Name = s.Nev,
+                        TaskCount = s.FeladatokSzama
+                    });
+                }
+            }
+            catch (Exception ex)
             {
-                Id = 2,
-                Name = "Irodalom",
-                TaskCount = 60
-            });
+                MessageBox.Show(
+                    "Nem sikerült betölteni a tantárgyakat: " + ex.Message,
+                    "Hiba",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+            }
         }
 
-        private void LoadTestTopics()
+        private async Task LoadTopicsAsync()
         {
-            _topics.Clear();
-
-            _topics.Add(new TopicItem
+            try
             {
-                Id = 1,
-                Name = "Ókori Görögország",
-                Subject = "Történelem",
-                TaskCount = 18
-            });
+                var topics = await GetFromBackendAsync<List<TopicResponse>>("temakorok");
 
-            _topics.Add(new TopicItem
-            {
-                Id = 2,
-                Name = "Kora újkor",
-                Subject = "Történelem",
-                TaskCount = 22
-            });
+                _topics.Clear();
 
-            _topics.Add(new TopicItem
+                foreach (var t in topics)
+                {
+                    _topics.Add(new TopicItem
+                    {
+                        Id = t.Id,
+                        Name = t.Nev,
+                        Subject = t.TantargyNev ?? "Nincs tantárgy",
+                        TaskCount = t.FeladatokSzama
+                    });
+                }
+            }
+            catch (Exception ex)
             {
-                Id = 3,
-                Name = "19. századi irodalom",
-                Subject = "Irodalom",
-                TaskCount = 20
-            });
-
-            _topics.Add(new TopicItem
-            {
-                Id = 4,
-                Name = "20. századi irodalom",
-                Subject = "Irodalom",
-                TaskCount = 15
-            });
+                MessageBox.Show(
+                    "Nem sikerült betölteni a témaköröket: " + ex.Message,
+                    "Hiba",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+            }
         }
-        private void LoadTestUsers()
+
+        private async Task LoadUsersAsync()
         {
-            _users.Clear();
-
-            _users.Add(new UserItem
+            try
             {
-                Id = 1,
-                Name = "Teszt Elek",
-                Email = "teszt.elek@example.com",
-                Role = "Diák",
-                Status = "Aktív"
-            });
+                var users = await GetFromBackendAsync<List<UserResponse>>("felhasznalok");
 
-            _users.Add(new UserItem
-            {
-                Id = 2,
-                Name = "Minta Anna",
-                Email = "minta.anna@example.com",
-                Role = "Tanár",
-                Status = "Aktív"
-            });
+                _users.Clear();
 
-            _users.Add(new UserItem
+                foreach (var u in users)
+                {
+                    _users.Add(new UserItem
+                    {
+                        Id = u.Id,
+                        Name = !string.IsNullOrWhiteSpace(u.Felhasznalonev) ? u.Felhasznalonev : (u.Email ?? "Ismeretlen"),
+                        Email = u.Email ?? "",
+                        Role = FormatRole(u.Szerep),
+                        Status = u.VanMaiTeszt ? "Aktív" : "Inaktív"
+                    });
+                }
+            }
+            catch (Exception ex)
             {
-                Id = 3,
-                Name = "Demo Béla",
-                Email = "demo.bela@example.com",
-                Role = "Diák",
-                Status = "Inaktív"
-            });
+                MessageBox.Show(
+                    "Nem sikerült betölteni a felhasználókat: " + ex.Message,
+                    "Hiba",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+            }
+        }
+
+        // Az adatbázisban tárolt szerep (pl. "diak") megjelenítési formája (pl. "Diák")
+        private static string FormatRole(string? role)
+        {
+            return role?.Trim().ToLowerInvariant() switch
+            {
+                "diak" => "Diák",
+                "tanar" => "Tanár",
+                "admin" => "Admin",
+                null or "" => "-",
+                var other => char.ToUpper(other[0]) + other.Substring(1)
+            };
         }
 
         private void DashboardButton_Click(object sender, RoutedEventArgs e)
@@ -1682,7 +1693,7 @@ namespace TudasterAdmin
 
         public class UserItem
         {
-            public int Id { get; set; }
+            public string Id { get; set; } = "";
             public string Name { get; set; } = "";
             public string Email { get; set; } = "";
             public string Role { get; set; } = "";
@@ -1690,7 +1701,7 @@ namespace TudasterAdmin
         }
 
         // ================================
-        // GET /admin/stats válaszának modellje
+        // GET /admin válaszának modelljei
         // ================================
         public class DashboardStatsResponse
         {
@@ -1703,6 +1714,54 @@ namespace TudasterAdmin
             [JsonPropertyName("felhasznalokSzama")]
             public int FelhasznalokSzama { get; set; }
         }
+        public class SubjectResponse
+        {
+            [JsonPropertyName("id")]
+            public int Id { get; set; }
+
+            [JsonPropertyName("nev")]
+            public string Nev { get; set; } = "";
+
+            [JsonPropertyName("feladatokSzama")]
+            public int FeladatokSzama { get; set; }
+        }
+
+        public class TopicResponse
+        {
+            [JsonPropertyName("id")]
+            public int Id { get; set; }
+
+            [JsonPropertyName("nev")]
+            public string Nev { get; set; } = "";
+
+            [JsonPropertyName("tantargyId")]
+            public int? TantargyId { get; set; }
+
+            [JsonPropertyName("tantargyNev")]
+            public string? TantargyNev { get; set; }
+
+            [JsonPropertyName("feladatokSzama")]
+            public int FeladatokSzama { get; set; }
+        }
+
+        public class UserResponse
+        {
+            [JsonPropertyName("id")]
+            public string Id { get; set; } = "";
+
+            [JsonPropertyName("felhasznalonev")]
+            public string? Felhasznalonev { get; set; }
+
+            [JsonPropertyName("email")]
+            public string? Email { get; set; }
+
+            [JsonPropertyName("szerep")]
+            public string? Szerep { get; set; }
+
+            [JsonPropertyName("vanMaiTeszt")]
+            public bool VanMaiTeszt { get; set; }
+        }
+
 
         private void AddTaskButton_Click(object sender, RoutedEventArgs e)
         {

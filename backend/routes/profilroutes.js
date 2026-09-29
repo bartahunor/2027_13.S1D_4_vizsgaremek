@@ -16,9 +16,15 @@ router.get('/me', async (req, res, next) => {
     const felhasznaloId = req.user.id
 
     const rows = await sql`
-      select id, felhasznalonev, email, szerep
-      from profilok
-      where id = ${felhasznaloId}
+      select
+        p.id,
+        p.felhasznalonev,
+        p.email,
+        p.szerep,
+        u.created_at
+      from profilok p
+      join auth.users u on u.id = p.id
+      where p.id = ${felhasznaloId}
     `
 
     if (rows.length === 0) {
@@ -40,8 +46,6 @@ router.get('/me/tests', async (req, res, next) => {
       select
         tesztek.id,
         tesztek.nev,
-        tesztek.osszpont,
-        tesztek.maxpont,
         tesztek.datum,
         tesztek.kitoltesi_ido,
         tantargyak.nev as tantargy

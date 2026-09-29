@@ -50,6 +50,24 @@ function ProfilePage() {
         loadProfilTests();
     }, []);
 
+    const szerepNevek = {
+        tanar: 'Tanár',
+        diak: 'Diák',
+        admin: 'Admin',
+    }
+
+    const szerepFelirat = szerepNevek[profildata.szerep] ?? profildata.szerep
+
+    const kezdobetu = profildata.felhasznalonev?.charAt(0).toUpperCase() ?? '?'
+
+    const csatlakozasDatuma = profildata.created_at
+        ? new Date(profildata.created_at).toLocaleDateString('hu-HU', {
+            year: 'numeric',
+            month: '2-digit',
+            day: 'numeric',
+        })
+        : ''
+
     const pieData = [
         {
             subject: "Matematika",
@@ -500,7 +518,7 @@ function ProfilePage() {
                             <div className="relative">
 
                                 <div className="w-[72px] h-[72px] sm:w-20 sm:h-20 rounded-2xl bg-[#351F5B] text-white flex items-center justify-center text-2xl font-bold tracking-tight shadow-md">
-                                    KD
+                                    {kezdobetu}
                                 </div>
 
                                 {/* AKTÍV JELZÉS */}
@@ -518,12 +536,12 @@ function ProfilePage() {
                                 <div className="flex items-center gap-2 flex-wrap">
 
                                     <h1 className="text-[28px] leading-9 font-semibold text-[#351F5B] tracking-tight">
-                                        Kovács Dániel
+                                        {profildata.felhasznalonev}
                                     </h1>
 
                                     {/* TANULÓ */}
                                     <span className="px-2 py-0.5 rounded-full bg-[#EFEAF6] text-[#351F5B] text-[11px] leading-[14px] uppercase tracking-wider font-semibold">
-                                        Tanuló
+                                        {szerepFelirat}
                                     </span>
 
                                     {/* VÉGZŐS */}
@@ -545,7 +563,7 @@ function ProfilePage() {
                                     </span>
 
                                     <span className="font-medium text-[#27222E]">
-                                        2025. szeptember
+                                        {csatlakozasDatuma}
                                     </span>
 
                                     <span>

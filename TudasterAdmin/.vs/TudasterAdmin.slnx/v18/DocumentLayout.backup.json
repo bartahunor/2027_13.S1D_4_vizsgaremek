@@ -7,6 +7,14 @@
       "RelativeMoniker": "D:0:0:{DD9A3328-765F-04F2-300C-E5A4C4528F11}|TudasterAdmin\\TudasterAdmin.csproj|solutionrelative:tudasteradmin\\mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
+      "AbsoluteMoniker": "D:0:0:{DD9A3328-765F-04F2-300C-E5A4C4528F11}|TudasterAdmin\\TudasterAdmin.csproj|c:\\users\\bartahunor\\documents\\github\\2027_13.s1d_4_vizsgaremek\\tudasteradmin\\tudasteradmin\\mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
+      "RelativeMoniker": "D:0:0:{DD9A3328-765F-04F2-300C-E5A4C4528F11}|TudasterAdmin\\TudasterAdmin.csproj|solutionrelative:tudasteradmin\\mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{DD9A3328-765F-04F2-300C-E5A4C4528F11}|TudasterAdmin\\TudasterAdmin.csproj|c:\\users\\bartahunor\\documents\\github\\2027_13.s1d_4_vizsgaremek\\tudasteradmin\\tudasteradmin\\loginwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
+      "RelativeMoniker": "D:0:0:{DD9A3328-765F-04F2-300C-E5A4C4528F11}|TudasterAdmin\\TudasterAdmin.csproj|solutionrelative:tudasteradmin\\loginwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{DD9A3328-765F-04F2-300C-E5A4C4528F11}|TudasterAdmin\\TudasterAdmin.csproj|c:\\users\\bartahunor\\documents\\github\\2027_13.s1d_4_vizsgaremek\\tudasteradmin\\tudasteradmin\\loginwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{DD9A3328-765F-04F2-300C-E5A4C4528F11}|TudasterAdmin\\TudasterAdmin.csproj|solutionrelative:tudasteradmin\\loginwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
@@ -15,20 +23,12 @@
       "RelativeMoniker": "D:0:0:{DD9A3328-765F-04F2-300C-E5A4C4528F11}|TudasterAdmin\\TudasterAdmin.csproj|solutionrelative:tudasteradmin\\apiconfig.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{DD9A3328-765F-04F2-300C-E5A4C4528F11}|TudasterAdmin\\TudasterAdmin.csproj|c:\\users\\bartahunor\\documents\\github\\2027_13.s1d_4_vizsgaremek\\tudasteradmin\\tudasteradmin\\mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
-      "RelativeMoniker": "D:0:0:{DD9A3328-765F-04F2-300C-E5A4C4528F11}|TudasterAdmin\\TudasterAdmin.csproj|solutionrelative:tudasteradmin\\mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{DD9A3328-765F-04F2-300C-E5A4C4528F11}|TudasterAdmin\\TudasterAdmin.csproj|c:\\users\\bartahunor\\documents\\github\\2027_13.s1d_4_vizsgaremek\\tudasteradmin\\tudasteradmin\\taskdetailswindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{DD9A3328-765F-04F2-300C-E5A4C4528F11}|TudasterAdmin\\TudasterAdmin.csproj|solutionrelative:tudasteradmin\\taskdetailswindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{DD9A3328-765F-04F2-300C-E5A4C4528F11}|TudasterAdmin\\TudasterAdmin.csproj|c:\\users\\bartahunor\\documents\\github\\2027_13.s1d_4_vizsgaremek\\tudasteradmin\\tudasteradmin\\taskwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{DD9A3328-765F-04F2-300C-E5A4C4528F11}|TudasterAdmin\\TudasterAdmin.csproj|solutionrelative:tudasteradmin\\taskwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{DD9A3328-765F-04F2-300C-E5A4C4528F11}|TudasterAdmin\\TudasterAdmin.csproj|c:\\users\\bartahunor\\documents\\github\\2027_13.s1d_4_vizsgaremek\\tudasteradmin\\tudasteradmin\\loginwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
-      "RelativeMoniker": "D:0:0:{DD9A3328-765F-04F2-300C-E5A4C4528F11}|TudasterAdmin\\TudasterAdmin.csproj|solutionrelative:tudasteradmin\\loginwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{DD9A3328-765F-04F2-300C-E5A4C4528F11}|TudasterAdmin\\TudasterAdmin.csproj|c:\\users\\bartahunor\\documents\\github\\2027_13.s1d_4_vizsgaremek\\tudasteradmin\\tudasteradmin\\app.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -58,49 +58,11 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 4,
+          "SelectedChildIndex": 1,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "ApiConfig.cs",
-              "DocumentMoniker": "C:\\Users\\BartaHunor\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\ApiConfig.cs",
-              "RelativeDocumentMoniker": "TudasterAdmin\\ApiConfig.cs",
-              "ToolTip": "C:\\Users\\BartaHunor\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\ApiConfig.cs",
-              "RelativeToolTip": "TudasterAdmin\\ApiConfig.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAEAAAABAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-09-25T09:57:17.73Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 8,
-              "Title": "App.xaml",
-              "DocumentMoniker": "C:\\Users\\BartaHunor\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\App.xaml",
-              "RelativeDocumentMoniker": "TudasterAdmin\\App.xaml",
-              "ToolTip": "C:\\Users\\BartaHunor\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\App.xaml",
-              "RelativeToolTip": "TudasterAdmin\\App.xaml",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
-              "WhenOpened": "2026-09-15T08:22:28.793Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
               "DocumentIndex": 5,
-              "Title": "TaskWindow.xaml.cs",
-              "DocumentMoniker": "C:\\Users\\BartaHunor\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\TaskWindow.xaml.cs",
-              "RelativeDocumentMoniker": "TudasterAdmin\\TaskWindow.xaml.cs",
-              "ToolTip": "C:\\Users\\BartaHunor\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\TaskWindow.xaml.cs",
-              "RelativeToolTip": "TudasterAdmin\\TaskWindow.xaml.cs",
-              "ViewState": "AgIAAEQAAAAAAAAAAAAIwBAAAAAXAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-09-15T09:22:29.424Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 4,
               "Title": "TaskDetailsWindow.xaml.cs",
               "DocumentMoniker": "C:\\Users\\BartaHunor\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\TaskDetailsWindow.xaml.cs",
               "RelativeDocumentMoniker": "TudasterAdmin\\TaskDetailsWindow.xaml.cs",
@@ -108,8 +70,7 @@
               "RelativeToolTip": "TudasterAdmin\\TaskDetailsWindow.xaml.cs",
               "ViewState": "AgIAAAMAAAAAAAAAAAAiwBsAAAAmAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-09-16T06:54:40.162Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-16T06:54:40.162Z"
             },
             {
               "$type": "Document",
@@ -117,9 +78,9 @@
               "Title": "MainWindow.xaml.cs",
               "DocumentMoniker": "C:\\Users\\BartaHunor\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\MainWindow.xaml.cs",
               "RelativeDocumentMoniker": "TudasterAdmin\\MainWindow.xaml.cs",
-              "ToolTip": "C:\\Users\\BartaHunor\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\MainWindow.xaml.cs*",
-              "RelativeToolTip": "TudasterAdmin\\MainWindow.xaml.cs*",
-              "ViewState": "AgIAAIEGAAAAAAAAAAAAAFoAAABAAAAAAAAAAA==",
+              "ToolTip": "C:\\Users\\BartaHunor\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\MainWindow.xaml.cs",
+              "RelativeToolTip": "TudasterAdmin\\MainWindow.xaml.cs",
+              "ViewState": "AgIAAB4AAAAAAAAAAAAAADUAAAAhAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-09-15T08:20:12.904Z",
               "EditorCaption": ""
@@ -138,7 +99,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 2,
               "Title": "LoginWindow.xaml",
               "DocumentMoniker": "C:\\Users\\BartaHunor\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\LoginWindow.xaml",
               "RelativeDocumentMoniker": "TudasterAdmin\\LoginWindow.xaml",
@@ -151,19 +112,6 @@
             {
               "$type": "Document",
               "DocumentIndex": 1,
-              "Title": "LoginWindow.xaml.cs",
-              "DocumentMoniker": "C:\\Users\\BartaHunor\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\LoginWindow.xaml.cs",
-              "RelativeDocumentMoniker": "TudasterAdmin\\LoginWindow.xaml.cs",
-              "ToolTip": "C:\\Users\\BartaHunor\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\LoginWindow.xaml.cs",
-              "RelativeToolTip": "TudasterAdmin\\LoginWindow.xaml.cs",
-              "ViewState": "AgIAALgAAAAAAAAAAAAqwMIAAABAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-09-15T08:43:04.426Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
               "Title": "MainWindow.xaml",
               "DocumentMoniker": "C:\\Users\\BartaHunor\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\MainWindow.xaml",
               "RelativeDocumentMoniker": "TudasterAdmin\\MainWindow.xaml",
@@ -172,6 +120,54 @@
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
               "WhenOpened": "2026-09-15T08:20:15.617Z",
               "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "TaskWindow.xaml.cs",
+              "DocumentMoniker": "C:\\Users\\BartaHunor\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\TaskWindow.xaml.cs",
+              "RelativeDocumentMoniker": "TudasterAdmin\\TaskWindow.xaml.cs",
+              "ToolTip": "C:\\Users\\BartaHunor\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\TaskWindow.xaml.cs",
+              "RelativeToolTip": "TudasterAdmin\\TaskWindow.xaml.cs",
+              "ViewState": "AgIAAEQAAAAAAAAAAAAIwBAAAAAXAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-15T09:22:29.424Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "App.xaml",
+              "DocumentMoniker": "C:\\Users\\BartaHunor\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\App.xaml",
+              "RelativeDocumentMoniker": "TudasterAdmin\\App.xaml",
+              "ToolTip": "C:\\Users\\BartaHunor\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\App.xaml",
+              "RelativeToolTip": "TudasterAdmin\\App.xaml",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
+              "WhenOpened": "2026-09-15T08:22:28.793Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "LoginWindow.xaml.cs",
+              "DocumentMoniker": "C:\\Users\\BartaHunor\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\LoginWindow.xaml.cs",
+              "RelativeDocumentMoniker": "TudasterAdmin\\LoginWindow.xaml.cs",
+              "ToolTip": "C:\\Users\\BartaHunor\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\LoginWindow.xaml.cs",
+              "RelativeToolTip": "TudasterAdmin\\LoginWindow.xaml.cs",
+              "ViewState": "AgIAALgAAAAAAAAAAAAqwMIAAABAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-15T08:43:04.426Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "ApiConfig.cs",
+              "DocumentMoniker": "C:\\Users\\BartaHunor\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\ApiConfig.cs",
+              "RelativeDocumentMoniker": "TudasterAdmin\\ApiConfig.cs",
+              "ToolTip": "C:\\Users\\BartaHunor\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\ApiConfig.cs",
+              "RelativeToolTip": "TudasterAdmin\\ApiConfig.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAEAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-25T09:57:17.73Z"
             },
             {
               "$type": "Document",
@@ -194,8 +190,7 @@
               "ToolTip": "C:\\Users\\BartaHunor\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\TaskDetailsWindow.xaml",
               "RelativeToolTip": "TudasterAdmin\\TaskDetailsWindow.xaml",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
-              "WhenOpened": "2026-09-16T06:53:25.485Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-16T06:53:25.485Z"
             },
             {
               "$type": "Document",
@@ -206,8 +201,7 @@
               "ToolTip": "C:\\Users\\BartaHunor\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\TaskWindow.xaml",
               "RelativeToolTip": "TudasterAdmin\\TaskWindow.xaml",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
-              "WhenOpened": "2026-09-15T09:22:18.32Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-15T09:22:18.32Z"
             }
           ]
         }
