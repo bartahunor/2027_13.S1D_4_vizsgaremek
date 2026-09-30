@@ -22,16 +22,14 @@
 }
 
 body {
-  font-family: 'Lexend', sans-serif;
+  font-family: "Lexend", sans-serif;
 }
 
 html {
   scroll-behavior: smooth;
 }
 
-
 @layer base {
-
   html,
   body {
     margin: 0;
@@ -51,300 +49,336 @@ html {
 }
 
 .font-mono {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: "JetBrains Mono", monospace;
 }
-
 
 .auth-gradient {
-  background: linear-gradient(135deg, #351F5B 0%, #24123D 100%);
+  background: linear-gradient(135deg, #351f5b 0%, #24123d 100%);
 }
-
 
 /* ================= DOSSIER FOLDER + FAN-OUT DOCUMENT SHEETS ================= */
 .dossier-wrapper {
-      position: relative;
-      width: 440px;
-      height: 520px;
-      display: flex;
-      align-items: flex-end;
-      justify-content: center;
-    }
+  position: relative;
+  width: 440px;
+  height: 520px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
 
-    /* 1. REAR FOLDER BACKPLATE */
-    .dossier-back {
-      position: absolute;
-      bottom: 0;
-      width: 410px;
-      height: 380px;
-      z-index: 1;
-      pointer-events: none;
-    }
+/* 1. REAR FOLDER BACKPLATE */
+.dossier-back {
+  position: absolute;
+  bottom: 0;
+  width: 410px;
+  height: 380px;
+  z-index: 1;
+  pointer-events: none;
+}
 
-    /* Authentic Manila/Dossier Folder Tab on Top-Left */
-    .dossier-tab {
-      position: absolute;
-      top: -36px;
-      left: 18px;
-      width: 175px;
-      height: 38px;
-      background: linear-gradient(175deg, #431f85 0%, #35146e 100%);
-      border-radius: 12px 14px 0 0;
-      border-top: 1.5px solid rgba(255, 255, 255, 0.35);
-      border-left: 1.5px solid rgba(255, 255, 255, 0.25);
-      border-right: 1.5px solid rgba(30, 10, 65, 0.6);
-      box-shadow: 0 -4px 12px rgba(10, 3, 22, 0.5), inset 0 1px 2px rgba(255, 255, 255, 0.4);
-      display: flex;
-      align-items: center;
-      padding-left: 14px;
-      z-index: 2;
-    }
+/* Authentic Manila/Dossier Folder Tab on Top-Left */
+.dossier-tab {
+  position: absolute;
+  top: -36px;
+  left: 18px;
+  width: 175px;
+  height: 38px;
+  background: linear-gradient(175deg, #431f85 0%, #35146e 100%);
+  border-radius: 12px 14px 0 0;
+  border-top: 1.5px solid rgba(255, 255, 255, 0.35);
+  border-left: 1.5px solid rgba(255, 255, 255, 0.25);
+  border-right: 1.5px solid rgba(30, 10, 65, 0.6);
+  box-shadow:
+    0 -4px 12px rgba(10, 3, 22, 0.5),
+    inset 0 1px 2px rgba(255, 255, 255, 0.4);
+  display: flex;
+  align-items: center;
+  padding-left: 14px;
+  z-index: 2;
+}
 
-    .dossier-back-plate {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: linear-gradient(175deg, #371775 0%, #260d54 100%);
-      border-radius: 24px;
-      border: 1px solid rgba(167, 139, 250, 0.2);
-      box-shadow: 
-        0 40px 80px -15px rgba(0, 0, 0, 0.85),
-        inset 0 2px 4px rgba(255, 255, 255, 0.2),
-        inset 0 -4px 10px rgba(0, 0, 0, 0.5);
-    }
+.dossier-back-plate {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(175deg, #371775 0%, #260d54 100%);
+  border-radius: 24px;
+  border: 1px solid rgba(167, 139, 250, 0.2);
+  box-shadow:
+    0 40px 80px -15px rgba(0, 0, 0, 0.85),
+    inset 0 2px 4px rgba(255, 255, 255, 0.2),
+    inset 0 -4px 10px rgba(0, 0, 0, 0.5);
+}
 
-    /* Realistic binder stitch line around rear plate */
-    .stitch-line {
-      position: absolute;
-      inset: 6px;
-      border: 1.5px dashed rgba(255, 255, 255, 0.18);
-      border-radius: 18px;
-      pointer-events: none;
-    }
+/* Realistic binder stitch line around rear plate */
+.stitch-line {
+  position: absolute;
+  inset: 6px;
+  border: 1.5px dashed rgba(255, 255, 255, 0.18);
+  border-radius: 18px;
+  pointer-events: none;
+}
 
-    /* 2. REALISTIC FRONT POCKET / FLAP */
-    .dossier-front-pocket {
-      position: absolute;
-      bottom: 0;
-      width: 410px;
-      height: 240px;
-      border-radius: 0 0 24px 24px;
-      background: linear-gradient(175deg, #6029cf 0%, #4c1fa8 60%, #3d148b 100%);
-      border: 1px solid rgba(216, 180, 254, 0.35);
-      border-top: none;
-      box-shadow: 
-        0 -18px 35px -8px rgba(12, 3, 28, 0.75),
-        0 30px 60px -10px rgba(0, 0, 0, 0.8),
-        inset 0 2px 3px rgba(255, 255, 255, 0.45),
-        inset 0 -2px 6px rgba(0, 0, 0, 0.5);
-      z-index: 25;
-      /* Trapezoidal/scalloped physical pocket cutout */
-      clip-path: polygon(
-        0% 28px, 
-        24px 0%, 
-        155px 0%, 
-        185px 18px, 
-        386px 18px, 
-        410px 42px, 
-        410px 100%, 
-        0% 100%
-      );
-    }
+/* 2. REALISTIC FRONT POCKET / FLAP */
+.dossier-front-pocket {
+  position: absolute;
+  bottom: 0;
+  width: 410px;
+  height: 240px;
+  border-radius: 0 0 24px 24px;
+  background: linear-gradient(175deg, #6029cf 0%, #4c1fa8 60%, #3d148b 100%);
+  border: 1px solid rgba(216, 180, 254, 0.35);
+  border-top: none;
+  box-shadow:
+    0 -18px 35px -8px rgba(12, 3, 28, 0.75),
+    0 30px 60px -10px rgba(0, 0, 0, 0.8),
+    inset 0 2px 3px rgba(255, 255, 255, 0.45),
+    inset 0 -2px 6px rgba(0, 0, 0, 0.5);
+  z-index: 25;
+  /* Trapezoidal/scalloped physical pocket cutout */
+  clip-path: polygon(
+    0% 28px,
+    24px 0%,
+    155px 0%,
+    185px 18px,
+    386px 18px,
+    410px 42px,
+    410px 100%,
+    0% 100%
+  );
+}
 
-    /* Glowing glossy top lip rim along pocket edge */
-    .pocket-rim-glow {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 3px;
-      background: linear-gradient(90deg, rgba(255,255,255,0.7) 0%, rgba(216,180,254,0.9) 45%, rgba(192,132,252,0.4) 100%);
-      filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.8));
-    }
+/* Glowing glossy top lip rim along pocket edge */
+.pocket-rim-glow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.7) 0%,
+    rgba(216, 180, 254, 0.9) 45%,
+    rgba(192, 132, 252, 0.4) 100%
+  );
+  filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.8));
+}
 
-    /* Inner drop shadow inside the pocket cavity */
-    .pocket-inner-shadow {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 45px;
-      background: linear-gradient(180deg, rgba(12, 3, 28, 0.65) 0%, transparent 100%);
-      pointer-events: none;
-    }
+/* Inner drop shadow inside the pocket cavity */
+.pocket-inner-shadow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 45px;
+  background: linear-gradient(
+    180deg,
+    rgba(12, 3, 28, 0.65) 0%,
+    transparent 100%
+  );
+  pointer-events: none;
+}
 
-    /* Front pocket stitch detailing */
-    .pocket-stitch {
-      position: absolute;
-      inset: 8px;
-      top: 26px;
-      border: 1.5px dashed rgba(255, 255, 255, 0.22);
-      border-radius: 0 0 16px 16px;
-      pointer-events: none;
-    }
+/* Front pocket stitch detailing */
+.pocket-stitch {
+  position: absolute;
+  inset: 8px;
+  top: 26px;
+  border: 1.5px dashed rgba(255, 255, 255, 0.22);
+  border-radius: 0 0 16px 16px;
+  pointer-events: none;
+}
 
-    /* Metallic rivets / brass eyelets on folder corners */
-    .folder-rivet {
-      position: absolute;
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: radial-gradient(circle at 35% 35%, #fff 0%, #d1d5db 35%, #6b7280 80%, #374151 100%);
-      box-shadow: 0 1px 3px rgba(0,0,0,0.6), inset 0 1px 1px rgba(255,255,255,0.8);
-      z-index: 28;
-    }
+/* Metallic rivets / brass eyelets on folder corners */
+.folder-rivet {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 35% 35%,
+    #fff 0%,
+    #d1d5db 35%,
+    #6b7280 80%,
+    #374151 100%
+  );
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.6),
+    inset 0 1px 1px rgba(255, 255, 255, 0.8);
+  z-index: 28;
+}
 
-    /* Elastic spine fastener cord detail */
-    .elastic-cord {
-      position: absolute;
-      left: 28px;
-      top: -24px;
-      bottom: 0;
-      width: 5px;
-      background: linear-gradient(90deg, #1e0a3d 0%, #2e1065 40%, #15062c 100%);
-      border-radius: 3px;
-      box-shadow: 2px 0 6px rgba(0,0,0,0.5), -1px 0 2px rgba(255,255,255,0.15);
-      z-index: 26;
-    }
+/* Elastic spine fastener cord detail */
+.elastic-cord {
+  position: absolute;
+  left: 28px;
+  top: -24px;
+  bottom: 0;
+  width: 5px;
+  background: linear-gradient(90deg, #1e0a3d 0%, #2e1065 40%, #15062c 100%);
+  border-radius: 3px;
+  box-shadow:
+    2px 0 6px rgba(0, 0, 0, 0.5),
+    -1px 0 2px rgba(255, 255, 255, 0.15);
+  z-index: 26;
+}
 
-    /* Authentic Manila/Dossier student label window on the front flap */
-    .folder-label-plaque {
-      background: rgba(255, 255, 255, 0.94);
-      border-radius: 10px;
-      border: 1px solid rgba(255, 255, 255, 0.8);
-      box-shadow: 
-        0 4px 12px rgba(0, 0, 0, 0.25),
-        inset 0 1px 2px rgba(0, 0, 0, 0.1);
-      position: relative;
-    }
-    .folder-label-plaque::before {
-      content: '';
-      position: absolute;
-      inset: -3px;
-      border: 1px dashed rgba(255, 255, 255, 0.45);
-      border-radius: 12px;
-      pointer-events: none;
-    }
+/* Authentic Manila/Dossier student label window on the front flap */
+.folder-label-plaque {
+  background: rgba(255, 255, 255, 0.94);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.25),
+    inset 0 1px 2px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+.folder-label-plaque::before {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border: 1px dashed rgba(255, 255, 255, 0.45);
+  border-radius: 12px;
+  pointer-events: none;
+}
 
-    /* ================= FAN-OUT DOCUMENT SHEETS ================= */
-    .paper-sheet {
-      position: absolute;
-      width: 310px;
-      height: 290px;
-      background: #ffffff;
-      border-radius: 18px;
-      border: 1px solid #e2e8f0;
-      transform-origin: 50% 120%;
-      transition: all 0.45s cubic-bezier(0.22, 1, 0.36, 1);
-      cursor: pointer;
-      user-select: none;
-      /* Realistic curled paper sheet shadows */
-      box-shadow: 
-        0 24px 45px -12px rgba(5, 1, 15, 0.65), 
-        0 10px 20px -5px rgba(0, 0, 0, 0.35),
-        inset 0 -3px 6px rgba(0,0,0,0.03);
-    }
+/* ================= FAN-OUT DOCUMENT SHEETS ================= */
+.paper-sheet {
+  position: absolute;
+  width: 310px;
+  height: 290px;
+  background: #ffffff;
+  border-radius: 18px;
+  border: 1px solid #e2e8f0;
+  transform-origin: 50% 120%;
+  transition: all 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  cursor: pointer;
+  user-select: none;
+  /* Realistic curled paper sheet shadows */
+  box-shadow:
+    0 24px 45px -12px rgba(5, 1, 15, 0.65),
+    0 10px 20px -5px rgba(0, 0, 0, 0.35),
+    inset 0 -3px 6px rgba(0, 0, 0, 0.03);
+}
 
-    /* Paper ruled lines / authentic test header simulation */
-    .paper-sheet::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 18px;
-      right: 18px;
-      height: 4px;
-      border-radius: 4px 4px 0 0;
-    }
+/* Paper ruled lines / authentic test header simulation */
+.paper-sheet::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 18px;
+  right: 18px;
+  height: 4px;
+  border-radius: 4px 4px 0 0;
+}
 
-    /* Step 1 Focused (Left sheet emerges forward) */
-    .focus-1 .sheet-left {
-      transform: translate(-45px, -195px) rotate(-3deg) scale(1.06) !important;
-      z-index: 22 !important;
-      box-shadow: 0 35px 70px -15px rgba(0, 0, 0, 0.8), 0 0 0 2.5px #a78bfa !important;
-      opacity: 1 !important;
-    }
-    .focus-1 .sheet-center {
-      transform: translate(65px, -120px) rotate(8deg) scale(0.92) !important;
-      opacity: 0.72 !important;
-      z-index: 10 !important;
-    }
-    .focus-1 .sheet-right {
-      transform: translate(125px, -80px) rotate(16deg) scale(0.85) !important;
-      opacity: 0.5 !important;
-      z-index: 8 !important;
-    }
+/* Step 1 Focused (Left sheet emerges forward) */
+.focus-1 .sheet-left {
+  transform: translate(-45px, -195px) rotate(-3deg) scale(1.06) !important;
+  z-index: 22 !important;
+  box-shadow:
+    0 35px 70px -15px rgba(0, 0, 0, 0.8),
+    0 0 0 2.5px #a78bfa !important;
+  opacity: 1 !important;
+}
+.focus-1 .sheet-center {
+  transform: translate(65px, -120px) rotate(8deg) scale(0.92) !important;
+  opacity: 0.72 !important;
+  z-index: 10 !important;
+}
+.focus-1 .sheet-right {
+  transform: translate(125px, -80px) rotate(16deg) scale(0.85) !important;
+  opacity: 0.5 !important;
+  z-index: 8 !important;
+}
 
-    /* Step 2 Focused (Center sheet upright, dominant - Default) */
-    .focus-2 .sheet-left {
-      transform: translate(-115px, -110px) rotate(-12deg) scale(0.93) !important;
-      opacity: 0.82 !important;
-      z-index: 10 !important;
-    }
-    .focus-2 .sheet-center {
-      transform: translate(0px, -195px) rotate(0deg) scale(1.07) !important;
-      z-index: 22 !important;
-      box-shadow: 0 40px 75px -16px rgba(0, 0, 0, 0.85), 0 0 0 2.5px #a78bfa !important;
-      opacity: 1 !important;
-    }
-    .focus-2 .sheet-right {
-      transform: translate(115px, -110px) rotate(12deg) scale(0.93) !important;
-      opacity: 0.82 !important;
-      z-index: 10 !important;
-    }
+/* Step 2 Focused (Center sheet upright, dominant - Default) */
+.focus-2 .sheet-left {
+  transform: translate(-115px, -110px) rotate(-12deg) scale(0.93) !important;
+  opacity: 0.82 !important;
+  z-index: 10 !important;
+}
+.focus-2 .sheet-center {
+  transform: translate(0px, -195px) rotate(0deg) scale(1.07) !important;
+  z-index: 22 !important;
+  box-shadow:
+    0 40px 75px -16px rgba(0, 0, 0, 0.85),
+    0 0 0 2.5px #a78bfa !important;
+  opacity: 1 !important;
+}
+.focus-2 .sheet-right {
+  transform: translate(115px, -110px) rotate(12deg) scale(0.93) !important;
+  opacity: 0.82 !important;
+  z-index: 10 !important;
+}
 
-    /* Step 3 Focused (Right sheet emerges forward) */
-    .focus-3 .sheet-left {
-      transform: translate(-125px, -80px) rotate(-16deg) scale(0.85) !important;
-      opacity: 0.5 !important;
-      z-index: 8 !important;
-    }
-    .focus-3 .sheet-center {
-      transform: translate(-65px, -120px) rotate(-8deg) scale(0.92) !important;
-      opacity: 0.72 !important;
-      z-index: 10 !important;
-    }
-    .focus-3 .sheet-right {
-      transform: translate(45px, -195px) rotate(3deg) scale(1.06) !important;
-      z-index: 22 !important;
-      box-shadow: 0 35px 70px -15px rgba(0, 0, 0, 0.8), 0 0 0 2.5px #a78bfa !important;
-      opacity: 1 !important;
-    }
+/* Step 3 Focused (Right sheet emerges forward) */
+.focus-3 .sheet-left {
+  transform: translate(-125px, -80px) rotate(-16deg) scale(0.85) !important;
+  opacity: 0.5 !important;
+  z-index: 8 !important;
+}
+.focus-3 .sheet-center {
+  transform: translate(-65px, -120px) rotate(-8deg) scale(0.92) !important;
+  opacity: 0.72 !important;
+  z-index: 10 !important;
+}
+.focus-3 .sheet-right {
+  transform: translate(45px, -195px) rotate(3deg) scale(1.06) !important;
+  z-index: 22 !important;
+  box-shadow:
+    0 35px 70px -15px rgba(0, 0, 0, 0.8),
+    0 0 0 2.5px #a78bfa !important;
+  opacity: 1 !important;
+}
 
-    /* Ambient float */
-    @keyframes folderFloat {
-      0%, 100% { transform: translateY(0px); }
-      50% { transform: translateY(-7px); }
-    }
-    .floating-stage {
-      animation: folderFloat 5.5s ease-in-out infinite;
-    }
+/* Ambient float */
+@keyframes folderFloat {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-7px);
+  }
+}
+.floating-stage {
+  animation: folderFloat 5.5s ease-in-out infinite;
+}
 
-    /* Interactive step items */
-    .dark-step {
-      background: rgba(255, 255, 255, 0.05);
-      backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      transition: all 0.25s ease;
-    }
-    .dark-step:hover {
-      background: rgba(255, 255, 255, 0.09);
-      border-color: rgba(167, 139, 250, 0.4);
-      transform: translateX(4px);
-    }
-    .dark-step.active {
-      background: linear-gradient(135deg, rgba(124, 58, 237, 0.3) 0%, rgba(91, 33, 182, 0.2) 100%);
-      border-color: #9061f9;
-      box-shadow: 0 10px 30px -5px rgba(124, 58, 237, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.2);
-    }
+/* Interactive step items */
+.dark-step {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  transition: all 0.25s ease;
+}
+.dark-step:hover {
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(167, 139, 250, 0.4);
+  transform: translateX(4px);
+}
+.dark-step.active {
+  background: linear-gradient(
+    135deg,
+    rgba(124, 58, 237, 0.3) 0%,
+    rgba(91, 33, 182, 0.2) 100%
+  );
+  border-color: #9061f9;
+  box-shadow:
+    0 10px 30px -5px rgba(124, 58, 237, 0.35),
+    inset 0 1px 1px rgba(255, 255, 255, 0.2);
+}
 
-    .workflow-section {
+.workflow-section {
   min-height: 100vh;
   width: 100%;
   position: relative;
   overflow: hidden;
 
-  background:#351f5b;
+  background: #351f5b;
 }
 
 .workflow-container {
@@ -354,74 +388,96 @@ html {
   padding: 40px 24px 0;
 }
 
-
 /*Mozgó lila fények*/
 @keyframes ctaGlow {
-    0% {
-        transform: translate(0, 0) scale(1);
-    }
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
 
-    25% {
-        transform: translate(-40px, 30px) scale(1.08);
-    }
+  25% {
+    transform: translate(-40px, 30px) scale(1.08);
+  }
 
-    50% {
-        transform: translate(-10px, 70px) scale(0.95);
-    }
+  50% {
+    transform: translate(-10px, 70px) scale(0.95);
+  }
 
-    75% {
-        transform: translate(40px, 20px) scale(1.08);
-    }
+  75% {
+    transform: translate(40px, 20px) scale(1.08);
+  }
 
-    100% {
-        transform: translate(0, 0) scale(1);
-    }
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
 }
 
 @keyframes ctaGlowReverse {
-    0% {
-        transform: translate(0, 0) scale(1);
-    }
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
 
-    25% {
-        transform: translate(40px, -30px) scale(1.08);
-    }
+  25% {
+    transform: translate(40px, -30px) scale(1.08);
+  }
 
-    50% {
-        transform: translate(10px, -70px) scale(0.95);
-    }
+  50% {
+    transform: translate(10px, -70px) scale(0.95);
+  }
 
-    75% {
-        transform: translate(-40px, -20px) scale(1.08);
-    }
+  75% {
+    transform: translate(-40px, -20px) scale(1.08);
+  }
 
-    100% {
-        transform: translate(0, 0) scale(1);
-    }
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
 }
 
 .animate-cta-glow {
-    animation: ctaGlow 9s ease-in-out infinite;
+  animation: ctaGlow 9s ease-in-out infinite;
 }
 
 .animate-cta-glow-reverse {
-    animation: ctaGlowReverse 11s ease-in-out infinite;
+  animation: ctaGlowReverse 11s ease-in-out infinite;
 }
 
 /*Profil oldal*/
- .pie-slice {
-    transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.28s ease, opacity 0.2s ease;
-    transform-origin: 150px 150px;
-    cursor: pointer;
-  }
-  .pie-slice:hover {
-    filter: drop-shadow(0 8px 16px rgba(53, 31, 91, 0.25));
-  }
-  .segmented-tab-active {
-    background-color: #351F5B !important;
-    color: #ffffff !important;
-    box-shadow: 0 4px 12px rgba(53, 31, 91, 0.22);
-  }
-  .chart-node-circle {
-    transition: r 0.2s ease, transform 0.2s ease;
-  }
+.pie-slice {
+  transition:
+    transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1),
+    filter 0.28s ease,
+    opacity 0.2s ease;
+  transform-origin: 150px 150px;
+  cursor: pointer;
+}
+.pie-slice:hover {
+  filter: drop-shadow(0 8px 16px rgba(53, 31, 91, 0.25));
+}
+.segmented-tab-active {
+  background-color: #351f5b !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 12px rgba(53, 31, 91, 0.22);
+}
+.chart-node-circle {
+  transition:
+    r 0.2s ease,
+    transform 0.2s ease;
+}
+
+/*Partcise oldal*/
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #351f5b;
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #351f5b;
+}

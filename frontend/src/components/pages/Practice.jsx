@@ -16,6 +16,7 @@ function PracticePage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
+
     useEffect(() => {
         const loadTasks = async () => {
             setLoading(true);
@@ -57,13 +58,7 @@ function PracticePage() {
     if (error) return <div>Hiba történt: {error}</div>;
 
     return (
-        <div>
-            {tasks.map((task) => (
-                <div key={task.id}>
-                    {/* itt jelenítheted meg a task.tipus és task.valaszok alapján a feladatot */}
-                </div>
-            ))}
-        </div>
+      <div></div>
     );
 }
 
