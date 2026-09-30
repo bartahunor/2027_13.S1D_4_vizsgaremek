@@ -48,10 +48,13 @@ router.get('/me/tests', async (req, res, next) => {
         tesztek.nev,
         tesztek.datum,
         tesztek.kitoltesi_ido,
-        tantargyak.nev as tantargy
+        tantargyak.nev as tantargy,
+        count(teszt_feladatok.id)::int as feladatok_szama
       from tesztek
       join tantargyak on tantargyak.id = tesztek.tantargy_id
+      left join teszt_feladatok on teszt_feladatok.teszt_id = tesztek.id
       where tesztek.felhasznalo_id = ${felhasznaloId}
+      group by tesztek.id, tantargyak.nev
       order by tesztek.datum desc
     `
 
