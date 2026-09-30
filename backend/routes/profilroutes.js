@@ -64,4 +64,72 @@ router.get('/me/tests', async (req, res, next) => {
   }
 })
 
+// Bejelentkezett felhasználó tantárgyankénti összesítése (kördiagramhoz)
+router.get('/me/piechart', async (req, res, next) => {
+  try {
+    const felhasznaloId = req.user.id
+    const days = Number.parseInt(req.query.days, 10)
+
+    const rows = await sql`
+      with teszt_osszes as (
+        select
+          tesztek.id,
+          tesztek.tantargy_id,
+          tesztek.kitoltesi_ido,
+          (
+            select count(*)
+            from teszt_feladatok
+            where teszt_feladatok.teszt_id = tesztek.id
+          )::int as feladatok_szama
+        from tesztek
+        where tesztek.felhasznalo_id = ${felhasznaloId}
+        ${Number.isInteger(days) && days > 0
+          ? sql`and tesztek.datum >= now() - make_interval(days => ${days})`
+          : sql``}
+      )
+      select
+        tantargyak.nev as tantargy,
+        coalesce(sum(teszt_osszes.kitoltesi_ido), 0)::int as kitoltesi_ido,
+        coalesce(sum(teszt_osszes.feladatok_szama), 0)::int as feladatok_szama,
+        count(teszt_osszes.id)::int as tesztek_szama
+      from teszt_osszes
+      join tantargyak on tantargyak.id = teszt_osszes.tantargy_id
+      group by tantargyak.nev
+      order by kitoltesi_ido desc
+    `
+
+    res.json(rows)
+  } catch (err) {
+    next(err)
+  }
+})
+
+// Bejelentkezett felhasználó napi feladatszáma
+// Opcionális szűrő: ?days=30
+router.get('/me/activitylog', async (req, res, next) => {
+  try {
+    const felhasznaloId = req.user.id
+    const days = Number.parseInt(req.query.days, 10)
+
+    const rows = await sql`
+      select
+        to_char(tesztek.datum::date, 'YYYY-MM-DD') as nap,
+        count(teszt_feladatok.id)::int as feladatok_szama,
+        count(distinct tesztek.id)::int as tesztek_szama
+      from tesztek
+      left join teszt_feladatok on teszt_feladatok.teszt_id = tesztek.id
+      where tesztek.felhasznalo_id = ${felhasznaloId}
+      ${Number.isInteger(days) && days > 0
+        ? sql`and tesztek.datum >= now() - make_interval(days => ${days})`
+        : sql``}
+      group by tesztek.datum::date
+      order by tesztek.datum::date asc
+    `
+
+    res.json(rows)
+  } catch (err) {
+    next(err)
+  }
+})
+
 export default router

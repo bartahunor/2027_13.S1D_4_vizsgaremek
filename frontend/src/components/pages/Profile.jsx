@@ -1,10 +1,98 @@
 import { useEffect, useState } from "react";
 import { apiFetch } from '../../lib/apiClient';
 
+// ----------------- KÖR DIAGRAM ADATAINAK RENDEZÉSE ---------------- //
+const SUBJECT_CONFIG = {
+    Matematika: {
+        subject: "Matematika",
+        legendSubject: "Matematika",
+        color: "#351F5B",
+    },
+    Irodalom: {
+        subject: "Magyar nyelv és irodalom",
+        legendSubject: "Magyar irodalom",
+        color: "#6D4DA3",
+    },
+    Történelem: {
+        subject: "Történelem",
+        legendSubject: "Történelem",
+        color: "#916CBD",
+    },
+    Angol: {
+        subject: "Angol nyelv",
+        legendSubject: "Angol nyelv",
+        color: "#B892F7",
+    },
+    Biológia: {
+        subject: "Biológia",
+        legendSubject: "Biológia",
+        color: "#DECFF2",
+    }
+    // Nyelvtan: { subject: "Magyar nyelv és irodalom", legendSubject: "Magyar irodalom", color: "#6D4DA3" },
+    // ide jöhetnek a többi tantárgyak
+};
+
+const DEFAULT_COLOR = "#B8A9D9";
+
+const getConfig = (tantargy) =>
+    SUBJECT_CONFIG[tantargy] ?? {
+        subject: tantargy,
+        legendSubject: tantargy,
+        color: DEFAULT_COLOR,
+    };
+
+const formatTime = (seconds) => {
+    const hours = seconds / 3600;
+    if (hours >= 1) return `${Math.round(hours)} óra`;
+    return `${Math.round(seconds / 60)} perc`;
+};
+
+const groupBySubject = (items) =>
+    items.reduce((acc, item) => {
+        const config = getConfig(item.tantargy);
+        const key = config.subject;
+
+        if (!acc[key]) {
+            acc[key] = { ...config, seconds: 0, tasks: 0 };
+        }
+        acc[key].seconds += item.kitoltesi_ido;
+        acc[key].tasks += item.feladatok_szama;
+        return acc;
+    }, {});
+
+const buildPieData = (data, prevData = []) => {
+    const current = groupBySubject(data);
+    const previous = groupBySubject(prevData);
+    const totalSeconds = Object.values(current).reduce((sum, s) => sum + s.seconds, 0);
+
+    return Object.values(current)
+        .map(({ subject, legendSubject, color, seconds, tasks }) => {
+            const prevSeconds = previous[subject]?.seconds;
+            let change = null;
+            if (prevSeconds) {
+                const diff = ((seconds - prevSeconds) / prevSeconds) * 100;
+                change = `${diff >= 0 ? "+" : ""}${diff.toFixed(1)}%`;
+            }
+
+            return {
+                subject,
+                legendSubject,
+                hours: formatTime(seconds),
+                percent: totalSeconds ? Math.round((seconds / totalSeconds) * 100) : 0,
+                tasks: `${tasks} feladat`,
+                color,
+                change,
+            };
+        })
+        .sort((a, b) => b.percent - a.percent);
+};
+
+
 function ProfilePage() {
 
     const [profildata, setProfildata] = useState([]);
     const [profiltests, setProfiltests] = useState([]);
+    const [pieStats, setPieStats] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
@@ -17,6 +105,7 @@ function ProfilePage() {
     const [selectedCalendarDay, setSelectedCalendarDay] = useState(8);
     const [activityFilter, setActivityFilter] = useState("all");
 
+    // -------------- ADATOK FETCHELÉSE -------------- //
     useEffect(() => {
 
         const loadProfilData = async () => {
@@ -48,8 +137,20 @@ function ProfilePage() {
             }
         };
         loadProfilTests();
+
+        const loadPieStats = async () => {
+            try {
+                const data = await apiFetch('/profilroutes/me/piechart');
+                setPieStats(data);
+            } catch (err) {
+                setError("Nem sikerült betölteni az adatokat.");
+                console.error(err);
+            }
+        };
+        loadPieStats();
     }, []);
 
+    //--------- FEJLÉC ADATOK RENDEZÉSE ----------- //
     const szerepNevek = {
         tanar: 'Tanár',
         diak: 'Diák',
@@ -68,50 +169,13 @@ function ProfilePage() {
         })
         : ''
 
-    const pieData = [
-        {
-            subject: "Matematika",
-            hours: "52 óra",
-            percent: 35,
-            tasks: "78 feladat",
-            color: "#351F5B",
-            change: "+3.8%"
-        },
-        {
-            subject: "Magyar nyelv és irodalom",
-            legendSubject: "Magyar irodalom",
-            hours: "37 óra",
-            percent: 25,
-            tasks: "54 feladat",
-            color: "#6D4DA3",
-            change: "+1.5%"
-        },
-        {
-            subject: "Történelem",
-            hours: "26.5 óra",
-            percent: 18,
-            tasks: "38 feladat",
-            color: "#916CBD",
-            change: "stabil"
-        },
-        {
-            subject: "Angol nyelv",
-            hours: "21 óra",
-            percent: 14,
-            tasks: "29 feladat",
-            color: "#B892F7",
-            change: "+2.1%"
-        },
-        {
-            subject: "Biológia",
-            hours: "11.5 óra",
-            percent: 8,
-            tasks: "16 feladat",
-            color: "#DECFF2",
-            change: "új"
-        }
-    ];
+    // ----------------- KÖR DIAGRAM ADATAINAK BETÖLTÉSE -------------- //
+    const pieData = buildPieData(pieStats);
+    const totalHoursText = Math.round(profiltests.reduce((sum, t) => sum + t.kitoltesi_ido, 0) / 3600);
 
+    //------------------- VONAL DIAGRAM ADATAINAK BETÖLTÉSE ------------- //
+    const tabSubjects = ["Mind", ...new Set(profiltests.map((t) => t.tantargy))];
+    
     const activityLogs = [
         {
             id: 1,
@@ -397,8 +461,7 @@ function ProfilePage() {
     const slices = pieData.map((item) => {
         const startAngle = currentAngle;
 
-        const angle =
-            (item.percent / totalPercent) * 360;
+        const angle = totalPercent ? (item.percent / totalPercent) * 360 : 0;
 
         const endAngle = startAngle + angle;
 
@@ -653,14 +716,7 @@ function ProfilePage() {
                                 role="tablist"
                             >
 
-                                {[
-                                    "Mind",
-                                    "Matematika",
-                                    "Történelem",
-                                    "Magyar",
-                                    "Angol",
-                                    "Biológia"
-                                ].map((subject) => (
+                                {tabSubjects.map((subject) => (
 
                                     <button
                                         key={subject}
@@ -1202,7 +1258,7 @@ function ProfilePage() {
                                     </span>
 
                                     <span>
-                                        Összesen: <strong>148 óra</strong>
+                                        Összesen: <strong>{ totalHoursText } óra</strong>
                                     </span>
 
                                 </div>
@@ -1325,17 +1381,21 @@ function ProfilePage() {
 
                                     {/* Középső kijelzés */}
                                     {(() => {
-                                        const activePieSubject =
-                                            hoveredPieSubject ?? "Matematika";;
+                                        if (pieData.length === 0) {
+                                            return (
+                                                <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
+                                                    <span className="text-xs text-[#817989]">Nincs adat</span>
+                                                </div>
+                                            );
+                                        }
+
+                                        const activePieSubject = hoveredPieSubject ?? pieData[0].subject;
 
                                         const selected =
-                                            pieData.find(
-                                                (item) => item.subject === activePieSubject
-                                            ) ?? pieData[0];
+                                            pieData.find((item) => item.subject === activePieSubject) ?? pieData[0];
 
                                         return (
                                             <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
-
                                                 <span className="text-[10px] uppercase tracking-wider text-[#817989] font-semibold">
                                                     Kiválasztva
                                                 </span>
@@ -1347,7 +1407,6 @@ function ProfilePage() {
                                                 <span className="text-lg text-secondary font-bold">
                                                     {selected.percent}%
                                                 </span>
-
                                             </div>
                                         );
                                     })()}
@@ -1394,7 +1453,7 @@ function ProfilePage() {
 
                                         return (
                                             <div
-                                                key={item.id}
+                                                key={item.subject}
                                                 className={`group p-2 rounded-xl border transition-all cursor-pointer flex items-center justify-between ${isActive || isHovered
                                                     ? "border-[#E8DFEF] bg-[#FAF8FC]"
                                                     : "border-transparent"
@@ -1441,14 +1500,16 @@ function ProfilePage() {
                                                         {item.percent}%
                                                     </span>
 
-                                                    <span
-                                                        className={`block text-[11px] font-semibold ${item.change.startsWith("+")
-                                                            ? "text-emerald-600"
-                                                            : "text-[#756E7E]"
-                                                            }`}
-                                                    >
-                                                        {item.change}
-                                                    </span>
+                                                    {item.change && (
+                                                        <span
+                                                            className={`block text-[11px] font-semibold ${item.change.startsWith("+")
+                                                                ? "text-emerald-600"
+                                                                : "text-[#756E7E]"
+                                                                }`}
+                                                        >
+                                                            {item.change}
+                                                        </span>
+                                                    )}
 
                                                 </div>
 
@@ -1476,9 +1537,7 @@ function ProfilePage() {
 
                             </span>
 
-                            <span className="font-semibold text-primary">
-                                Legaktívabb: Matematika
-                            </span>
+                            
 
                         </div>
 
@@ -1495,7 +1554,7 @@ function ProfilePage() {
                                     </span>
 
                                     <h3 className="text-lg font-semibold text-primary mt-0.5">
-                                        Mini Naptár &amp; Belépések
+                                        Aktivitás
                                     </h3>
                                 </div>
 
