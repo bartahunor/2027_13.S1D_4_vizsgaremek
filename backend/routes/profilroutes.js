@@ -104,26 +104,38 @@ router.get('/me/piechart', async (req, res, next) => {
   }
 })
 
-// Bejelentkezett felhasználó napi feladatszáma
+// Bejelentkezett felhasználó napi feladatszáma és ideje
 // Opcionális szűrő: ?days=30
-router.get('/me/activitylog', async (req, res, next) => {
+router.get('/me/calendar', async (req, res, next) => {
   try {
     const felhasznaloId = req.user.id
     const days = Number.parseInt(req.query.days, 10)
 
     const rows = await sql`
+      with teszt_osszes as (
+        select
+          tesztek.id,
+          tesztek.datum::date as nap,
+          tesztek.kitoltesi_ido,
+          (
+            select count(*)
+            from teszt_feladatok
+            where teszt_feladatok.teszt_id = tesztek.id
+          )::int as feladatok_szama
+        from tesztek
+        where tesztek.felhasznalo_id = ${felhasznaloId}
+        ${Number.isInteger(days) && days > 0
+          ? sql`and tesztek.datum >= now() - make_interval(days => ${days})`
+          : sql``}
+      )
       select
-        to_char(tesztek.datum::date, 'YYYY-MM-DD') as nap,
-        count(teszt_feladatok.id)::int as feladatok_szama,
-        count(distinct tesztek.id)::int as tesztek_szama
-      from tesztek
-      left join teszt_feladatok on teszt_feladatok.teszt_id = tesztek.id
-      where tesztek.felhasznalo_id = ${felhasznaloId}
-      ${Number.isInteger(days) && days > 0
-        ? sql`and tesztek.datum >= now() - make_interval(days => ${days})`
-        : sql``}
-      group by tesztek.datum::date
-      order by tesztek.datum::date asc
+        to_char(nap, 'YYYY-MM-DD') as nap,
+        coalesce(sum(feladatok_szama), 0)::int as feladatok_szama,
+        coalesce(sum(kitoltesi_ido), 0)::int as kitoltesi_ido,
+        count(id)::int as tesztek_szama
+      from teszt_osszes
+      group by nap
+      order by nap asc
     `
 
     res.json(rows)

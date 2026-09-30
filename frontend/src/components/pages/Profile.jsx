@@ -88,11 +88,16 @@ const buildPieData = (data, prevData = []) => {
 };
 
 
+
+
+
+
 function ProfilePage() {
 
     const [profildata, setProfildata] = useState([]);
     const [profiltests, setProfiltests] = useState([]);
     const [pieStats, setPieStats] = useState([]);
+    const [calendarStats, setCalendarStats] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
@@ -101,8 +106,8 @@ function ProfilePage() {
     const [timeRange, setTimeRange] = useState("30d");
     const [hoveredPoint, setHoveredPoint] = useState(null);
     const [hoveredPieSubject, setHoveredPieSubject] = useState(null);
-    const [calendarDate, setCalendarDate] = useState(new Date(2026, 4, 1));
-    const [selectedCalendarDay, setSelectedCalendarDay] = useState(8);
+    const [calendarDate, setCalendarDate] = useState(new Date());
+    const [selectedCalendarDay, setSelectedCalendarDay] = useState(new Date().getDate());
     const [activityFilter, setActivityFilter] = useState("all");
 
     // -------------- ADATOK FETCHELÉSE -------------- //
@@ -123,6 +128,7 @@ function ProfilePage() {
         };
         loadProfilData();
 
+        //Paraméterezett lekérdezésé kell alakítani adott idősáv és tantárgy szerint
         const loadProfilTests = async () => {
             try {
                 setLoading(true);
@@ -145,9 +151,25 @@ function ProfilePage() {
             } catch (err) {
                 setError("Nem sikerült betölteni az adatokat.");
                 console.error(err);
+            } finally {
+                setLoading(false);
             }
         };
         loadPieStats();
+
+        const loadCalendarStats = async () => {
+            try {
+                const data = await apiFetch('/profilroutes/me/calendar');
+                setCalendarStats(data);
+                console.log(data)
+            } catch (err) {
+                setError("Nem sikerült betölteni az adatokat.");
+                console.error(err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        loadCalendarStats();
     }, []);
 
     //--------- FEJLÉC ADATOK RENDEZÉSE ----------- //
@@ -169,13 +191,13 @@ function ProfilePage() {
         })
         : ''
 
-    // ----------------- KÖR DIAGRAM ADATAINAK BETÖLTÉSE -------------- //
-    const pieData = buildPieData(pieStats);
-    const totalHoursText = Math.round(profiltests.reduce((sum, t) => sum + t.kitoltesi_ido, 0) / 3600);
+    
+
+
 
     //------------------- VONAL DIAGRAM ADATAINAK BETÖLTÉSE ------------- //
     const tabSubjects = ["Mind", ...new Set(profiltests.map((t) => t.tantargy))];
-    
+
     const activityLogs = [
         {
             id: 1,
@@ -326,56 +348,16 @@ function ProfilePage() {
         ]
     };
 
-    const calendarActivity = {
-        "2026-05-01": {
-            logins: 3,
-            tasks: 45,
-            subjects: "Matek, Történelem",
-            minutes: 75,
-        },
-        "2026-05-02": {
-            logins: 2,
-            tasks: 24,
-            subjects: "Magyar nyelv",
-            minutes: 40,
-        },
-        "2026-05-03": {
-            logins: 1,
-            tasks: 0,
-            subjects: "Áttekintés",
-            minutes: 10,
-        },
-        "2026-05-04": {
-            logins: 2,
-            tasks: 18,
-            subjects: "Angol",
-            minutes: 30,
-        },
-        "2026-05-05": {
-            logins: 4,
-            tasks: 52,
-            subjects: "Matek esszék",
-            minutes: 90,
-        },
-        "2026-05-06": {
-            logins: 2,
-            tasks: 30,
-            subjects: "Történelem",
-            minutes: 50,
-        },
-        "2026-05-07": {
-            logins: 3,
-            tasks: 28,
-            subjects: "Biológia",
-            minutes: 45,
-        },
-        "2026-05-08": {
-            logins: 3,
-            tasks: 36,
-            subjects: "Több tantárgy",
-            minutes: 65,
-        },
-    };
+    //------------------- NAPTÁR ADATAINAK BETÖLTÉSE ------------- //
+    const calendarActivity = Object.fromEntries(
+        calendarStats.map((d) => [
+            d.nap,
+            {
+                tasks: d.feladatok_szama,
+                minutes: Math.round(d.kitoltesi_ido / 60),
+            },
+        ])
+    );
 
     const filteredActivityLogs =
         activityFilter === "all"
@@ -384,14 +366,6 @@ function ProfilePage() {
                 (activity) => activity.type === activityFilter
             );
 
-    const plannedDays = {
-        "2026-05-09": "Tervezett felkészülés: Történelem esszé",
-        "2026-05-10": "Tervezett felkészülés: Matematika próbaérettségi",
-        "2026-05-11": "Tervezett felkészülés: Magyar irodalom",
-        "2026-05-12": "Tervezett felkészülés: Angol teszt",
-        "2026-05-13": "Tervezett felkészülés",
-        "2026-05-14": "Tervezett felkészülés",
-    };
 
     const getDateKey = (year, month, day) => {
         return `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
@@ -450,6 +424,10 @@ function ProfilePage() {
                 return "bg-[#F2EFF7] text-on-surface-variant";
         }
     };
+
+    // ----------------- KÖR DIAGRAM ADATAINAK BETÖLTÉSE -------------- //
+    const pieData = buildPieData(pieStats);
+    const totalHoursText = Math.round(profiltests.reduce((sum, t) => sum + t.kitoltesi_ido, 0) / 3600);
 
     const totalPercent = pieData.reduce(
         (sum, item) => sum + item.percent,
@@ -1613,14 +1591,14 @@ function ProfilePage() {
 
                                     const dateKey = getDateKey(year, month, day);
                                     const activity = calendarActivity[dateKey];
-                                    const planned = plannedDays[dateKey];
 
                                     const isSelected = selectedCalendarDay === day;
 
+                                    const today = new Date();
                                     const isToday =
-                                        year === 2026 &&
-                                        month === 4 &&
-                                        day === 8;
+                                        year === today.getFullYear() &&
+                                        month === today.getMonth() &&
+                                        day === today.getDate();
 
                                     const activityClass = getActivityClass(activity?.tasks || 0);
 
@@ -1630,39 +1608,35 @@ function ProfilePage() {
                                             type="button"
                                             onClick={() => setSelectedCalendarDay(day)}
                                             className={`
-              relative aspect-square rounded-lg
-              flex flex-col items-center justify-center
-              text-xs font-medium
-              transition-all duration-150
-              hover:scale-105
-              ${planned && !activity
-                                                    ? "bg-[#FAF8FC] border border-dashed border-[#DDD4E8] text-gray-400"
-                                                    : activityClass
-                                                }
-              ${isSelected ? "ring-2 ring-secondary ring-offset-1" : ""}
-              ${isToday ? "ring-2 ring-secondary" : ""}
-            `}
+                    relative aspect-square rounded-lg
+                    flex flex-col items-center justify-center
+                    text-xs font-medium
+                    transition-all duration-150
+                    hover:scale-105
+                    ${activityClass}
+                    ${isSelected ? "ring-2 ring-secondary ring-offset-1" : ""}
+                    ${isToday ? "ring-2 ring-secondary" : ""}
+                `}
                                         >
                                             <span>{day}</span>
 
                                             {activity && (
                                                 <span
                                                     className={`
-                  w-1 h-1 rounded-full mt-0.5
-                  ${activity.tasks >= 40
+                            w-1 h-1 rounded-full mt-0.5
+                            ${activity.tasks >= 40
                                                             ? "bg-[#C3A0FD]"
                                                             : activity.tasks >= 20
                                                                 ? "bg-white/80"
                                                                 : "bg-[#351F5B]"
                                                         }
-                `}
+                        `}
                                                 />
                                             )}
                                         </button>
                                     );
                                 })}
                             </div>
-
                             {/* Napi részletező */}
                             {(() => {
                                 const selectedDate =
@@ -1674,9 +1648,7 @@ function ProfilePage() {
                                     ? calendarActivity[selectedDate]
                                     : null;
 
-                                const planned = selectedDate
-                                    ? plannedDays[selectedDate]
-                                    : null;
+                                
 
                                 return (
                                     <div className="mt-6 p-3 rounded-xl bg-[#F7F4FA] border border-[#EBE3F2] flex items-center gap-3">
@@ -1697,10 +1669,8 @@ function ProfilePage() {
 
                                             <span className="text-[11px] text-gray-500 truncate">
                                                 {activity
-                                                    ? `${activity.logins} belépés · ${activity.tasks} feladat · ${activity.minutes} perc`
-                                                    : planned
-                                                        ? planned
-                                                        : "Nincs aktivitási adat erre a napra"}
+                                                    ? `${activity.tasks} feladat · ${activity.minutes} perc`
+                                                    : "Nincs aktivitási adat erre a napra"}
                                             </span>
                                         </div>
                                     </div>
