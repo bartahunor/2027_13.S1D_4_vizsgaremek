@@ -37,23 +37,42 @@ router.get('/me', async (req, res, next) => {
   }
 })
 
-//Bejelentkezett felhasználóhoz tartozó tesztek lekérő api végpont
+//Bejelentkezett felhasználóhoz tartozó tesztek lekérő api végpont idő intervallum és tantárgy alapján
 router.get('/me/tests', async (req, res, next) => {
   try {
     const felhasznaloId = req.user.id
 
+    // Query paraméterek: ?tantargy=Matematika&napok=30
+    const tantargy = req.query.tantargy ? String(req.query.tantargy).trim() : null
+    const napok = req.query.napok ? parseInt(req.query.napok, 10) : null
+
+    if (req.query.napok && (Number.isNaN(napok) || napok <= 0)) {
+      return res.status(400).json({ error: 'Érvénytelen paraméter (napok)' })
+    }
+
     const rows = await sql`
       select
         tesztek.id,
-        tesztek.nev,
         tesztek.datum,
         tesztek.kitoltesi_ido,
         tantargyak.nev as tantargy,
-        count(teszt_feladatok.id)::int as feladatok_szama
+        count(teszt_feladatok.id)::int as feladatok_szama,
+        coalesce(sum(teszt_feladatok.elert_pont), 0)::float as elert_pont,
+        coalesce(sum(feladatok.pont), 0)::int as max_pont,
+        case
+          when coalesce(sum(feladatok.pont), 0) = 0 then 0
+          else round(
+            (coalesce(sum(teszt_feladatok.elert_pont), 0) / sum(feladatok.pont) * 100)::numeric,
+            1
+          )::float
+        end as szazalek
       from tesztek
       join tantargyak on tantargyak.id = tesztek.tantargy_id
       left join teszt_feladatok on teszt_feladatok.teszt_id = tesztek.id
+      left join feladatok on feladatok.id = teszt_feladatok.feladat_id
       where tesztek.felhasznalo_id = ${felhasznaloId}
+        and (${tantargy}::text is null or tantargyak.nev = ${tantargy})
+        and (${napok}::int is null or tesztek.datum >= now() - make_interval(days => ${napok}::int))
       group by tesztek.id, tantargyak.nev
       order by tesztek.datum desc
     `

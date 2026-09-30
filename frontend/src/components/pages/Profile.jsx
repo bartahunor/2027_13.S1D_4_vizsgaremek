@@ -99,11 +99,12 @@ function ProfilePage() {
     const [pieStats, setPieStats] = useState([]);
     const [calendarStats, setCalendarStats] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [testsLoading, setTestsLoading] = useState(true);
     const [error, setError] = useState(null);
 
     //Fruzsi
     const [selectedSubject, setSelectedSubject] = useState("Mind");
-    const [timeRange, setTimeRange] = useState("30d");
+    const [timeRange, setTimeRange] = useState("7d");
     const [hoveredPoint, setHoveredPoint] = useState(null);
     const [hoveredPieSubject, setHoveredPieSubject] = useState(null);
     const [calendarDate, setCalendarDate] = useState(new Date());
@@ -111,66 +112,80 @@ function ProfilePage() {
     const [activityFilter, setActivityFilter] = useState("all");
 
     // -------------- ADATOK FETCHELÉSE -------------- //
+    // 1) Egyszer, mountoláskor: fix adatok
     useEffect(() => {
+        let cancelled = false;
 
-        const loadProfilData = async () => {
+        const loadStaticData = async () => {
             try {
                 setLoading(true);
-                const data = await apiFetch('/profilroutes/me');
-                setProfildata(data);
-                console.log('Beérkezett adat:', data);
+                setError(null);
+
+                const [profil, pie, calendar] = await Promise.all([
+                    apiFetch('/profilroutes/me'),
+                    apiFetch('/profilroutes/me/piechart'),
+                    apiFetch('/profilroutes/me/calendar'),
+                ]);
+
+                if (cancelled) return;
+                setProfildata(profil);
+                setPieStats(pie);
+                setCalendarStats(calendar);
             } catch (err) {
+                if (cancelled) return;
                 setError("Nem sikerült betölteni az adatokat.");
                 console.error(err);
             } finally {
-                setLoading(false);
+                if (!cancelled) setLoading(false);
             }
         };
-        loadProfilData();
 
-        //Paraméterezett lekérdezésé kell alakítani adott idősáv és tantárgy szerint
+        loadStaticData();
+        return () => { cancelled = true; };
+    }, []);
+
+    // 2) Mountkor ÉS szűrő változásakor: tesztek
+    //
+    //
+    //
+    // !!!!!!! A FOLYAMAT VÁLTOZÓ PROFILTASKSHOZ VAN KÖTVE MELYIK TANTÁRGYAK JELENNEK MEG A TABON JAVÍTANI KELL !!!!! //    
+    //
+    //
+    useEffect(() => {
+        let cancelled = false;
+
         const loadProfilTests = async () => {
             try {
-                setLoading(true);
-                const data = await apiFetch('/profilroutes/me/tests');
+                setTestsLoading(true);
+
+                const params = new URLSearchParams();
+                if (selectedSubject && selectedSubject !== 'Mind') {
+                    params.append('tantargy', selectedSubject);
+                }
+                if (timeRange && timeRange !== 'Mind') {
+                    params.append('napok', timeRange);
+                }
+
+                const query = params.toString();
+                const data = await apiFetch(
+                    `/profilroutes/me/tests${query ? `?${query}` : ''}`
+                );
+
+                if (cancelled) return;
                 setProfiltests(data);
-                console.log('Beérkezett adat:', data);
-            } catch (err) {
-                setError("Nem sikerült betölteni az adatokat.");
-                console.error(err);
-            } finally {
-                setLoading(false);
-            }
-        };
-        loadProfilTests();
-
-        const loadPieStats = async () => {
-            try {
-                const data = await apiFetch('/profilroutes/me/piechart');
-                setPieStats(data);
-            } catch (err) {
-                setError("Nem sikerült betölteni az adatokat.");
-                console.error(err);
-            } finally {
-                setLoading(false);
-            }
-        };
-        loadPieStats();
-
-        const loadCalendarStats = async () => {
-            try {
-                const data = await apiFetch('/profilroutes/me/calendar');
-                setCalendarStats(data);
                 console.log(data)
             } catch (err) {
-                setError("Nem sikerült betölteni az adatokat.");
+                if (cancelled) return;
+                setError("Nem sikerült betölteni a teszteket.");
                 console.error(err);
             } finally {
-                setLoading(false);
+                if (!cancelled) setTestsLoading(false);
             }
         };
-        loadCalendarStats();
-    }, []);
+
+        loadProfilTests();
+        return () => { cancelled = true; };
+    }, [selectedSubject, timeRange]);
 
     //--------- FEJLÉC ADATOK RENDEZÉSE ----------- //
     const szerepNevek = {
