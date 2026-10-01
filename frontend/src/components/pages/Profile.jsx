@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { apiFetch } from '../../lib/apiClient';
+import ActivityCard from "../sections/ActivityCard";
 
 function ProfilePage() {
 
@@ -16,6 +17,9 @@ function ProfilePage() {
     const [calendarDate, setCalendarDate] = useState(new Date(2026, 4, 1));
     const [selectedCalendarDay, setSelectedCalendarDay] = useState(8);
     const [activityFilter, setActivityFilter] = useState("all");
+    const [selectedActivity, setSelectedActivity] = useState(null);
+    const [showFullActivityArchive, setShowFullActivityArchive] = useState(false);
+
 
     useEffect(() => {
 
@@ -320,6 +324,10 @@ function ProfilePage() {
                 (activity) => activity.type === activityFilter
             );
 
+    const visibleActivityLogs = showFullActivityArchive
+        ? filteredActivityLogs
+        : filteredActivityLogs.slice(0, 5);
+
     const plannedDays = {
         "2026-05-09": "Tervezett felkészülés: Történelem esszé",
         "2026-05-10": "Tervezett felkészülés: Matematika próbaérettségi",
@@ -503,7 +511,7 @@ function ProfilePage() {
 
 
     return (
-        <main className="w-full max-w-7xl mx-auto px-6 pt-24 bg-transparent flex-grow">
+        <main className="w-full max-w-7xl mx-auto px-4 sm:px-6 pt-24 bg-transparent flex-grow">
             <div className="flex flex-col w-full pb-10">
 
                 {/* PROFIL FEJLÉC */}
@@ -512,7 +520,7 @@ function ProfilePage() {
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
 
                         {/* BAL OLDAL */}
-                        <div className="flex items-center gap-6">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
 
                             {/* AVATAR */}
                             <div className="relative">
@@ -581,11 +589,11 @@ function ProfilePage() {
                         </div>
 
                         {/* JOBB OLDALI GOMBOK */}
-                        <div className="flex items-center gap-2 self-start md:self-center">
+                        <div className="flex w-full sm:w-auto items-center gap-2 self-stretch sm:self-start md:self-center">
 
                             {/* PROFIL SZERKESZTÉSE */}
                             <button
-                                className="group flex items-center gap-2 px-4 py-2 rounded-xl bg-[#F7F6F8] hover:bg-[#EEEAF4] text-[#351F5B] text-sm leading-[22px] font-medium transition-all shadow-sm border border-[#E3DCED]"
+                                className="group flex flex-1 sm:flex-none items-center justify-center gap-2 px-4 py-2 rounded-xl bg-[#F7F6F8] hover:bg-[#EEEAF4] text-[#351F5B] text-sm leading-[22px] font-medium transition-all shadow-sm border border-[#E3DCED]"
                                 id="editProfileBtn"
                                 type="button"
                             >
@@ -648,7 +656,7 @@ function ProfilePage() {
 
                             {/* TANTÁRGYVÁLASZTÓ */}
                             <div
-                                className="flex items-center gap-1 p-1 bg-[#F1ECF7] rounded-xl overflow-x-auto shadow-inner"
+                                className="flex w-full lg:w-auto items-center gap-1 p-1 bg-[#F1ECF7] rounded-xl overflow-x-auto shadow-inner"
                                 id="subjectEvolutionTabs"
                                 role="tablist"
                             >
@@ -902,17 +910,17 @@ function ProfilePage() {
 
 
                     {/* VONALDIAGRAM */}
-                    <div className="p-6 relative bg-white select-none">
+                    <div className="p-4 sm:p-6 relative bg-white select-none">
 
                         <div
-                            className="relative w-full h-72 sm:h-80 cursor-crosshair"
+                            className="relative w-full h-[360px] sm:h-80 cursor-crosshair overflow-hidden"
                             id="chartContainer"
                         >
 
                             <svg
                                 className="w-full h-full overflow-visible"
                                 id="evolutionChart"
-                                preserveAspectRatio="none"
+                                preserveAspectRatio="xMidYMid meet"
                                 viewBox="0 0 920 280"
 
                                 onMouseMove={(e) => {
@@ -995,12 +1003,53 @@ function ProfilePage() {
                                     className="fill-[#7B7580]"
                                     textAnchor="end"
                                 >
-                                    <text x="50" y="34">25k</text>
-                                    <text x="50" y="76">20k</text>
-                                    <text x="50" y="118">15k</text>
-                                    <text x="50" y="160">10k</text>
-                                    <text x="50" y="202">5k</text>
-                                    <text x="50" y="244">0</text>
+                                    <text
+                                        x="50"
+                                        y="34"
+                                        fontSize="14"
+                                    >
+                                        25k
+                                    </text>
+
+                                    <text
+                                        x="50"
+                                        y="76"
+                                        fontSize="14"
+                                    >
+                                        20k
+                                    </text>
+
+                                    <text
+                                        x="50"
+                                        y="118"
+                                        fontSize="14"
+                                    >
+                                        15k
+                                    </text>
+
+                                    <text
+                                        x="50"
+                                        y="160"
+                                        fontSize="14"
+                                    >
+                                        10k
+                                    </text>
+
+                                    <text
+                                        x="50"
+                                        y="202"
+                                        fontSize="14"
+                                    >
+                                        5k
+                                    </text>
+
+                                    <text
+                                        x="50"
+                                        y="244"
+                                        fontSize="14"
+                                    >
+                                        0
+                                    </text>
                                 </g>
 
 
@@ -1096,13 +1145,33 @@ function ProfilePage() {
                                     id="evoXAxisLabels"
                                     textAnchor="middle"
                                 >
-                                    <text x="65" y="268">Mar 30</text>
-                                    <text x="200" y="268">Apr 4</text>
-                                    <text x="340" y="268">Apr 9</text>
-                                    <text x="485" y="268">Apr 14</text>
-                                    <text x="625" y="268">Apr 19</text>
-                                    <text x="755" y="268">Apr 24</text>
-                                    <text x="870" y="268">Apr 29</text>
+                                    <text x="65" y="268" fontSize="12">
+                                        Mar 30
+                                    </text>
+
+                                    <text x="200" y="268" fontSize="12" className="hidden sm:block">
+                                        Apr 4
+                                    </text>
+
+                                    <text x="340" y="268" fontSize="12">
+                                        Apr 9
+                                    </text>
+
+                                    <text x="485" y="268" fontSize="12" className="hidden sm:block">
+                                        Apr 14
+                                    </text>
+
+                                    <text x="625" y="268" fontSize="12">
+                                        Apr 19
+                                    </text>
+
+                                    <text x="755" y="268" fontSize="12" className="hidden sm:block">
+                                        Apr 24
+                                    </text>
+
+                                    <text x="870" y="268" fontSize="12">
+                                        Apr 29
+                                    </text>
                                 </g>
 
                             </svg>
@@ -1270,19 +1339,19 @@ function ProfilePage() {
                                                     : 0;
 
                                             const path = `
-            M ${startOuterX} ${startOuterY}
-            A ${outerRadius} ${outerRadius}
-              0 ${largeArcFlag} 1
-              ${endOuterX} ${endOuterY}
+                                                    M ${startOuterX} ${startOuterY}
+                                                    A ${outerRadius} ${outerRadius}
+                                                    0 ${largeArcFlag} 1
+                                                    ${endOuterX} ${endOuterY}
 
-            L ${endInnerX} ${endInnerY}
+                                                    L ${endInnerX} ${endInnerY}
 
-            A ${innerRadius} ${innerRadius}
-              0 ${largeArcFlag} 0
-              ${startInnerX} ${startInnerY}
+                                                    A ${innerRadius} ${innerRadius}
+                                                    0 ${largeArcFlag} 0
+                                                    ${startInnerX} ${startInnerY}
 
-            Z
-        `;
+                                                    Z
+                                                `;
 
                                             return (
                                                 <g
@@ -1571,32 +1640,32 @@ function ProfilePage() {
                                             type="button"
                                             onClick={() => setSelectedCalendarDay(day)}
                                             className={`
-              relative aspect-square rounded-lg
-              flex flex-col items-center justify-center
-              text-xs font-medium
-              transition-all duration-150
-              hover:scale-105
-              ${planned && !activity
+                                            relative aspect-square rounded-lg
+                                            flex flex-col items-center justify-center
+                                            text-xs font-medium
+                                            transition-all duration-150
+                                            hover:scale-105
+                                            ${planned && !activity
                                                     ? "bg-[#FAF8FC] border border-dashed border-[#DDD4E8] text-gray-400"
                                                     : activityClass
                                                 }
-              ${isSelected ? "ring-2 ring-secondary ring-offset-1" : ""}
-              ${isToday ? "ring-2 ring-secondary" : ""}
-            `}
+                                                ${isSelected ? "ring-2 ring-secondary ring-offset-1" : ""}
+                                                ${isToday ? "ring-2 ring-secondary" : ""}
+                                                `}
                                         >
                                             <span>{day}</span>
 
                                             {activity && (
                                                 <span
                                                     className={`
-                  w-1 h-1 rounded-full mt-0.5
-                  ${activity.tasks >= 40
+                                                            w-1 h-1 rounded-full mt-0.5
+                                                            ${activity.tasks >= 40
                                                             ? "bg-[#C3A0FD]"
                                                             : activity.tasks >= 20
                                                                 ? "bg-white/80"
                                                                 : "bg-[#351F5B]"
                                                         }
-                `}
+                                                    `}
                                                 />
                                             )}
                                         </button>
@@ -1664,8 +1733,272 @@ function ProfilePage() {
                         </div>
 
                     </section>
+                    <section className="lg:col-span-12 w-full min-w-0 bg-white rounded-2xl border border-[#ECE7F2] p-6 shadow-sm">
 
-                    
+                        {/* FEJLÉC */}
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+
+                            <div>
+                                <span className="text-[11px] uppercase tracking-wider text-secondary font-semibold">
+                                    Tevékenységi napló
+                                </span>
+
+                                <h3 className="text-lg font-semibold text-primary mt-0.5">
+                                    Részletes gyakorlási előzmények
+                                </h3>
+                            </div>
+
+
+                            {/* TANTÁRGY SZŰRŐ */}
+                            <div className="flex w-full sm:w-auto p-1 rounded-xl bg-[#F2EDF7] overflow-x-auto">
+
+                                {[
+                                    { value: "all", label: "Mind" },
+                                    { value: "matek", label: "Matematika" },
+                                    { value: "tori", label: "Történelem" },
+                                    { value: "magyar", label: "Magyar" },
+                                    { value: "angol", label: "Angol" },
+                                    { value: "bio", label: "Biológia" },
+                                ].map((filter) => {
+
+                                    const isActive = activityFilter === filter.value;
+
+                                    return (
+                                        <button
+                                            key={filter.value}
+                                            type="button"
+                                            onClick={() => setActivityFilter(filter.value)}
+                                            className={`
+                                                    px-3 py-1
+                                                    rounded-lg
+                                                    text-xs
+                                                    transition-all
+                                                    duration-200
+                                                    ${isActive
+                                                    ? "bg-[#351F5B] text-white font-semibold shadow-sm"
+                                                    : "text-[#756E7E] hover:text-[#351F5B]"
+                                                }
+                                            `}
+                                        >
+                                            {filter.label}
+                                        </button>
+                                    );
+                                })}
+
+                            </div>
+
+                        </div>
+
+
+                        {/* TEVÉKENYSÉGI LISTA */}
+                        <div className="space-y-4">
+
+                            {visibleActivityLogs.map((activity) => (
+                                <ActivityCard
+                                    key={activity.id}
+                                    activity={activity}
+                                    onClick={setSelectedActivity}
+                                />
+                            ))}
+
+
+                            {/* HA NINCS TALÁLAT */}
+                            {filteredActivityLogs.length === 0 && (
+                                <div className="py-10 text-center text-sm text-[#817989]">
+                                    Ehhez a tantárgyhoz még nincs rögzített tevékenység.
+                                </div>
+                            )}
+
+                        </div>
+
+
+                        {/* TELJES ARCHÍVUM */}
+                        <div className="mt-4 pt-3 border-t border-[#F0EBF5] text-center">
+
+                            <button
+                                type="button"
+                                onClick={() =>
+                                    setShowFullActivityArchive((prev) => !prev)
+                                }
+                                className="
+                                    inline-flex items-center gap-2 px-4 py-2 rounded-xl
+                                    text-primary text-sm font-semibold
+                                    hover:bg-[#F2EDF7]
+                                    transition-colors
+                                "
+                            >
+                                <span>
+                                    {showFullActivityArchive
+                                        ? "Kevesebb előzmény megjelenítése"
+                                        : "Teljes tevékenységi archívum megtekintése"}
+                                </span>
+
+                                <span className="material-symbols-outlined text-[18px]">
+                                    {showFullActivityArchive
+                                        ? "keyboard_arrow_up"
+                                        : "arrow_forward"}
+                                </span>
+
+
+
+                            </button>
+
+                        </div>
+
+                    </section>
+                    {selectedActivity && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+
+                            {/* háttér */}
+                            <button
+                                type="button"
+                                aria-label="Bezárás"
+                                onClick={() => setSelectedActivity(null)}
+                                className="absolute inset-0 bg-black/30 backdrop-blur-sm"
+                            />
+
+                            {/* modal */}
+                            <div className="
+                                    relative z-10
+                                    w-full max-w-lg
+                                    bg-white
+                                    rounded-2xl
+                                    border border-[#ECE7F2]
+                                    shadow-2xl
+                                    p-6
+                                ">
+
+                                {/* Fejléc */}
+                                <div className="flex items-start justify-between gap-4">
+                                    <div className="flex items-center gap-3">
+
+                                        <div
+                                            className="w-12 h-12 rounded-xl flex items-center justify-center"
+                                            style={{
+                                                backgroundColor: selectedActivity.iconBg,
+                                                color:
+                                                    selectedActivity.iconColor ||
+                                                    "#FFFFFF",
+                                            }}
+                                        >
+                                            <span className="material-symbols-outlined">
+                                                {selectedActivity.icon}
+                                            </span>
+                                        </div>
+
+                                        <div>
+                                            <p className="text-[11px] uppercase tracking-wider text-secondary font-semibold">
+                                                Tevékenység részletei
+                                            </p>
+
+                                            <h3 className="text-lg font-bold text-primary">
+                                                {selectedActivity.subject}
+                                            </h3>
+                                        </div>
+                                    </div>
+
+                                    <button
+                                        type="button"
+                                        onClick={() => setSelectedActivity(null)}
+                                        className="
+                                        w-9 h-9 rounded-lg
+                                        flex items-center justify-center
+                                        text-[#817989]
+                                        hover:bg-[#F2EDF7]
+                                        hover:text-primary
+                                        transition-colors
+                                    "
+                                    >
+                                        <span className="material-symbols-outlined">
+                                            close
+                                        </span>
+                                    </button>
+                                </div>
+
+                                {/* Téma */}
+                                <div className="mt-6">
+                                    <p className="text-xs text-[#817989]">
+                                        Téma
+                                    </p>
+
+                                    <p className="text-sm font-semibold text-primary mt-1">
+                                        {selectedActivity.topic}
+                                    </p>
+                                </div>
+
+                                {/* Szint */}
+                                <div className="mt-4">
+                                    <span className="
+                                            inline-flex
+                                            px-3 py-1
+                                            rounded-lg
+                                            bg-[#EFEAF6]
+                                            text-[#351F5B]
+                                            text-xs
+                                            font-semibold
+                                        ">
+                                        {selectedActivity.level}
+                                    </span>
+                                </div>
+
+                                {/* Statisztikák */}
+                                <div className="grid grid-cols-3 gap-2 sm:gap-3 mt-6">
+
+                                    <div className="rounded-xl bg-[#FAF9FB] p-4 text-center">
+                                        <p className="text-xl font-bold text-primary">
+                                            {selectedActivity.accuracy}%
+                                        </p>
+                                        <p className="text-[11px] text-[#817989] mt-1">
+                                            Pontosság
+                                        </p>
+                                    </div>
+
+                                    <div className="rounded-xl bg-[#FAF9FB] p-4 text-center">
+                                        <p className="text-xl font-bold text-primary">
+                                            {selectedActivity.correct}
+                                        </p>
+                                        <p className="text-[11px] text-[#817989] mt-1">
+                                            Helyes
+                                        </p>
+                                    </div>
+
+                                    <div className="rounded-xl bg-[#FAF9FB] p-4 text-center">
+                                        <p className="text-xl font-bold text-primary">
+                                            {selectedActivity.total}
+                                        </p>
+                                        <p className="text-[11px] text-[#817989] mt-1">
+                                            Összes
+                                        </p>
+                                    </div>
+
+                                </div>
+
+                                {/* Leírás */}
+                                <div className="
+                                            mt-5
+                                            p-4
+                                            rounded-xl
+                                            bg-[#F7F4FA]
+                                        ">
+                                    <p className="text-sm text-[#756E7E]">
+                                        {selectedActivity.description}
+                                    </p>
+                                </div>
+
+                                {/* Dátum */}
+                                <div className="flex items-center gap-2 mt-5 text-sm text-[#817989]">
+                                    <span className="material-symbols-outlined text-[18px]">
+                                        schedule
+                                    </span>
+
+                                    {selectedActivity.date}
+                                </div>
+
+                            </div>
+                        </div>
+                    )}
+
+
 
                 </div>
 
