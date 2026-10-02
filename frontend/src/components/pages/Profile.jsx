@@ -1,25 +1,168 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { apiFetch } from '../../lib/apiClient';
 import ActivityCard from "../sections/ActivityCard";
+
+// ----------------- KÖR DIAGRAM ADATAINAK RENDEZÉSE ---------------- //
+const SUBJECT_CONFIG = {
+    Matematika: {
+        subject: "Matematika",
+        legendSubject: "Matematika",
+        color: "#351F5B",
+    },
+    Irodalom: {
+        subject: "Magyar nyelv és irodalom",
+        legendSubject: "Magyar irodalom",
+        color: "#6D4DA3",
+    },
+    Történelem: {
+        subject: "Történelem",
+        legendSubject: "Történelem",
+        color: "#916CBD",
+    },
+    Angol: {
+        subject: "Angol nyelv",
+        legendSubject: "Angol nyelv",
+        color: "#B892F7",
+    },
+    Biológia: {
+        subject: "Biológia",
+        legendSubject: "Biológia",
+        color: "#DECFF2",
+    }
+    // Nyelvtan: { subject: "Magyar nyelv és irodalom", legendSubject: "Magyar irodalom", color: "#6D4DA3" },
+    // ide jöhetnek a többi tantárgyak
+};
+
+const DEFAULT_COLOR = "#B8A9D9";
+
+const getConfig = (tantargy) =>
+    SUBJECT_CONFIG[tantargy] ?? {
+        subject: tantargy,
+        legendSubject: tantargy,
+        color: DEFAULT_COLOR,
+    };
+
+const formatTime = (seconds) => {
+    const hours = seconds / 3600;
+    if (hours >= 1) return `${Math.round(hours)} óra`;
+    return `${Math.round(seconds / 60)} perc`;
+};
+
+const groupBySubject = (items) =>
+    items.reduce((acc, item) => {
+        const config = getConfig(item.tantargy);
+        const key = config.subject;
+
+        if (!acc[key]) {
+            acc[key] = { ...config, seconds: 0, tasks: 0 };
+        }
+        acc[key].seconds += item.kitoltesi_ido;
+        acc[key].tasks += item.feladatok_szama;
+        return acc;
+    }, {});
+
+const buildPieData = (data, prevData = []) => {
+    const current = groupBySubject(data);
+    const previous = groupBySubject(prevData);
+    const totalSeconds = Object.values(current).reduce((sum, s) => sum + s.seconds, 0);
+
+    return Object.values(current)
+        .map(({ subject, legendSubject, color, seconds, tasks }) => {
+            const prevSeconds = previous[subject]?.seconds;
+            let change = null;
+            if (prevSeconds) {
+                const diff = ((seconds - prevSeconds) / prevSeconds) * 100;
+                change = `${diff >= 0 ? "+" : ""}${diff.toFixed(1)}%`;
+            }
+
+            return {
+                subject,
+                legendSubject,
+                hours: formatTime(seconds),
+                percent: totalSeconds ? Math.round((seconds / totalSeconds) * 100) : 0,
+                tasks: `${tasks} feladat`,
+                color,
+                change,
+            };
+        })
+        .sort((a, b) => b.percent - a.percent);
+};
+
+// ----------------- VONAL DIAGRAM ADATAINAK RENDEZÉSE ---------------- //
+// A legutóbbi szeptember 1. óta eltelt napok száma.
+// Szeptember 1. előtt az előző évi szeptember 1. a kezdet.
+const getDaysSinceSchoolYearStart = () => {
+    const now = new Date();
+    const startYear = now.getMonth() >= 8 ? now.getFullYear() : now.getFullYear() - 1; // 8 = szeptember
+    const start = new Date(startYear, 8, 1);
+
+    return Math.max(1, Math.ceil((now - start) / (1000 * 60 * 60 * 24)));
+};
+
+//------------------ KPI ADATOK SEGÉDFÜGGVÉNYEI ------------------ //
+// 5140 → "5.14K", 820 → "820"
+const formatCount = (n) =>
+    n >= 1000 ? `${(n / 1000).toFixed(2)}K` : String(n);
+
+// másodperc → "1:21"
+const formatMinSec = (seconds) => {
+    const total = Math.round(seconds);
+    const min = Math.floor(total / 60);
+    const sec = total % 60;
+    return `${min}:${String(sec).padStart(2, "0")}`;
+};
+
+// ----------------- TEVÉKENYSÉGI NAPLÓ SEGÉDFÜGGVÉNYEI ---------------- //
+const ACTIVITY_PAGE_SIZE = 5;
+
+// A szűrőgombok értéke → a tantargyak.nev értéke az adatbázisban.
+// A kulcsok a jelenlegi gombok, az értékeket ellenőrizd az adatbázisban!
+const ACTIVITY_FILTER_SUBJECT = {
+    all: null,
+    matek: "Matematika",
+    tori: "Történelem",
+    magyar: "Irodalom",
+    angol: "Angol",
+    bio: "Biológia",
+};
+
+const fetchActivities = (tantargy, offset) => {
+    const params = new URLSearchParams({ limit: ACTIVITY_PAGE_SIZE, offset });
+    if (tantargy) params.append("tantargy", tantargy);
+
+    return apiFetch(`/profilroutes/me/activities?${params}`);
+};
+
 
 function ProfilePage() {
 
     const [profildata, setProfildata] = useState([]);
     const [profiltests, setProfiltests] = useState([]);
-    const [pieStats, setPieStats] = useState([]);
-    const [calendarStats, setCalendarStats] = useState([]);
     const [loading, setLoading] = useState(true);
     const [testsLoading, setTestsLoading] = useState(true);
     const [error, setError] = useState(null);
 
     //Fruzsi
+    const [tabSubjects, setTabSubjects] = useState(["Mind"]);
+    const subjectsInitialized = useRef(false);
     const [selectedSubject, setSelectedSubject] = useState("Mind");
     const [timeRange, setTimeRange] = useState("7d");
     const [hoveredPoint, setHoveredPoint] = useState(null);
+
+    const [pieStats, setPieStats] = useState([]);
     const [hoveredPieSubject, setHoveredPieSubject] = useState(null);
+
+    const [calendarStats, setCalendarStats] = useState([]);
     const [calendarDate, setCalendarDate] = useState(new Date());
     const [selectedCalendarDay, setSelectedCalendarDay] = useState(new Date().getDate());
+
+
     const [activityFilter, setActivityFilter] = useState("all");
+    const [activityItems, setActivityItems] = useState([]);
+    const [activityHasMore, setActivityHasMore] = useState(false);
+    const [activityLoading, setActivityLoading] = useState(true);
+    const [activityLoadingMore, setActivityLoadingMore] = useState(false);
+    const [activityError, setActivityError] = useState(null);
     const [selectedActivity, setSelectedActivity] = useState(null);
     const [showFullActivityArchive, setShowFullActivityArchive] = useState(false);
 
@@ -56,12 +199,7 @@ function ProfilePage() {
     }, []);
 
     // 2) Mountkor ÉS szűrő változásakor: tesztek
-    //
-    //
-    //
-    // !!!!!!! A FOLYAMAT VÁLTOZÓ PROFILTASKSHOZ VAN KÖTVE MELYIK TANTÁRGYAK JELENNEK MEG A TABON JAVÍTANI KELL !!!!! //    
-    //
-    //
+
     useEffect(() => {
         let cancelled = false;
 
@@ -73,8 +211,11 @@ function ProfilePage() {
                 if (selectedSubject && selectedSubject !== 'Mind') {
                     params.append('tantargy', selectedSubject);
                 }
-                if (timeRange && timeRange !== 'Mind') {
-                    params.append('napok', timeRange);
+
+                if (timeRange === 'term') {
+                    params.append('napok', getDaysSinceSchoolYearStart());
+                } else if (timeRange) {
+                    params.append('napok', parseInt(timeRange, 10)); // "7d" → 7, "30d" → 30
                 }
 
                 const query = params.toString();
@@ -85,6 +226,12 @@ function ProfilePage() {
                 if (cancelled) return;
                 setProfiltests(data);
                 console.log(data)
+
+                // Tabok csak az első sikeres betöltésnél
+                if (!subjectsInitialized.current) {
+                    subjectsInitialized.current = true;
+                    setTabSubjects(["Mind", ...new Set(data.map((t) => t.tantargy))]);
+                }
             } catch (err) {
                 if (cancelled) return;
                 setError("Nem sikerült betölteni a teszteket.");
@@ -97,6 +244,56 @@ function ProfilePage() {
         loadProfilTests();
         return () => { cancelled = true; };
     }, [selectedSubject, timeRange]);
+
+    useEffect(() => {
+        let cancelled = false;
+
+        const loadActivities = async () => {
+            try {
+                setActivityLoading(true);
+                setActivityError(null);
+
+                const data = await fetchActivities(
+                    ACTIVITY_FILTER_SUBJECT[activityFilter],
+                    0
+                );
+
+                if (cancelled) return;
+                setActivityItems(data.items);
+                setActivityHasMore(data.hasMore);
+                console.log("activities", data);
+            } catch (err) {
+                if (cancelled) return;
+                setActivityError("Nem sikerült betölteni a tevékenységeket.");
+                console.error(err);
+            } finally {
+                if (!cancelled) setActivityLoading(false);
+            }
+        };
+
+        loadActivities();
+        return () => { cancelled = true; };
+    }, [activityFilter]);
+
+    const loadMoreActivities = async () => {
+        try {
+            setActivityLoadingMore(true);
+
+            const data = await fetchActivities(
+                ACTIVITY_FILTER_SUBJECT[activityFilter],
+                activityItems.length
+            );
+
+            setActivityItems((prev) => [...prev, ...data.items]);
+            setActivityHasMore(data.hasMore);
+        } catch (err) {
+            setActivityError("Nem sikerült betölteni a további tevékenységeket.");
+            console.error(err);
+        } finally {
+            setActivityLoadingMore(false);
+        }
+    };
+
 
     //--------- FEJLÉC ADATOK RENDEZÉSE ----------- //
     const szerepNevek = {
@@ -121,8 +318,6 @@ function ProfilePage() {
 
 
 
-    //------------------- VONAL DIAGRAM ADATAINAK BETÖLTÉSE ------------- //
-    const tabSubjects = ["Mind", ...new Set(profiltests.map((t) => t.tantargy))];
 
     const activityLogs = [
         {
@@ -296,14 +491,6 @@ function ProfilePage() {
         ? filteredActivityLogs
         : filteredActivityLogs.slice(0, 5);
 
-    const plannedDays = {
-        "2026-05-09": "Tervezett felkészülés: Történelem esszé",
-        "2026-05-10": "Tervezett felkészülés: Matematika próbaérettségi",
-        "2026-05-11": "Tervezett felkészülés: Magyar irodalom",
-        "2026-05-12": "Tervezett felkészülés: Angol teszt",
-        "2026-05-13": "Tervezett felkészülés",
-        "2026-05-14": "Tervezett felkészülés",
-    };
 
     const getDateKey = (year, month, day) => {
         return `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
@@ -365,7 +552,9 @@ function ProfilePage() {
 
     // ----------------- KÖR DIAGRAM ADATAINAK BETÖLTÉSE -------------- //
     const pieData = buildPieData(pieStats);
-    const totalHoursText = Math.round(profiltests.reduce((sum, t) => sum + t.kitoltesi_ido, 0) / 3600);
+    const totalHoursText = Math.round(
+        pieStats.reduce((sum, s) => sum + s.kitoltesi_ido, 0) / 3600
+    );
 
     const totalPercent = pieData.reduce(
         (sum, item) => sum + item.percent,
@@ -479,6 +668,22 @@ function ProfilePage() {
     L ${chartPoints[chartPoints.length - 1].x} 240
     Z
 `;
+
+    //----------------- KPI ADATOK RENDEZÉSE -----------------//
+    const totalTasks = profiltests.reduce((sum, t) => sum + t.feladatok_szama, 0);
+    const totalSeconds = profiltests.reduce((sum, t) => sum + t.kitoltesi_ido, 0);
+    const totalEarned = profiltests.reduce((sum, t) => sum + t.elert_pont, 0);
+    const totalMax = profiltests.reduce((sum, t) => sum + t.max_pont, 0);
+
+    const kpiTasksText = formatCount(totalTasks);
+
+    const kpiTimeText = totalTasks
+        ? formatMinSec(totalSeconds / totalTasks)
+        : "–";
+
+    const kpiAccuracyText = totalMax
+        ? `${((totalEarned / totalMax) * 100).toFixed(2)}%`
+        : "–";
 
 
     return (
@@ -766,7 +971,7 @@ function ProfilePage() {
                                     className="text-[36px] leading-10 text-[#351F5B] font-bold tracking-tight"
                                     id="kpiTasks"
                                 >
-                                    5.14K
+                                    {kpiTasksText}
                                 </span>
 
                                 <span
@@ -808,7 +1013,7 @@ function ProfilePage() {
                                     className="text-[36px] leading-10 text-[#351F5B] font-bold tracking-tight"
                                     id="kpiTime"
                                 >
-                                    1:21
+                                    {kpiTimeText}
                                 </span>
 
                                 <span
@@ -850,7 +1055,7 @@ function ProfilePage() {
                                     className="text-[36px] leading-10 text-[#351F5B] font-bold tracking-tight"
                                     id="kpiAccuracy"
                                 >
-                                    82.93%
+                                    {kpiAccuracyText}
                                 </span>
 
                                 <span
@@ -1403,7 +1608,7 @@ function ProfilePage() {
                                             <div className="pointer-events-none absolute -bottom-3 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-xl bg-primary text-white text-xs shadow-lg whitespace-nowrap z-20">
 
                                                 <span>
-                                                    {hovered.subject} · {hovered.hours} · {hovered.percent}
+                                                    {hovered.subject} · {hovered.hours}
                                                 </span>
 
                                             </div>
@@ -1612,7 +1817,7 @@ function ProfilePage() {
                                             text-xs font-medium
                                             transition-all duration-150
                                             hover:scale-105
-                                            ${planned && !activity
+                                            ${!activity
                                                     ? "bg-[#FAF8FC] border border-dashed border-[#DDD4E8] text-gray-400"
                                                     : activityClass
                                                 }

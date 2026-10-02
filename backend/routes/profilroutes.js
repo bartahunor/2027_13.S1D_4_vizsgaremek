@@ -53,19 +53,13 @@ router.get('/me/tests', async (req, res, next) => {
     const rows = await sql`
       select
         tesztek.id,
+        tesztek.nev,
         tesztek.datum,
         tesztek.kitoltesi_ido,
         tantargyak.nev as tantargy,
         count(teszt_feladatok.id)::int as feladatok_szama,
         coalesce(sum(teszt_feladatok.elert_pont), 0)::float as elert_pont,
-        coalesce(sum(feladatok.pont), 0)::int as max_pont,
-        case
-          when coalesce(sum(feladatok.pont), 0) = 0 then 0
-          else round(
-            (coalesce(sum(teszt_feladatok.elert_pont), 0) / sum(feladatok.pont) * 100)::numeric,
-            1
-          )::float
-        end as szazalek
+        coalesce(sum(feladatok.pont), 0)::int as max_pont
       from tesztek
       join tantargyak on tantargyak.id = tesztek.tantargy_id
       left join teszt_feladatok on teszt_feladatok.teszt_id = tesztek.id
@@ -158,6 +152,60 @@ router.get('/me/calendar', async (req, res, next) => {
     `
 
     res.json(rows)
+  } catch (err) {
+    next(err)
+  }
+})
+
+// Bejelentkezett felhasználó tevékenységi naplója (tesztenként egy elem, lapozva)
+// Query paraméterek: ?tantargy=Matematika&limit=5&offset=0
+router.get('/me/activities', async (req, res, next) => {
+  try {
+    const felhasznaloId = req.user.id
+
+    const tantargy = req.query.tantargy ? String(req.query.tantargy).trim() : null
+
+    const limit = req.query.limit ? parseInt(req.query.limit, 10) : 5
+    const offset = req.query.offset ? parseInt(req.query.offset, 10) : 0
+
+    if (Number.isNaN(limit) || limit <= 0 || limit > 50) {
+      return res.status(400).json({ error: 'Érvénytelen paraméter (limit)' })
+    }
+    if (Number.isNaN(offset) || offset < 0) {
+      return res.status(400).json({ error: 'Érvénytelen paraméter (offset)' })
+    }
+
+    // Eggyel többet kérünk le, hogy tudjuk, van-e további elem
+    const rows = await sql`
+      select
+        tesztek.id,
+        tesztek.nev,
+        tesztek.datum,
+        tesztek.kitoltesi_ido,
+        tantargyak.nev as tantargy,
+        max(ev.szint) as szint,
+        count(teszt_feladatok.id)::int as feladatok_szama,
+        count(teszt_feladatok.id) filter (
+          where teszt_feladatok.elert_pont >= feladatok.pont
+        )::int as helyes_szama,
+        coalesce(sum(teszt_feladatok.elert_pont), 0)::float as elert_pont,
+        coalesce(sum(feladatok.pont), 0)::int as max_pont
+      from tesztek
+      join tantargyak on tantargyak.id = tesztek.tantargy_id
+      left join teszt_feladatok on teszt_feladatok.teszt_id = tesztek.id
+      left join feladatok on feladatok.id = teszt_feladatok.feladat_id
+      left join ev on ev.id = feladatok.ev_id
+      where tesztek.felhasznalo_id = ${felhasznaloId}
+        and (${tantargy}::text is null or tantargyak.nev = ${tantargy})
+      group by tesztek.id, tantargyak.nev
+      order by tesztek.datum desc, tesztek.id desc
+      limit ${limit + 1} offset ${offset}
+    `
+
+    res.json({
+      items: rows.slice(0, limit),
+      hasMore: rows.length > limit,
+    })
   } catch (err) {
     next(err)
   }
