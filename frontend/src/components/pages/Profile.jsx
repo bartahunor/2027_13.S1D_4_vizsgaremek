@@ -1,6 +1,20 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import { apiFetch } from '../../lib/apiClient';
 import ActivityCard from "../sections/ActivityCard";
+
+
+// ----------------- XP SZÁMÍTÁS ---------------- //
+// 0–10% → 10 XP, 11–20% → 20 XP, … 91–100% → 100 XP
+const XP_BAND_SIZE = 10;
+const XP_PER_BAND = 10;
+
+const calcTestXp = (test) => {
+    if (!test.max_pont) return 0;
+
+    const percent = Math.round((test.elert_pont / test.max_pont) * 100);
+    const band = Math.max(1, Math.ceil(percent / XP_BAND_SIZE)); // a 0% is az 1. sáv
+    return band * XP_PER_BAND;
+};
 
 // ----------------- KÖR DIAGRAM ADATAINAK RENDEZÉSE ---------------- //
 const SUBJECT_CONFIG = {
@@ -8,39 +22,63 @@ const SUBJECT_CONFIG = {
         subject: "Matematika",
         legendSubject: "Matematika",
         color: "#351F5B",
+        icon: "functions",
+        iconBg: "#351F5B",
     },
     Irodalom: {
         subject: "Magyar nyelv és irodalom",
         legendSubject: "Magyar irodalom",
         color: "#6D4DA3",
+        icon: "menu_book",
+        iconBg: "#8C69B5",
     },
     Történelem: {
         subject: "Történelem",
         legendSubject: "Történelem",
         color: "#916CBD",
+        icon: "history_edu",
+        iconBg: "#6D4DA3",
     },
     Angol: {
         subject: "Angol nyelv",
         legendSubject: "Angol nyelv",
         color: "#B892F7",
+        icon: "translate",
+        iconBg: "#B892F7",
+        iconColor: "#351F5B",
     },
     Biológia: {
         subject: "Biológia",
         legendSubject: "Biológia",
         color: "#DECFF2",
-    }
-    // Nyelvtan: { subject: "Magyar nyelv és irodalom", legendSubject: "Magyar irodalom", color: "#6D4DA3" },
-    // ide jöhetnek a többi tantárgyak
+        icon: "biotech",
+        iconBg: "#DECFF2",
+        iconColor: "#351F5B",
+    },
 };
 
 const DEFAULT_COLOR = "#B8A9D9";
+const DEFAULT_ACTIVITY_META = { icon: "school", iconBg: "#B8A9D9", iconColor: "#351F5B" };
+
+const LEVEL_LABELS = {
+    kozep: "Középszint",
+    emelt: "Emelt szint",
+};
 
 const getConfig = (tantargy) =>
     SUBJECT_CONFIG[tantargy] ?? {
         subject: tantargy,
         legendSubject: tantargy,
         color: DEFAULT_COLOR,
+        icon: "school",
+        iconBg: DEFAULT_COLOR,
+        iconColor: "#351F5B",
     };
+
+const getTabLabel = (subject) => {
+    if (subject === "Mind") return "Mind";
+    return getConfig(subject).legendSubject;
+};
 
 const formatTime = (seconds) => {
     const hours = seconds / 3600;
@@ -99,6 +137,139 @@ const getDaysSinceSchoolYearStart = () => {
     return Math.max(1, Math.ceil((now - start) / (1000 * 60 * 60 * 24)));
 };
 
+// ----------------- VONALDIAGRAM TENGELYEI ---------------- //
+const CHART = { xMin: 65, xMax: 870, yTop: 30, yBottom: 240, yIntervals: 5 };
+const X_TICK_STEP = { "7d": 1, "30d": 5, term: 14 }; // napokban
+
+const getRangeDays = (timeRange) =>
+    timeRange === "term" ? getDaysSinceSchoolYearStart() : parseInt(timeRange, 10);
+
+// A "datum" (UTC ISO) → helyi "YYYY-MM-DD" kulcs
+const toLocalDateKey = (isoString) => {
+    const d = new Date(isoString);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+};
+
+const startOfDay = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+const getBucketStep = (timeRange) => X_TICK_STEP[timeRange] ?? 1;
+
+// Bucket sorszám (0 = legrégebbi) → x pozíció: az első a bal, az utolsó a jobb szélen áll
+const bucketX = (index, count) =>
+    count > 1
+        ? CHART.xMin + (index / (count - 1)) * (CHART.xMax - CHART.xMin)
+        : (CHART.xMin + CHART.xMax) / 2;
+
+// Bucketek: [0] = a legutóbbi (a mai napot tartalmazó), [count-1] = a legrégebbi
+const aggregateByBucket = (tests, timeRange) => {
+    const totalDays = getRangeDays(timeRange);
+    const step = getBucketStep(timeRange);
+    const today = startOfDay(new Date());
+
+    const buckets = Array.from({ length: Math.ceil(totalDays / step) }, () => ({
+        xp: 0, tasks: 0, earned: 0, max: 0,
+    }));
+
+    tests.forEach((t) => {
+        const daysAgo = Math.round((today - startOfDay(new Date(t.datum))) / 86400000);
+        if (daysAgo < 0 || daysAgo >= totalDays) return; // időszakon kívül
+
+        const b = buckets[Math.floor(daysAgo / step)];
+        b.xp += calcTestXp(t);
+        b.tasks += t.feladatok_szama;
+        b.earned += t.elert_pont;
+        b.max += t.max_pont;
+    });
+
+    return buckets;
+};
+
+const buildChartPoints = (buckets, timeRange, yAxis) => {
+    const totalDays = getRangeDays(timeRange);
+    const step = getBucketStep(timeRange);
+    const today = startOfDay(new Date());
+    const fmt = (d) => d.toLocaleDateString("hu-HU", { month: "short", day: "numeric" });
+    const daysBack = (n) => new Date(today.getFullYear(), today.getMonth(), today.getDate() - n);
+
+    const points = [];
+    for (let k = buckets.length - 1; k >= 0; k--) { // legrégebbi → legújabb
+        const b = buckets[k];
+        const end = daysBack(k * step);
+        const start = daysBack(Math.min((k + 1) * step - 1, totalDays - 1));
+
+        points.push({
+            x: bucketX(buckets.length - 1 - k, buckets.length),
+            y: CHART.yBottom - (b.xp / yAxis.top) * (CHART.yBottom - CHART.yTop),
+            date: step === 1 ? fmt(end) : `${fmt(start)} – ${fmt(end)}`,
+            score: `${b.xp} XP`,
+            tasks: `${b.tasks} feladat`,
+            accuracy: b.max ? `${Math.round((b.earned / b.max) * 100)}%` : "–",
+        });
+    }
+    return points;
+};
+
+// Alsó tengely: bucketenként egy címke (a bucket utolsó napja), ugyanott, ahol a pont áll
+const buildXAxis = (timeRange) => {
+    const totalDays = getRangeDays(timeRange);
+    const step = getBucketStep(timeRange);
+    const count = Math.ceil(totalDays / step);
+    const today = startOfDay(new Date());
+
+    const ticks = Array.from({ length: count }, (_, i) => {
+        const k = count - 1 - i; // hány bucketnyire van a mai naptól
+        const date = new Date(today.getFullYear(), today.getMonth(), today.getDate() - k * step);
+
+        return {
+            x: bucketX(i, count),
+            dayIndex: i,
+            label: date.toLocaleDateString("hu-HU", { month: "short", day: "numeric" }),
+        };
+    });
+
+    return { totalDays, ticks };
+};
+
+// Bal tengely: "szép" lépésköz (1, 2, 2.5, 5, 10 × 10^n), 5 egyenlő sáv
+const getNiceStep = (maxValue, intervals) => {
+    if (maxValue <= 0) return 1;
+    const raw = maxValue / intervals;
+    const magnitude = Math.pow(10, Math.floor(Math.log10(raw)));
+    const normalized = raw / magnitude;
+    const nice = [1, 2, 3, 4, 5, 10].find((n) => normalized <= n);
+    return nice * magnitude;
+};
+
+const formatAxisValue = (v) =>
+    v >= 1000 ? `${Number((v / 1000).toFixed(1))}k` : String(Number(v.toFixed(1)));
+
+const buildYAxis = (maxValue) => {
+    const step = getNiceStep(maxValue, CHART.yIntervals);
+    const top = step * CHART.yIntervals;
+
+    const ticks = Array.from({ length: CHART.yIntervals + 1 }, (_, i) => ({
+        value: step * i,
+        label: formatAxisValue(step * i),
+        y: CHART.yBottom - (i / CHART.yIntervals) * (CHART.yBottom - CHART.yTop),
+    }));
+
+    return { top, ticks };
+};
+
+
+// Lineáris interpoláció: a régi vonal y értéke egy adott x-nél (animációhoz)
+const sampleY = (points, x) => {
+    if (!points.length) return null;
+    if (x <= points[0].x) return points[0].y;
+    for (let i = 1; i < points.length; i++) {
+        if (x <= points[i].x) {
+            const a = points[i - 1];
+            const b = points[i];
+            return a.y + (b.y - a.y) * ((x - a.x) / ((b.x - a.x) || 1));
+        }
+    }
+    return points[points.length - 1].y;
+};
+
 //------------------ KPI ADATOK SEGÉDFÜGGVÉNYEI ------------------ //
 // 5140 → "5.14K", 820 → "820"
 const formatCount = (n) =>
@@ -117,6 +288,7 @@ const ACTIVITY_PAGE_SIZE = 5;
 
 // A szűrőgombok értéke → a tantargyak.nev értéke az adatbázisban.
 // A kulcsok a jelenlegi gombok, az értékeket ellenőrizd az adatbázisban!
+/*
 const ACTIVITY_FILTER_SUBJECT = {
     all: null,
     matek: "Matematika",
@@ -124,7 +296,7 @@ const ACTIVITY_FILTER_SUBJECT = {
     magyar: "Irodalom",
     angol: "Angol",
     bio: "Biológia",
-};
+};*/
 
 const fetchActivities = (tantargy, offset) => {
     const params = new URLSearchParams({ limit: ACTIVITY_PAGE_SIZE, offset });
@@ -133,6 +305,45 @@ const fetchActivities = (tantargy, offset) => {
     return apiFetch(`/profilroutes/me/activities?${params}`);
 };
 
+// ----------------- AKTIVITÁS NAPLÓ ADATOK RENDEZÉSE ---------------- //
+
+// "Ma · 11:20", "Tegnap · 16:30", "Szep 29. · 10:35"
+const formatActivityDate = (isoString) => {
+    const date = new Date(isoString);
+    const now = new Date();
+
+    const startOfDay = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    const diffDays = Math.round((startOfDay(now) - startOfDay(date)) / 86400000);
+
+    const time = date.toLocaleTimeString("hu-HU", { hour: "2-digit", minute: "2-digit" });
+
+    if (diffDays === 0) return `Ma · ${time}`;
+    if (diffDays === 1) return `Tegnap · ${time}`;
+
+    const day = date.toLocaleDateString("hu-HU", { month: "short", day: "numeric" });
+    return `${day} · ${time}`;
+};
+
+const mapActivity = (item) => {
+    const config = getConfig(item.tantargy);
+
+    return {
+        id: item.id,
+        subject: config.subject,
+        topic: item.nev,
+        level: LEVEL_LABELS[item.szint] ?? item.szint,
+        icon: config.icon,
+        iconBg: config.iconBg,
+        iconColor: config.iconColor,
+        description: `${item.feladatok_szama} feladat megoldva · ${formatTime(item.kitoltesi_ido)} időráfordítás`,
+        date: formatActivityDate(item.datum),
+        accuracy: item.feladatok_szama
+            ? Math.round((item.helyes_szama / item.feladatok_szama) * 100)
+            : 0,
+        correct: item.helyes_szama,
+        total: item.feladatok_szama,
+    };
+};
 
 function ProfilePage() {
 
@@ -147,6 +358,7 @@ function ProfilePage() {
     const subjectsInitialized = useRef(false);
     const [selectedSubject, setSelectedSubject] = useState("Mind");
     const [timeRange, setTimeRange] = useState("7d");
+    const [loadedRange, setLoadedRange] = useState("7d");
     const [hoveredPoint, setHoveredPoint] = useState(null);
 
     const [pieStats, setPieStats] = useState([]);
@@ -157,7 +369,7 @@ function ProfilePage() {
     const [selectedCalendarDay, setSelectedCalendarDay] = useState(new Date().getDate());
 
 
-    const [activityFilter, setActivityFilter] = useState("all");
+    const [activityFilter, setActivityFilter] = useState("Mind");
     const [activityItems, setActivityItems] = useState([]);
     const [activityHasMore, setActivityHasMore] = useState(false);
     const [activityLoading, setActivityLoading] = useState(true);
@@ -185,6 +397,7 @@ function ProfilePage() {
                 setProfildata(profil);
                 setPieStats(pie);
                 setCalendarStats(calendar);
+                setTabSubjects(["Mind", ...new Set(pie.map((p) => p.tantargy))]);
             } catch (err) {
                 if (cancelled) return;
                 setError("Nem sikerült betölteni az adatokat.");
@@ -225,13 +438,10 @@ function ProfilePage() {
 
                 if (cancelled) return;
                 setProfiltests(data);
+                setLoadedRange(timeRange);
                 console.log(data)
 
-                // Tabok csak az első sikeres betöltésnél
-                if (!subjectsInitialized.current) {
-                    subjectsInitialized.current = true;
-                    setTabSubjects(["Mind", ...new Set(data.map((t) => t.tantargy))]);
-                }
+                
             } catch (err) {
                 if (cancelled) return;
                 setError("Nem sikerült betölteni a teszteket.");
@@ -254,7 +464,7 @@ function ProfilePage() {
                 setActivityError(null);
 
                 const data = await fetchActivities(
-                    ACTIVITY_FILTER_SUBJECT[activityFilter],
+                    activityFilter === "Mind" ? null : activityFilter,
                     0
                 );
 
@@ -280,7 +490,7 @@ function ProfilePage() {
             setActivityLoadingMore(true);
 
             const data = await fetchActivities(
-                ACTIVITY_FILTER_SUBJECT[activityFilter],
+                activityFilter === "Mind" ? null : activityFilter,
                 activityItems.length
             );
 
@@ -317,157 +527,8 @@ function ProfilePage() {
     
 
 
+    const activityLogs = activityItems.map(mapActivity);
 
-
-    const activityLogs = [
-        {
-            id: 1,
-            type: "matek",
-            subject: "Matematika",
-            topic: "Függvények és sorozatok",
-            level: "Középszint",
-            icon: "functions",
-            iconBg: "#351F5B",
-            description: "18 feladat megoldva · 25 perc időráfordítás",
-            date: "Ma · 11:20",
-            accuracy: 92,
-            correct: 16,
-            total: 18,
-        },
-        {
-            id: 2,
-            type: "tori",
-            subject: "Történelem",
-            topic: "Kiegyezés és dualizmus kora",
-            level: "Emelt szint",
-            icon: "history_edu",
-            iconBg: "#6D4DA3",
-            description: "12 forráselemző kérdés · 35 perc időráfordítás",
-            date: "Ma · 09:42",
-            accuracy: 85,
-            correct: 10,
-            total: 12,
-        },
-        {
-            id: 3,
-            type: "magyar",
-            subject: "Magyar nyelv & irodalom",
-            topic: "Kosztolányi novellák",
-            level: "Középszint",
-            icon: "menu_book",
-            iconBg: "#8C69B5",
-            description: "14 feladatsor · 30 perc időráfordítás",
-            date: "Tegnap · 16:30",
-            accuracy: 90,
-            correct: 13,
-            total: 14,
-        },
-        {
-            id: 4,
-            type: "angol",
-            subject: "Angol nyelv",
-            topic: "B2 Nyelvtan & Reading",
-            level: "B2 Szint",
-            icon: "translate",
-            iconBg: "#B892F7",
-            iconColor: "#351F5B",
-            description: "22 feleletválasztós teszt · 28 perc",
-            date: "Tegnap · 14:15",
-            accuracy: 86,
-            correct: 19,
-            total: 22,
-        },
-        {
-            id: 5,
-            type: "bio",
-            subject: "Biológia",
-            topic: "Sejttan és genetika",
-            level: "Középszint",
-            icon: "biotech",
-            iconBg: "#DECFF2",
-            iconColor: "#351F5B",
-            description: "16 tesztfeladat · 20 perc",
-            date: "Máj 07 · 18:00",
-            accuracy: 88,
-            correct: 14,
-            total: 16,
-        },
-    ];
-
-
-    const chartPointsBySubject = {
-        Mind: [
-            { x: 65, y: 38, date: "Már 30.", score: "18 450 XP", tasks: "42 feladat", accuracy: "88%" },
-            { x: 148, y: 54, date: "Ápr 4.", score: "19 120 XP", tasks: "44 feladat", accuracy: "89%" },
-            { x: 235, y: 48, date: "Ápr 8.", score: "20 210 XP", tasks: "47 feladat", accuracy: "91%" },
-            { x: 330, y: 65, date: "Ápr 12.", score: "18 980 XP", tasks: "43 feladat", accuracy: "87%" },
-            { x: 420, y: 58, date: "Ápr 16.", score: "19 450 XP", tasks: "45 feladat", accuracy: "89%" },
-            { x: 535, y: 102, date: "Ápr 20.", score: "16 820 XP", tasks: "34 feladat", accuracy: "80%" },
-            { x: 675, y: 110, date: "Ápr 24.", score: "16 340 XP", tasks: "32 feladat", accuracy: "78%" },
-            { x: 785, y: 96, date: "Ápr 27.", score: "17 240 XP", tasks: "36 feladat", accuracy: "82%" },
-            { x: 872, y: 104, date: "Ápr 30.", score: "17 620 XP", tasks: "39 feladat", accuracy: "84%" }
-        ],
-
-        Matematika: [
-            { x: 65, y: 90, date: "Már 30.", score: "15 200 XP", tasks: "35 feladat", accuracy: "76%" },
-            { x: 148, y: 72, date: "Ápr 4.", score: "16 450 XP", tasks: "38 feladat", accuracy: "79%" },
-            { x: 235, y: 84, date: "Ápr 8.", score: "15 980 XP", tasks: "36 feladat", accuracy: "77%" },
-            { x: 330, y: 60, date: "Ápr 12.", score: "17 240 XP", tasks: "41 feladat", accuracy: "83%" },
-            { x: 420, y: 48, date: "Ápr 16.", score: "18 120 XP", tasks: "43 feladat", accuracy: "86%" },
-            { x: 535, y: 66, date: "Ápr 20.", score: "17 680 XP", tasks: "40 feladat", accuracy: "84%" },
-            { x: 675, y: 42, date: "Ápr 24.", score: "18 940 XP", tasks: "45 feladat", accuracy: "89%" },
-            { x: 785, y: 55, date: "Ápr 27.", score: "18 420 XP", tasks: "44 feladat", accuracy: "87%" },
-            { x: 872, y: 35, date: "Ápr 30.", score: "19 350 XP", tasks: "47 feladat", accuracy: "91%" }
-        ],
-
-        Történelem: [
-            { x: 65, y: 60, date: "Már 30.", score: "17 200 XP", tasks: "40 feladat", accuracy: "82%" },
-            { x: 148, y: 82, date: "Ápr 4.", score: "16 340 XP", tasks: "37 feladat", accuracy: "78%" },
-            { x: 235, y: 55, date: "Ápr 8.", score: "18 020 XP", tasks: "42 feladat", accuracy: "85%" },
-            { x: 330, y: 72, date: "Ápr 12.", score: "17 410 XP", tasks: "39 feladat", accuracy: "81%" },
-            { x: 420, y: 44, date: "Ápr 16.", score: "18 760 XP", tasks: "44 feladat", accuracy: "88%" },
-            { x: 535, y: 58, date: "Ápr 20.", score: "18 120 XP", tasks: "41 feladat", accuracy: "84%" },
-            { x: 675, y: 35, date: "Ápr 24.", score: "19 240 XP", tasks: "46 feladat", accuracy: "90%" },
-            { x: 785, y: 48, date: "Ápr 27.", score: "18 820 XP", tasks: "43 feladat", accuracy: "87%" },
-            { x: 872, y: 30, date: "Ápr 30.", score: "19 650 XP", tasks: "48 feladat", accuracy: "92%" }
-        ],
-
-        Magyar: [
-            { x: 65, y: 75, date: "Már 30.", score: "16 420 XP", tasks: "37 feladat", accuracy: "79%" },
-            { x: 148, y: 62, date: "Ápr 4.", score: "17 120 XP", tasks: "39 feladat", accuracy: "82%" },
-            { x: 235, y: 70, date: "Ápr 8.", score: "16 780 XP", tasks: "38 feladat", accuracy: "80%" },
-            { x: 330, y: 48, date: "Ápr 12.", score: "18 050 XP", tasks: "42 feladat", accuracy: "86%" },
-            { x: 420, y: 58, date: "Ápr 16.", score: "17 640 XP", tasks: "40 feladat", accuracy: "84%" },
-            { x: 535, y: 40, date: "Ápr 20.", score: "18 420 XP", tasks: "44 feladat", accuracy: "88%" },
-            { x: 675, y: 52, date: "Ápr 24.", score: "17 980 XP", tasks: "42 feladat", accuracy: "86%" },
-            { x: 785, y: 35, date: "Ápr 27.", score: "18 760 XP", tasks: "45 feladat", accuracy: "90%" },
-            { x: 872, y: 45, date: "Ápr 30.", score: "18 310 XP", tasks: "43 feladat", accuracy: "88%" }
-        ],
-
-        Angol: [
-            { x: 65, y: 50, date: "Már 30.", score: "18 020 XP", tasks: "41 feladat", accuracy: "86%" },
-            { x: 148, y: 42, date: "Ápr 4.", score: "18 640 XP", tasks: "43 feladat", accuracy: "88%" },
-            { x: 235, y: 58, date: "Ápr 8.", score: "17 920 XP", tasks: "40 feladat", accuracy: "84%" },
-            { x: 330, y: 38, date: "Ápr 12.", score: "19 120 XP", tasks: "45 feladat", accuracy: "90%" },
-            { x: 420, y: 30, date: "Ápr 16.", score: "19 680 XP", tasks: "47 feladat", accuracy: "92%" },
-            { x: 535, y: 46, date: "Ápr 20.", score: "18 940 XP", tasks: "44 feladat", accuracy: "89%" },
-            { x: 675, y: 34, date: "Ápr 24.", score: "19 420 XP", tasks: "46 feladat", accuracy: "91%" },
-            { x: 785, y: 25, date: "Ápr 27.", score: "20 040 XP", tasks: "49 feladat", accuracy: "94%" },
-            { x: 872, y: 32, date: "Ápr 30.", score: "19 760 XP", tasks: "48 feladat", accuracy: "93%" }
-        ],
-
-        Biológia: [
-            { x: 65, y: 105, date: "Már 30.", score: "14 820 XP", tasks: "32 feladat", accuracy: "72%" },
-            { x: 148, y: 88, date: "Ápr 4.", score: "15 640 XP", tasks: "35 feladat", accuracy: "75%" },
-            { x: 235, y: 94, date: "Ápr 8.", score: "15 280 XP", tasks: "34 feladat", accuracy: "74%" },
-            { x: 330, y: 76, date: "Ápr 12.", score: "16 120 XP", tasks: "37 feladat", accuracy: "78%" },
-            { x: 420, y: 68, date: "Ápr 16.", score: "16 740 XP", tasks: "39 feladat", accuracy: "81%" },
-            { x: 535, y: 82, date: "Ápr 20.", score: "16 020 XP", tasks: "36 feladat", accuracy: "77%" },
-            { x: 675, y: 60, date: "Ápr 24.", score: "17 180 XP", tasks: "41 feladat", accuracy: "83%" },
-            { x: 785, y: 70, date: "Ápr 27.", score: "16 860 XP", tasks: "40 feladat", accuracy: "81%" },
-            { x: 872, y: 52, date: "Ápr 30.", score: "17 540 XP", tasks: "42 feladat", accuracy: "85%" }
-        ]
-    };
 
     //------------------- NAPTÁR ADATAINAK BETÖLTÉSE ------------- //
     const calendarActivity = Object.fromEntries(
@@ -599,81 +660,78 @@ function ProfilePage() {
         return `translate(${x}px, ${y}px)`;
     };
 
-    const [animatedChartPoints, setAnimatedChartPoints] = useState(
-        chartPointsBySubject.Mind
+    const buckets = useMemo(
+        () => aggregateByBucket(profiltests, loadedRange),
+        [profiltests, loadedRange]
+    );
+    const maxBucketXp = Math.max(0, ...buckets.map((b) => b.xp));
+
+    const yAxis = buildYAxis(maxBucketXp);
+    const xAxis = useMemo(() => buildXAxis(loadedRange), [loadedRange]);
+    const targetPoints = useMemo(
+        () => buildChartPoints(buckets, loadedRange, yAxis),
+        [buckets, loadedRange, yAxis.top]
     );
 
+    const [animatedChartPoints, setAnimatedChartPoints] = useState([]);
+
     useEffect(() => {
-        const targetPoints = chartPointsBySubject[selectedSubject];
+        if (!targetPoints.length) return;
 
         const startPoints = animatedChartPoints;
 
+        // Első betöltés: nincs honnan animálni
+        if (!startPoints.length) {
+            setAnimatedChartPoints(targetPoints);
+            return;
+        }
+
+        // A régi vonal y értéke az új pontok x pozíciójánál
+        const startYs = targetPoints.map((p) => sampleY(startPoints, p.x) ?? p.y);
         const duration = 650;
         const startTime = performance.now();
-
         let animationFrame;
 
-        const easeInOutCubic = (t) => {
-            return t < 0.5
-                ? 4 * t * t * t
-                : 1 - Math.pow(-2 * t + 2, 3) / 2;
-        };
+        const easeInOutCubic = (t) =>
+            t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 
         const animate = (currentTime) => {
-            const progress = Math.min(
-                (currentTime - startTime) / duration,
-                1
-            );
-
+            const progress = Math.min((currentTime - startTime) / duration, 1);
             const eased = easeInOutCubic(progress);
 
-            const nextPoints = targetPoints.map((target, index) => {
-                const start = startPoints[index];
-
-                return {
+            setAnimatedChartPoints(
+                targetPoints.map((target, i) => ({
                     ...target,
+                    y: startYs[i] + (target.y - startYs[i]) * eased,
+                }))
+            );
 
-                    x: start.x + (target.x - start.x) * eased,
-
-                    y: start.y + (target.y - start.y) * eased
-                };
-            });
-
-            setAnimatedChartPoints(nextPoints);
-
-            if (progress < 1) {
-                animationFrame = requestAnimationFrame(animate);
-            }
+            if (progress < 1) animationFrame = requestAnimationFrame(animate);
         };
 
+        setHoveredPoint(null);
         animationFrame = requestAnimationFrame(animate);
-
-        return () => {
-            cancelAnimationFrame(animationFrame);
-        };
-
-    }, [selectedSubject]);
+        return () => cancelAnimationFrame(animationFrame);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [targetPoints]);
 
     const chartPoints = animatedChartPoints;
 
     const chartLinePath = chartPoints
-        .map((point, index) =>
-            `${index === 0 ? "M" : "L"} ${point.x} ${point.y}`
-        )
+        .map((point, index) => `${index === 0 ? "M" : "L"} ${point.x} ${point.y}`)
         .join(" ");
 
-    const chartAreaPath = `
-    M ${chartPoints[0].x} 240
-    ${chartPoints.map(point => `L ${point.x} ${point.y}`).join(" ")}
-    L ${chartPoints[chartPoints.length - 1].x} 240
-    Z
-`;
+    const chartAreaPath = chartPoints.length
+        ? `M ${chartPoints[0].x} 240 ${chartPoints.map((p) => `L ${p.x} ${p.y}`).join(" ")} L ${chartPoints[chartPoints.length - 1].x} 240 Z`
+        : "";
 
     //----------------- KPI ADATOK RENDEZÉSE -----------------//
     const totalTasks = profiltests.reduce((sum, t) => sum + t.feladatok_szama, 0);
     const totalSeconds = profiltests.reduce((sum, t) => sum + t.kitoltesi_ido, 0);
     const totalEarned = profiltests.reduce((sum, t) => sum + t.elert_pont, 0);
     const totalMax = profiltests.reduce((sum, t) => sum + t.max_pont, 0);
+    const totalXp = profiltests.reduce((sum, t) => sum + calcTestXp(t), 0);
+    const kpiXpText = formatCount(totalXp);
 
     const kpiTasksText = formatCount(totalTasks);
 
@@ -728,10 +786,7 @@ function ProfilePage() {
                                         {szerepFelirat}
                                     </span>
 
-                                    {/* VÉGZŐS */}
-                                    <span className="px-2 py-0.5 rounded-full bg-[#F7F6F8] text-[#49454F] text-[11px] leading-[14px] font-medium">
-                                        Végzős
-                                    </span>
+                                    
 
                                 </div>
 
@@ -751,12 +806,9 @@ function ProfilePage() {
                                     </span>
 
                                     <span>
-                                        óta · Cél:
+                                        óta
                                     </span>
 
-                                    <span className="text-[#351F5B] font-semibold">
-                                        Érettségi 2026
-                                    </span>
 
                                 </p>
 
@@ -822,7 +874,7 @@ function ProfilePage() {
                                 className="text-xs leading-[18px] text-[#49454F]"
                                 id="mainChartSubheading"
                             >
-                                Összesített teljesítmény fejlődési görbéje · 2026. tavaszi érettségi felkészülés
+                                Összesített teljesítmény fejlődési görbéje
                             </p>
                         </div>
 
@@ -857,14 +909,7 @@ function ProfilePage() {
                                             }
     `}
                                     >
-                                        {subject === "Mind"
-                                            ? "Mind / Összesített"
-                                            : subject === "Magyar"
-                                                ? "Magyar nyelv és irodalom"
-                                                : subject === "Angol"
-                                                    ? "Angol nyelv"
-                                                    : subject
-                                        }
+                                        {subject === "Mind" ? "Mind / Összesített" : getTabLabel(subject)}
                                     </button>
 
                                 ))}
@@ -929,21 +974,10 @@ function ProfilePage() {
                                     className="text-[36px] leading-10 text-[#351F5B] font-bold tracking-tight"
                                     id="kpiScore"
                                 >
-                                    2,480
+                                    {kpiXpText}
                                 </span>
 
-                                <span
-                                    className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200"
-                                    id="kpiScoreBadge"
-                                >
-                                    <span className="material-symbols-outlined text-[13px] font-bold">
-                                        arrow_upward
-                                    </span>
-
-                                    <span id="kpiScoreTrend">
-                                        1.9%
-                                    </span>
-                                </span>
+                                
 
                             </div>
 
@@ -974,18 +1008,7 @@ function ProfilePage() {
                                     {kpiTasksText}
                                 </span>
 
-                                <span
-                                    className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200"
-                                    id="kpiTasksBadge"
-                                >
-                                    <span className="material-symbols-outlined text-[13px] font-bold">
-                                        arrow_upward
-                                    </span>
-
-                                    <span id="kpiTasksTrend">
-                                        46.2%
-                                    </span>
-                                </span>
+                                
 
                             </div>
 
@@ -1016,18 +1039,7 @@ function ProfilePage() {
                                     {kpiTimeText}
                                 </span>
 
-                                <span
-                                    className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-xs font-semibold text-[#BA1A1A] bg-[#FFDAD6]/60 border border-[#FFDAD6]"
-                                    id="kpiTimeBadge"
-                                >
-                                    <span className="material-symbols-outlined text-[13px] font-bold">
-                                        arrow_downward
-                                    </span>
-
-                                    <span id="kpiTimeTrend">
-                                        30.3%
-                                    </span>
-                                </span>
+                                
 
                             </div>
 
@@ -1058,18 +1070,7 @@ function ProfilePage() {
                                     {kpiAccuracyText}
                                 </span>
 
-                                <span
-                                    className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-xs font-semibold text-[#BA1A1A] bg-[#FFDAD6]/60 border border-[#FFDAD6]"
-                                    id="kpiAccuracyBadge"
-                                >
-                                    <span className="material-symbols-outlined text-[13px] font-bold">
-                                        arrow_downward
-                                    </span>
-
-                                    <span id="kpiAccuracyTrend">
-                                        21.7%
-                                    </span>
-                                </span>
+                                
 
                             </div>
 
@@ -1153,72 +1154,19 @@ function ProfilePage() {
 
 
                                 {/* RÁCSVONALAK */}
-                                <g
-                                    className="stroke-[#ECE7F2]"
-                                    strokeDasharray="3 3"
-                                    strokeWidth="1"
-                                >
-                                    <line x1="60" x2="900" y1="30" y2="30" />
-                                    <line x1="60" x2="900" y1="72" y2="72" />
-                                    <line x1="60" x2="900" y1="114" y2="114" />
-                                    <line x1="60" x2="900" y1="156" y2="156" />
-                                    <line x1="60" x2="900" y1="198" y2="198" />
-                                    <line x1="60" x2="900" y1="240" y2="240" />
+                                <g className="stroke-[#ECE7F2]" strokeDasharray="3 3" strokeWidth="1">
+                                    {yAxis.ticks.map((t) => (
+                                        <line key={t.value} x1="60" x2="900" y1={t.y} y2={t.y} />
+                                    ))}
                                 </g>
 
-
                                 {/* Y TENGELY */}
-                                <g
-                                    className="fill-[#7B7580]"
-                                    textAnchor="end"
-                                >
-                                    <text
-                                        x="50"
-                                        y="34"
-                                        fontSize="14"
-                                    >
-                                        25k
-                                    </text>
-
-                                    <text
-                                        x="50"
-                                        y="76"
-                                        fontSize="14"
-                                    >
-                                        20k
-                                    </text>
-
-                                    <text
-                                        x="50"
-                                        y="118"
-                                        fontSize="14"
-                                    >
-                                        15k
-                                    </text>
-
-                                    <text
-                                        x="50"
-                                        y="160"
-                                        fontSize="14"
-                                    >
-                                        10k
-                                    </text>
-
-                                    <text
-                                        x="50"
-                                        y="202"
-                                        fontSize="14"
-                                    >
-                                        5k
-                                    </text>
-
-                                    <text
-                                        x="50"
-                                        y="244"
-                                        fontSize="14"
-                                    >
-                                        0
-                                    </text>
+                                <g className="fill-[#7B7580]" textAnchor="end">
+                                    {yAxis.ticks.map((t) => (
+                                        <text key={t.value} x="50" y={t.y + 4} fontSize="14">
+                                            {t.label}
+                                        </text>
+                                    ))}
                                 </g>
 
 
@@ -1244,7 +1192,7 @@ function ProfilePage() {
 
 
                                 {/* HOVER CROSSHAIR */}
-                                {hoveredPoint !== null && (
+                                {hoveredPoint !== null && chartPoints[hoveredPoint] && (
                                     <>
                                         {/* FÜGGŐLEGES HOVER VONAL */}
                                         <line
@@ -1309,45 +1257,19 @@ function ProfilePage() {
 
 
                                 {/* X TENGELY */}
-                                <g
-                                    className="fill-[#49454F]"
-                                    id="evoXAxisLabels"
-                                    textAnchor="middle"
-                                >
-                                    <text x="65" y="268" fontSize="12">
-                                        Mar 30
-                                    </text>
-
-                                    <text x="200" y="268" fontSize="12" className="hidden sm:block">
-                                        Apr 4
-                                    </text>
-
-                                    <text x="340" y="268" fontSize="12">
-                                        Apr 9
-                                    </text>
-
-                                    <text x="485" y="268" fontSize="12" className="hidden sm:block">
-                                        Apr 14
-                                    </text>
-
-                                    <text x="625" y="268" fontSize="12">
-                                        Apr 19
-                                    </text>
-
-                                    <text x="755" y="268" fontSize="12" className="hidden sm:block">
-                                        Apr 24
-                                    </text>
-
-                                    <text x="870" y="268" fontSize="12">
-                                        Apr 29
-                                    </text>
+                                <g className="fill-[#49454F]" id="evoXAxisLabels" textAnchor="middle">
+                                    {xAxis.ticks.map((t) => (
+                                        <text key={t.dayIndex} x={t.x} y="268" fontSize="12">
+                                            {t.label}
+                                        </text>
+                                    ))}
                                 </g>
 
                             </svg>
 
 
                             {/* TOOLTIP */}
-                            {hoveredPoint !== null && (
+                            {hoveredPoint !== null && chartPoints[hoveredPoint] && (
                                 <div
                                     className="pointer-events-none absolute p-3 rounded-xl bg-[#24123D] text-white shadow-xl z-30 font-medium min-w-[170px] border border-[#6B46C1]/40 backdrop-blur-md"
                                     style={{
@@ -1919,35 +1841,28 @@ function ProfilePage() {
                             {/* TANTÁRGY SZŰRŐ */}
                             <div className="flex w-full sm:w-auto p-1 rounded-xl bg-[#F2EDF7] overflow-x-auto">
 
-                                {[
-                                    { value: "all", label: "Mind" },
-                                    { value: "matek", label: "Matematika" },
-                                    { value: "tori", label: "Történelem" },
-                                    { value: "magyar", label: "Magyar" },
-                                    { value: "angol", label: "Angol" },
-                                    { value: "bio", label: "Biológia" },
-                                ].map((filter) => {
-
-                                    const isActive = activityFilter === filter.value;
+                                {tabSubjects.map((subject) => {
+                                    const isActive = activityFilter === subject;
 
                                     return (
                                         <button
-                                            key={filter.value}
+                                            key={subject}
                                             type="button"
-                                            onClick={() => setActivityFilter(filter.value)}
+                                            onClick={() => setActivityFilter(subject)}
                                             className={`
-                                                    px-3 py-1
-                                                    rounded-lg
-                                                    text-xs
-                                                    transition-all
-                                                    duration-200
-                                                    ${isActive
+                    px-3 py-1
+                    rounded-lg
+                    text-xs
+                    whitespace-nowrap
+                    transition-all
+                    duration-200
+                    ${isActive
                                                     ? "bg-[#351F5B] text-white font-semibold shadow-sm"
                                                     : "text-[#756E7E] hover:text-[#351F5B]"
                                                 }
-                                            `}
+                `}
                                         >
-                                            {filter.label}
+                                            {getTabLabel(subject)}
                                         </button>
                                     );
                                 })}
@@ -1960,7 +1875,15 @@ function ProfilePage() {
                         {/* TEVÉKENYSÉGI LISTA */}
                         <div className="space-y-4">
 
-                            {visibleActivityLogs.map((activity) => (
+                            {activityLoading && (
+                                <div className="py-10 text-center text-sm text-[#817989]">Betöltés...</div>
+                            )}
+
+                            {activityError && (
+                                <div className="py-4 text-center text-sm text-[#BA1A1A]">{activityError}</div>
+                            )}
+
+                            {!activityLoading && activityLogs.map((activity) => (
                                 <ActivityCard
                                     key={activity.id}
                                     activity={activity}
@@ -1968,9 +1891,7 @@ function ProfilePage() {
                                 />
                             ))}
 
-
-                            {/* HA NINCS TALÁLAT */}
-                            {filteredActivityLogs.length === 0 && (
+                            {!activityLoading && !activityError && activityLogs.length === 0 && (
                                 <div className="py-10 text-center text-sm text-[#817989]">
                                     Ehhez a tantárgyhoz még nincs rögzített tevékenység.
                                 </div>
@@ -1980,37 +1901,21 @@ function ProfilePage() {
 
 
                         {/* TELJES ARCHÍVUM */}
-                        <div className="mt-4 pt-3 border-t border-[#F0EBF5] text-center">
-
-                            <button
-                                type="button"
-                                onClick={() =>
-                                    setShowFullActivityArchive((prev) => !prev)
-                                }
-                                className="
-                                    inline-flex items-center gap-2 px-4 py-2 rounded-xl
-                                    text-primary text-sm font-semibold
-                                    hover:bg-[#F2EDF7]
-                                    transition-colors
-                                "
-                            >
-                                <span>
-                                    {showFullActivityArchive
-                                        ? "Kevesebb előzmény megjelenítése"
-                                        : "Teljes tevékenységi archívum megtekintése"}
-                                </span>
-
-                                <span className="material-symbols-outlined text-[18px]">
-                                    {showFullActivityArchive
-                                        ? "keyboard_arrow_up"
-                                        : "arrow_forward"}
-                                </span>
-
-
-
-                            </button>
-
-                        </div>
+                        {activityHasMore && (
+                            <div className="mt-4 pt-3 border-t border-[#F0EBF5] text-center">
+                                <button
+                                    type="button"
+                                    onClick={loadMoreActivities}
+                                    disabled={activityLoadingMore}
+                                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-primary text-sm font-semibold hover:bg-[#F2EDF7] transition-colors disabled:opacity-50"
+                                >
+                                    <span>
+                                        {activityLoadingMore ? "Betöltés..." : "További tevékenységek betöltése"}
+                                    </span>
+                                    <span className="material-symbols-outlined text-[18px]">expand_more</span>
+                                </button>
+                            </div>
+                        )}
 
                     </section>
                     {selectedActivity && (
@@ -2175,4 +2080,3 @@ function ProfilePage() {
 }
 
 export default ProfilePage;
-
