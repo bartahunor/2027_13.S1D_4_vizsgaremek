@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useMemo } from "react";
 import { apiFetch } from '../../lib/apiClient';
-import ActivityCard from "../sections/ActivityCard";
+import ActivityCard from "../sections/profile/ActivityCard";
 
 
 // ----------------- XP SZÁMÍTÁS ---------------- //
@@ -270,6 +270,19 @@ const sampleY = (points, x) => {
     return points[points.length - 1].y;
 };
 
+const VIEW_W = 920;
+const VIEW_H = 280;
+const TOOLTIP_W = 170;
+
+const getSvgScale = (rect) => {
+    const scale = Math.min(rect.width / VIEW_W, rect.height / VIEW_H);
+    return {
+        scale,
+        offsetX: (rect.width - VIEW_W * scale) / 2,
+        offsetY: (rect.height - VIEW_H * scale) / 2,
+    };
+};
+
 //------------------ KPI ADATOK SEGÉDFÜGGVÉNYEI ------------------ //
 // 5140 → "5.14K", 820 → "820"
 const formatCount = (n) =>
@@ -357,9 +370,10 @@ function ProfilePage() {
     const [tabSubjects, setTabSubjects] = useState(["Mind"]);
     const subjectsInitialized = useRef(false);
     const [selectedSubject, setSelectedSubject] = useState("Mind");
-    const [timeRange, setTimeRange] = useState("7d");
-    const [loadedRange, setLoadedRange] = useState("7d");
+    const [timeRange, setTimeRange] = useState("30d");
+    const [loadedRange, setLoadedRange] = useState("30d");
     const [hoveredPoint, setHoveredPoint] = useState(null);
+    const [chartSize, setChartSize] = useState({ width: 0, height: 0 });
 
     const [pieStats, setPieStats] = useState([]);
     const [hoveredPieSubject, setHoveredPieSubject] = useState(null);
@@ -836,16 +850,7 @@ function ProfilePage() {
 
                             </button>
 
-                            {/* MEGOSZTÁS */}
-                            <button
-                                aria-label="Megosztás"
-                                className="w-10 h-10 rounded-xl bg-[#F7F6F8] border border-[#E3DCED] flex items-center justify-center text-[#49454F] hover:text-[#351F5B] hover:bg-[#EEEAF4] transition-colors"
-                                type="button"
-                            >
-                                <span className="material-symbols-outlined text-[18px]">
-                                    share
-                                </span>
-                            </button>
+                            
 
                         </div>
 
@@ -1096,21 +1101,25 @@ function ProfilePage() {
                                 onMouseMove={(e) => {
                                     const rect = e.currentTarget.getBoundingClientRect();
 
-                                    const mouseX =
-                                        ((e.clientX - rect.left) / rect.width) * 920;
+                                    setChartSize((prev) =>
+                                        prev.width === rect.width && prev.height === rect.height
+                                            ? prev
+                                            : { width: rect.width, height: rect.height }
+                                    );
+
+                                    const { scale, offsetX } = getSvgScale(rect);
+                                    const mouseX = (e.clientX - rect.left - offsetX) / scale;
 
                                     let closestIndex = 0;
                                     let closestDistance = Infinity;
 
                                     chartPoints.forEach((point, index) => {
-
                                         const distance = Math.abs(point.x - mouseX);
 
                                         if (distance < closestDistance) {
                                             closestDistance = distance;
                                             closestIndex = index;
                                         }
-
                                     });
 
                                     setHoveredPoint(closestIndex);
@@ -1268,67 +1277,66 @@ function ProfilePage() {
                             </svg>
 
 
+
                             {/* TOOLTIP */}
-                            {hoveredPoint !== null && chartPoints[hoveredPoint] && (
-                                <div
-                                    className="pointer-events-none absolute p-3 rounded-xl bg-[#24123D] text-white shadow-xl z-30 font-medium min-w-[170px] border border-[#6B46C1]/40 backdrop-blur-md"
-                                    style={{
-                                        left: `${(chartPoints[hoveredPoint].x / 920) * 100}%`,
-                                        top: `${Math.max(
-                                            5,
-                                            (chartPoints[hoveredPoint].y / 280) * 100 - 28
-                                        )}%`,
-                                        transform: "translateX(-50%)"
-                                    }}
-                                >
-                                    {/* FEJLÉC */}
-                                    <div className="flex items-center justify-between pb-1.5 mb-1.5 border-b border-white/10">
-                                        <span className="text-[11px] text-[#DECFF2] uppercase tracking-wider">
-                                            {chartPoints[hoveredPoint].date}
-                                        </span>
+                            {hoveredPoint !== null && chartPoints[hoveredPoint] && chartSize.width > 0 && (() => {
+                                const { scale, offsetX, offsetY } = getSvgScale(chartSize);
+                                const p = chartPoints[hoveredPoint];
 
-                                        <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                                const px = offsetX + p.x * scale;
+                                const py = offsetY + p.y * scale;
+
+                                const margin = 4;
+                                const left = Math.min(
+                                    Math.max(px, TOOLTIP_W / 2 + margin),
+                                    chartSize.width - TOOLTIP_W / 2 - margin
+                                );
+                                const top = Math.max(margin, py - 110);
+
+                                return (
+                                    <div
+                                        className="pointer-events-none absolute p-3 rounded-xl bg-[#24123D] text-white shadow-xl z-30 font-medium border border-[#6B46C1]/40 backdrop-blur-md"
+                                        style={{
+                                            width: TOOLTIP_W,
+                                            left,
+                                            top,
+                                            transform: "translateX(-50%)",
+                                        }}
+                                    >
+                                        {/* FEJLÉC */}
+                                        <div className="flex items-center justify-between pb-1.5 mb-1.5 border-b border-white/10">
+                                            <span className="text-[11px] text-[#DECFF2] uppercase tracking-wider">
+                                                {p.date}
+                                            </span>
+
+                                            <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                                        </div>
+
+                                        {/* ADATOK */}
+                                        <div className="space-y-1">
+
+                                            {/* Pontszám */}
+                                            <div className="flex items-center justify-between gap-5 text-xs">
+                                                <span className="text-white/70">Pontszám:</span>
+                                                <span className="font-bold text-[#EDDCFF]">{p.score}</span>
+                                            </div>
+
+                                            {/* Megoldott feladatok */}
+                                            <div className="flex items-center justify-between gap-5 text-xs">
+                                                <span className="text-white/70">Megoldva:</span>
+                                                <span className="font-medium text-white">{p.tasks}</span>
+                                            </div>
+
+                                            {/* Pontosság */}
+                                            <div className="flex items-center justify-between gap-5 text-xs">
+                                                <span className="text-white/70">Pontosság:</span>
+                                                <span className="font-semibold text-emerald-300">{p.accuracy}</span>
+                                            </div>
+
+                                        </div>
                                     </div>
-
-                                    {/* ADATOK */}
-                                    <div className="space-y-1">
-
-                                        {/* Pontszám */}
-                                        <div className="flex items-center justify-between gap-5 text-xs">
-                                            <span className="text-white/70">
-                                                Pontszám:
-                                            </span>
-
-                                            <span className="font-bold text-[#EDDCFF]">
-                                                {chartPoints[hoveredPoint].score}
-                                            </span>
-                                        </div>
-
-                                        {/* Megoldott feladatok */}
-                                        <div className="flex items-center justify-between gap-5 text-xs">
-                                            <span className="text-white/70">
-                                                Megoldva:
-                                            </span>
-
-                                            <span className="font-medium text-white">
-                                                {chartPoints[hoveredPoint].tasks}
-                                            </span>
-                                        </div>
-
-                                        {/* Pontosság */}
-                                        <div className="flex items-center justify-between gap-5 text-xs">
-                                            <span className="text-white/70">
-                                                Pontosság:
-                                            </span>
-
-                                            <span className="font-semibold text-emerald-300">
-                                                {chartPoints[hoveredPoint].accuracy}
-                                            </span>
-                                        </div>
-
-                                    </div>
-                                </div>
-                            )}
+                                );
+                            })()}
 
                         </div>
 
