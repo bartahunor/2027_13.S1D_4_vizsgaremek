@@ -1,4 +1,4 @@
-import TudasterIntro from "../../assets/tudaster-logo-transparent.webm";
+import TudasterIntro from "../../../assets/tudaster-logo-transparent.webm";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 

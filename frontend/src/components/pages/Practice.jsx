@@ -127,58 +127,7 @@ function PracticePage() {
             </div>
 
 
-            {/* HEADER */}
-            <header className="sticky top-0 bg-white/80 backdrop-blur-md border-b border-primary/10 z-40">
-
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-
-                    <div className="flex items-center gap-3 sm:gap-4 min-w-0">
-
-                        <div className="w-10 h-10 shrink-0 bg-primary rounded-lg flex items-center justify-center text-white">
-                            <span className="material-icons">
-                                school
-                            </span>
-                        </div>
-
-                        <div className="min-w-0">
-
-                            <h1 className="text-base sm:text-lg font-semibold tracking-tight truncate">
-                                {subject}
-                            </h1>
-
-                            <p className="text-[10px] sm:text-xs text-primary/60 font-medium uppercase tracking-wider truncate">
-                                {year
-                                    ? `${year} • ${level}`
-                                    : `${topic} • ${level}`
-                                }
-                            </p>
-
-                        </div>
-
-                    </div>
-
-
-                    <button
-                        type="button"
-                        className="
-                        text-xs sm:text-sm
-                        font-semibold
-                        text-primary/70
-                        hover:text-primary
-                        transition-colors
-                        px-3 sm:px-4
-                        py-2
-                        rounded-lg
-                        border border-transparent
-                        hover:border-primary/20
-                    "
-                    >
-                        Vizsga befejezése
-                    </button>
-
-                </div>
-
-            </header>
+            
 
 
             {/* FŐ TARTALOM */}

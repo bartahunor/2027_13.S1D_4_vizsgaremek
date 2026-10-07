@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import SubjectCard from '../ui/SubjectCard';
+import SubjectCard from '../../ui/SubjectCard';
 
 const SUBJECT_STYLES = {
     "Angol nyelv": {
