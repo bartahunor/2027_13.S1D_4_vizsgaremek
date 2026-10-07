@@ -73,9 +73,9 @@ function TestimonialSection() {
             id="testimonials"
         >
             <div className="max-w-7xl mx-auto">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-stretch">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-10 lg:gap-12 items-stretch">
 
-                    <div className="relative group cursor-pointer">
+                    <div className="relative group cursor-pointer w-full">
 
                         {/* Bal felső lila fény */}
                         <div
@@ -93,7 +93,7 @@ function TestimonialSection() {
                             "
                         />
 
-                        <div className="bg-white rounded-3xl h-full flex items-center justify-center overflow-hidden shadow-2xl relative z-10">
+                        <div className="bg-white rounded-3xl h-[280px] sm:h-[360px] lg:h-full flex items-center justify-center overflow-hidden shadow-2xl relative z-10">
 
                             <div className="w-20 h-20 bg-black rounded-full flex items-center justify-center shadow-xl z-10 group-hover:scale-110 transition-transform">
                                 <svg

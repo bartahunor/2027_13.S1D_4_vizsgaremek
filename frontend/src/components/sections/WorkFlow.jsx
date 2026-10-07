@@ -91,7 +91,7 @@ function WorkFlow() {
               </h1>
 
               <p className="text-base sm:text-lg text-purple-200/80 leading-relaxed max-w-xl">
-                    A Tudástér végigvezet a felkészülés teljes folyamatán: válaszd ki, mit szeretnél gyakorolni, oldj meg valódi érettségi feladatokat, majd kövesd a fejlődésedet. Minden lépéssel közelebb kerülsz a magabiztos érettségihez.
+                A Tudástér végigvezet a felkészülés teljes folyamatán: válaszd ki, mit szeretnél gyakorolni, oldj meg valódi érettségi feladatokat, majd kövesd a fejlődésedet. Minden lépéssel közelebb kerülsz a magabiztos érettségihez.
 
               </p>
 
@@ -109,9 +109,8 @@ function WorkFlow() {
                 return (
                   <div
                     key={step.id}
-                    className={`dark-step ${
-                      isActive ? "active" : ""
-                    } group cursor-pointer p-4 rounded-2xl flex items-start gap-4`}
+                    className={`dark-step ${isActive ? "active" : ""
+                      } group cursor-pointer p-4 rounded-2xl flex items-start gap-4`}
                     onClick={() => selectStep(step.id)}
                     onMouseEnter={() => selectStep(step.id)}
                   >
@@ -129,10 +128,9 @@ function WorkFlow() {
                         text-sm
                         group-hover:scale-105
                         transition-transform
-                        ${
-                          isActive
-                            ? "bg-violet-500 text-white shadow-[0_0_15px_rgba(139,92,246,0.6)]"
-                            : "bg-purple-900/60 text-purple-200 border border-purple-400/30"
+                        ${isActive
+                          ? "bg-violet-500 text-white shadow-[0_0_15px_rgba(139,92,246,0.6)]"
+                          : "bg-purple-900/60 text-purple-200 border border-purple-400/30"
                         }
                       `}
                     >
@@ -149,7 +147,7 @@ function WorkFlow() {
                           {step.title}
                         </h2>
 
-                        
+
                       </div>
 
                       <p className="text-sm text-purple-200/70 mt-1 leading-normal">
@@ -182,9 +180,7 @@ function WorkFlow() {
                   DOSSIER
               ================================== */}
 
-              <div
-                className={`dossier-wrapper focus-${currentStep}`}
-              >
+              <div className={`dossier-wrapper focus-${currentStep} scale-[0.82] sm:scale-90 lg:scale-100`}>
 
 
                 {/* =================================
