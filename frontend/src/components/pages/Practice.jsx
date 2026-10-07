@@ -112,7 +112,9 @@ function PracticePage() {
     };
 
     return (
-        <div className="min-h-screen flex flex-col bg-background-light text-slate-900 font-display">
+        <div className="min-h-screen flex flex-col bg-background-light text-slate-900 font-display relative overflow-hidden">
+              <div className="pointer-events-none absolute inset-0 bg-grid-pattern opacity-100"></div>
+
 
             {/* Haladási sáv */}
             <div className="fixed top-0 left-0 w-full h-1.5 bg-primary/10 z-50">
@@ -180,7 +182,7 @@ function PracticePage() {
 
 
             {/* FŐ TARTALOM */}
-            <main className="flex-grow flex items-center justify-center p-4 sm:p-6 md:p-12">
+            <main className="relative z-10 flex-grow flex items-center justify-center p-4 sm:p-6 md:p-12">
 
                 <div
                     className="
