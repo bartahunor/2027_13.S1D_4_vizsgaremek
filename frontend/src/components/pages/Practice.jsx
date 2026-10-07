@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { apiFetch } from '../../lib/apiClient';
 import { getForrasKepUrl } from '../../lib/supabaseStorage';
+import { taskTypes, fallbackType } from '../ui/tasktypes/tasktypes.js';
 
 function PracticePage() {
 
@@ -16,9 +17,11 @@ function PracticePage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
+
     //Fruzsi
     const [currentTaskIndex, setCurrentTaskIndex] = useState(0);
     const [answer, setAnswer] = useState("");
+    
 
 
     useEffect(() => {
