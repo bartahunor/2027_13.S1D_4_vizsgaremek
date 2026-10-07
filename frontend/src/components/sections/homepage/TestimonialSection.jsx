@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import TestimonialCard from "../ui/TestimonialCard";
+import TestimonialCard from "../../ui/TestimonialCard";
 
 function TestimonialSection() {
     const texts = [

@@ -8,8 +8,9 @@ import HomePage from './components/pages/HomePage'
 import LoginPage from './components/pages/LoginPage'
 import RegisterPage from './components/pages/RegisterPage'
 import TaskSelection from './components/pages/TaskType'
-import ProfilePage from './components/pages/Profile'
+
 import PracticePage from './components/pages/Practice'
+import ProfilePage from './components/pages/Profile'
 
 export default function App() {
   return (
