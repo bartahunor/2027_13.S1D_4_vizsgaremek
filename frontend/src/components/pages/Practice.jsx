@@ -131,21 +131,21 @@ function PracticePage() {
 
 
             {/* FŐ TARTALOM */}
-            <main className="relative z-10 flex-grow flex items-center justify-center p-4 sm:p-6 md:p-12">
+            <main className="relative z-10 flex-grow flex items-center justify-center pt-20 pb-6 px-4 sm:pt-24 sm:pb-8 sm:px-6 md:pt-28 md:pb-10 md:px-10">
 
-                <div
-                    className="
-                    max-w-7xl
-                    w-full
-                    bg-white
-                    rounded-xl
-                    shadow-2xl
-                    shadow-primary/5
-                    border border-primary/10
-                    overflow-hidden
-                    flex flex-col
-                    md:flex-row
-                    min-h-[750px]
+                <div 
+                    className=" 
+                    max-w-7xl 
+                    w-full 
+                    bg-white 
+                    rounded-xl 
+                    shadow-2xl 
+                    shadow-primary/5 
+                    border border-primary/10 
+                    overflow-hidden 
+                    flex flex-col 
+                    md:flex-row 
+                    max-h-[850px] 
                 "
                 >
 
@@ -271,17 +271,7 @@ function PracticePage() {
                         {/* FELADAT */}
                         <div className="flex-grow space-y-4 overflow-y-auto pr-2 p-3">
 
-                            <div className="rounded-xl border border-primary/10 bg-primary/5 p-4">
-
-                                <p className="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-2">
-                                    Feladat típusa
-                                </p>
-
-                                <p className="text-sm font-medium text-primary">
-                                    {currentTask.feladat_tipus || "Feladat"}
-                                </p>
-
-                            </div>
+                            
 
 
                             {/* VÁLASZ */}
