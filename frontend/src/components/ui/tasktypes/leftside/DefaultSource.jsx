@@ -4,32 +4,52 @@
 // felületet kapja, hogy a PracticePage egységesen tudja meghívni őket.
 
 // Szöveges forrás formázása:
-//   A) „idézet ...” (Szerző, kor)
+//   Tetszőleges számú „idézet ...” (Szerző, kor) pár egy szövegben.
 //   → az idézet dőlt, a záró zárójeles rész új sorban, félkövéren.
-// Ha a szöveg nem ilyen alakú, változatlanul jelenik meg.
+// Ami nem illeszkedik a mintára (pl. "A) " előtag), változatlanul jelenik meg.
+const QUOTE_PATTERN = /„([^”]*)”\s*(\([^()]*\))(\.?)/g;
+
 function FormattedSourceText({ text }) {
-    const match = text.match(/^([\s\S]*?)(„[\s\S]*”)\s*(\([^()]*\)\.?)\s*$/);
+    const parts = [];
+    let lastIndex = 0;
 
-    if (!match) return <>{text}</>;
+    for (const match of text.matchAll(QUOTE_PATTERN)) {
+        const [full, quote, attribution, dot] = match;
 
-    const [, prefix, quote, attribution] = match;
+        // az idézet előtti szöveg (pl. "A) ", "B) ")
+        if (match.index > lastIndex) {
+            parts.push(text.slice(lastIndex, match.index));
+        }
 
-    return (
-        <>
-            {prefix}
-            <em>{quote}</em>
-            <strong className="block mt-2 font-semibold">
-                {attribution.replace(/\s+/g, ' ')}
-            </strong>
-        </>
-    );
+        parts.push(
+            <span key={match.index}>
+                <em>„{quote}”</em>
+                <strong className="block mt-2 mb-4 font-semibold">
+                    {attribution.replace(/\s+/g, ' ')}{dot}
+                </strong>
+            </span>
+        );
+
+        lastIndex = match.index + full.length;
+    }
+
+    // Ha egyetlen pár sem illeszkedett, változatlanul jelenik meg
+    if (parts.length === 0) return <>{text}</>;
+
+    // az utolsó pár utáni maradék szöveg
+    if (lastIndex < text.length) {
+        parts.push(text.slice(lastIndex));
+    }
+
+    return <>{parts}</>;
 }
 
 function DefaultSource({ task }) {
     const hasImage = Boolean(task.forras_kep_url);
-    const hasText = Boolean(task.forras_szoveg); // feltételezett mezőnév, igazítsd az adatbázishoz
+    let hasText = Boolean(task.forras_szoveg); // feltételezett mezőnév, igazítsd az adatbázishoz
     const isEmpty = !hasImage && !hasText;
 
+    if (hasImage) hasText=false;
     return (
         <>
             {/* FORRÁSANYAG */}

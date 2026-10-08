@@ -96,7 +96,7 @@ function PracticePage() {
 
     // A feladat típusa alapján választjuk ki a bal (Source) és jobb (Answer) oldalt.
     // Ismeretlen vagy hiányzó típusnál a fallbackType lép be.
-    const { Source, Answer } = taskTypes[currentTask.feladat_tipus] ?? fallbackType;
+    const { Source, Answer } = taskTypes[currentTask.tipus] ?? fallbackType;
 
     // A feladat azonosítója: cseréld a valódi mezőnévre, ha nem "id".
     const taskId = currentTask.id ?? currentTaskIndex;
