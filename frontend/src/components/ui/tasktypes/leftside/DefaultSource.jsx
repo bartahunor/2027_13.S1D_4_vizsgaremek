@@ -3,6 +3,28 @@
 // A `value` és `onChange` itt nem használt, de minden Source slot ugyanazt a
 // felületet kapja, hogy a PracticePage egységesen tudja meghívni őket.
 
+// Szöveges forrás formázása:
+//   A) „idézet ...” (Szerző, kor)
+//   → az idézet dőlt, a záró zárójeles rész új sorban, félkövéren.
+// Ha a szöveg nem ilyen alakú, változatlanul jelenik meg.
+function FormattedSourceText({ text }) {
+    const match = text.match(/^([\s\S]*?)(„[\s\S]*”)\s*(\([^()]*\)\.?)\s*$/);
+
+    if (!match) return <>{text}</>;
+
+    const [, prefix, quote, attribution] = match;
+
+    return (
+        <>
+            {prefix}
+            <em>{quote}</em>
+            <strong className="block mt-2 font-semibold">
+                {attribution.replace(/\s+/g, ' ')}
+            </strong>
+        </>
+    );
+}
+
 function DefaultSource({ task }) {
     const hasImage = Boolean(task.forras_kep_url);
     const hasText = Boolean(task.forras_szoveg); // feltételezett mezőnév, igazítsd az adatbázishoz
@@ -21,6 +43,9 @@ function DefaultSource({ task }) {
                     border border-primary/10
                     bg-white
                     flex flex-col
+                    align-center
+                    justify-center
+                    
                 "
             >
                 {hasImage && (
@@ -32,9 +57,9 @@ function DefaultSource({ task }) {
                 )}
 
                 {hasText && (
-                    <p className="p-4 text-sm leading-relaxed text-slate-700 whitespace-pre-line">
-                        {task.forras_szoveg}
-                    </p>
+                    <div className="p-4 text-sm leading-relaxed text-slate-700 whitespace-pre-line">
+                        <FormattedSourceText text={task.forras_szoveg} />
+                    </div>
                 )}
 
                 {isEmpty && (
@@ -44,11 +69,7 @@ function DefaultSource({ task }) {
                 )}
             </div>
 
-            {task.forras_magyarazat && (
-                <p className="mt-4 text-xs text-slate-500 italic">
-                    {task.forras_magyarazat}
-                </p>
-            )}
+            
         </>
     );
 }

@@ -17,11 +17,11 @@ function PracticePage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-
     //Fruzsi
     const [currentTaskIndex, setCurrentTaskIndex] = useState(0);
-    const [answer, setAnswer] = useState("");
-    
+
+    // Feladatonkénti válaszok: { [taskId]: value }
+    const [answers, setAnswers] = useState({});
 
 
     useEffect(() => {
@@ -49,6 +49,7 @@ function PracticePage() {
 
                 setTasks(tasksWithImages);
                 setCurrentTaskIndex(0);
+                setAnswers({});
                 console.log('Beérkezett adat:', tasksWithImages);
             } catch (err) {
                 setError(err.message);
@@ -84,6 +85,7 @@ function PracticePage() {
             </div>
         );
     }
+
     const currentTask = tasks[currentTaskIndex];
 
     const currentNumber = currentTaskIndex + 1;
@@ -92,17 +94,28 @@ function PracticePage() {
 
     const progress = (currentNumber / totalTasks) * 100;
 
+    // A feladat típusa alapján választjuk ki a bal (Source) és jobb (Answer) oldalt.
+    // Ismeretlen vagy hiányzó típusnál a fallbackType lép be.
+    const { Source, Answer } = taskTypes[currentTask.feladat_tipus] ?? fallbackType;
+
+    // A feladat azonosítója: cseréld a valódi mezőnévre, ha nem "id".
+    const taskId = currentTask.id ?? currentTaskIndex;
+
+    const value = answers[taskId];
+
+    const onChange = (newValue) => {
+        setAnswers((prev) => ({ ...prev, [taskId]: newValue }));
+    };
+
     const handlePrevious = () => {
         if (currentTaskIndex > 0) {
             setCurrentTaskIndex((prev) => prev - 1);
-            setAnswer("");
         }
     };
 
     const handleNext = () => {
         if (currentTaskIndex < totalTasks - 1) {
             setCurrentTaskIndex((prev) => prev + 1);
-            setAnswer("");
         }
     };
 
@@ -128,9 +141,6 @@ function PracticePage() {
                     }}
                 />
             </div>
-
-
-            
 
 
             {/* FŐ TARTALOM */}
@@ -185,7 +195,7 @@ function PracticePage() {
                                 transition-all
                             "
                             >
-                                <span className="material-icons text-sm">
+                                <span className="material-symbols-outlined text-sm">
                                     fullscreen
                                 </span>
                             </button>
@@ -193,43 +203,13 @@ function PracticePage() {
                         </div>
 
 
-                        {/* FORRÁSANYAG */}
-                        <div
-                            id="source-material"
-                            className="
-                            flex-grow
-                            min-h-[300px]
-                            rounded-xl
-                            overflow-hidden
-                            border border-primary/10
-                            bg-white
-                        "
-                        >
-
-                            {currentTask.forras_kep_url ? (
-
-                                <img
-                                    src={currentTask.forras_kep_url}
-                                    alt="Forrásanyag"
-                                    className="w-full h-full object-contain p-2"
-                                />
-
-                            ) : (
-
-                                <div className="w-full h-full flex items-center justify-center text-sm text-slate-400">
-                                    Nincs forrásanyag
-                                </div>
-
-                            )}
-
-                        </div>
-
-
-                        {currentTask.forras_magyarazat && (
-                            <p className="mt-4 text-xs text-slate-500 italic">
-                                {currentTask.forras_magyarazat}
-                            </p>
-                        )}
+                        {/* FORRÁSANYAG (típusfüggő) */}
+                        <Source
+                            key={taskId}
+                            task={currentTask}
+                            value={value}
+                            onChange={onChange}
+                        />
 
                     </div>
 
@@ -274,36 +254,15 @@ function PracticePage() {
                         {/* FELADAT */}
                         <div className="flex-grow space-y-4 overflow-y-auto pr-2 p-3">
 
-                            
-
-
-                            {/* VÁLASZ */}
-                            <div>
-
-                                <label className="block text-sm font-medium text-slate-700 mb-2">
-                                    Válasz
-                                </label>
-
-                                <textarea
-                                    value={answer}
-                                    onChange={(e) => setAnswer(e.target.value)}
-                                    placeholder="Írd ide a válaszodat..."
-                                    className="
-                                    w-full
-                                    min-h-[160px]
-                                    resize-none
-                                    rounded-xl
-                                    border border-slate-200
-                                    p-4
-                                    text-sm
-                                    outline-none
-                                    focus:border-primary
-                                    focus:ring-4
-                                    focus:ring-primary/10
-                                "
+                            {/* VÁLASZ (típusfüggő, lehet hiányzó is) */}
+                            {Answer && (
+                                <Answer
+                                    key={taskId}
+                                    task={currentTask}
+                                    value={value}
+                                    onChange={onChange}
                                 />
-
-                            </div>
+                            )}
 
                         </div>
 
@@ -338,7 +297,7 @@ function PracticePage() {
                                 disabled:cursor-not-allowed
                             "
                             >
-                                <span className="material-icons text-sm">
+                                <span className="material-symbols-outlined text-sm">
                                     arrow_back
                                 </span>
 
@@ -376,7 +335,7 @@ function PracticePage() {
                                     }
                                 </span>
 
-                                <span className="material-icons text-sm">
+                                <span className="material-symbols-outlined text-sm">
                                     {currentTaskIndex === totalTasks - 1
                                         ? "check"
                                         : "arrow_forward"
