@@ -5,7 +5,7 @@
 //   - Ha nincs (null / üres), az alapértelmezett A-D betűket kapja (pl. negy_opcio,
 //     ahol az opciók szövege a bal oldali forrásképen van).
 //
-// Érték: a kiválasztott opció INDEXE (A=0, B=1, C=2, D=3), vagy undefined, ha még nincs válasz.
+// Érték: a kiválasztott opció SORSZÁMA nem INDEX, vagy undefined, ha még nincs válasz.
 // Az `onChange` ezt az indexet kapja meg, így az ellenőrzés minden típusnál ugyanúgy működik.
 // FIGYELEM: a 0 érvényes válasz, ezért "van-e válasz" ellenőrzésnél
 // `value !== undefined` kell, nem `if (value)`.
@@ -45,9 +45,9 @@ function OptionsAnswer({ task, value, onChange }) {
                     <input
                         type="radio"
                         name={groupName}
-                        value={index}
-                        checked={value === index}
-                        onChange={() => onChange(index)}
+                        value={index + 1}
+                        checked={value === index + 1}
+                        onChange={() => onChange(index + 1)}
                         className="w-4 h-4 shrink-0 accent-[#351F5B]"
                     />
 

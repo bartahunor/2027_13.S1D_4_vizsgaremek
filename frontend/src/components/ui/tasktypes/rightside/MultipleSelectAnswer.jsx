@@ -9,7 +9,7 @@
 //     (pl. „Adja meg a négy helyes válasz sorszámát!" → 4).
 //   - Ha a szövegben nem található ilyen mennyiség, nincs felső korlát.
 //
-// Érték: a kiválasztott opciók INDEXEINEK tömbje, növekvő sorrendben (0-alapú, mint a
+// Érték: a kiválasztott opció SORSZÁMA nem INDEX, növekvő sorrendben (0-alapú, mint a
 // MultipleChoiceAnswer-nél), pl. [0, 3, 5, 7]. Ha még nincs válasz: undefined.
 // Ellenőrzés: a helyes megoldást ugyanilyen, rendezett index-tömbként kell tárolni,
 // és a `isMultiAnswerCorrect(value, correct)` segédfüggvénnyel összehasonlítani.
@@ -83,8 +83,8 @@ function MultiSelectAnswer({ task, value, onChange }) {
             )}
 
             {options.map((option, index) => {
-                const checked = selected.includes(index);
-                // Ha elértük a korlátot, a ki nem választott opciók le vannak tiltva.
+                const position = index + 1;
+                const checked = selected.includes(position);
                 const disabled = limitReached && !checked;
 
                 return (
@@ -106,25 +106,24 @@ function MultiSelectAnswer({ task, value, onChange }) {
                                     ? 'border-slate-200 opacity-50 cursor-not-allowed'
                                     : 'cursor-pointer hover:bg-slate-50'
                             }
-                            ${
-                                checked
-                                    ? 'border-[#351F5B] bg-[#351F5B]/5'
-                                    : 'border-slate-200'
+                            ${checked
+                                ? 'border-[#351F5B] bg-[#351F5B]/5'
+                                : 'border-slate-200'
                             }
                         `}
                     >
                         <input
                             type="checkbox"
                             name={groupName}
-                            value={index}
+                            value={position}
                             checked={checked}
                             disabled={disabled}
-                            onChange={() => toggle(index)}
+                            onChange={() => toggle(position)}
                             className="mt-1 w-4 h-4 shrink-0 accent-[#351F5B]"
                         />
 
                         <span className="ml-3 text-slate-900">
-                            <span className="font-semibold mr-2">{index + 1}.</span>
+                            <span className="font-semibold mr-2">{position}.</span>
                             {String(option).trim()}
                         </span>
                     </label>

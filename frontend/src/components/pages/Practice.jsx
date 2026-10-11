@@ -4,6 +4,16 @@ import { apiFetch } from '../../lib/apiClient';
 import { getForrasKepUrl } from '../../lib/supabaseStorage';
 import { taskTypes, fallbackType } from '../ui/tasktypes/tasktypes.js';
 
+// Alapértelmezett serializer: a szöveget trimeli, az üreset null-ra alakítja,
+// a számot és a tömböt változatlanul hagyja, az undefined-ot null-ra alakítja.
+const defaultSerialize = (value) => {
+    if (typeof value === 'string') {
+        const trimmed = value.trim();
+        return trimmed === '' ? null : trimmed;
+    }
+    return value ?? null;
+};
+
 function PracticePage() {
 
     const [searchParams] = useSearchParams();
@@ -113,9 +123,18 @@ function PracticePage() {
         }
     };
 
+    const handleFinish = async () => {
+        const submission = buildSubmission();
+        console.log('Beküldendő:', submission);
+
+        
+    };
+
     const handleNext = () => {
         if (currentTaskIndex < totalTasks - 1) {
             setCurrentTaskIndex((prev) => prev + 1);
+        } else {
+            handleFinish();
         }
     };
 
@@ -126,6 +145,21 @@ function PracticePage() {
             element.requestFullscreen();
         }
     };
+
+    const buildSubmission = () =>
+    tasks.map((task, index) => {
+        const id = task.id ?? index;
+        const type = taskTypes[task.tipus] ?? fallbackType;
+        const serialize = type.serialize ?? defaultSerialize;
+
+        return {
+            feladat_id: id,
+            tipus: task.tipus,
+            valasz: serialize(answers[id], task),
+        };
+    });
+
+    
 
     return (
         <div className="min-h-screen flex flex-col bg-background-light text-slate-900 font-display relative overflow-hidden">
@@ -310,7 +344,7 @@ function PracticePage() {
                             <button
                                 type="button"
                                 onClick={handleNext}
-                                disabled={currentTaskIndex === totalTasks - 1}
+                                
                                 className="
                                 flex
                                 items-center
