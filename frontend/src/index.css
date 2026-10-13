@@ -27,6 +27,8 @@ body {
 
 html {
   scroll-behavior: smooth;
+  overflow-y: scroll;
+  scrollbar-gutter: stable;
 }
 
 @layer base {
@@ -481,3 +483,4 @@ html {
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: #351f5b;
 }
+
