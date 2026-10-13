@@ -16,6 +16,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using static TudasterAdmin.MainWindow;
 using System.Linq;
+using TudasterAdmin.Processing;
 
 
 
@@ -888,82 +889,178 @@ namespace TudasterAdmin
             Grid.SetColumn(card, column);
             grid.Children.Add(card);
         }
+
         private void ShowImportPage()
         {
             PageTitleText.Text = "Importálás";
-            PageSubtitleText.Text = "Érettségi feladatsorok és dokumentumok importálása.";
+            PageSubtitleText.Text =
+                "PDF-ek beolvasása és a feladatok előkészítése.";
 
             var mainPanel = new StackPanel();
-
-            var infoText = new TextBlock
-            {
-                Text = "Válassz ki egy dokumentumot az importáláshoz.",
-                FontSize = 16,
-                Foreground = (Brush)FindResource("TextBrush"),
-                Margin = new Thickness(0, 0, 0, 15)
-            };
 
             var fileNameText = new TextBlock
             {
                 Text = "Nincs kiválasztott fájl.",
-                FontSize = 14,
+                TextWrapping = TextWrapping.Wrap,
                 Foreground = (Brush)FindResource("MutedTextBrush"),
-                Margin = new Thickness(0, 0, 0, 20)
+                Margin = new Thickness(0, 0, 0, 15)
             };
 
             var selectButton = new Button
             {
-                Content = "FÁJL KIVÁLASZTÁSA",
+                Content = "PDF KIVÁLASZTÁSA",
                 Width = 190,
                 Height = 42,
-                Margin = new Thickness(0, 0, 0, 15)
+                HorizontalAlignment = HorizontalAlignment.Left,
+                Margin = new Thickness(0, 0, 0, 12)
             };
 
             var processButton = new Button
             {
-                Content = "FELDOLGOZÁS INDÍTÁSA",
+                Content = "PDF FELDOLGOZÁSA",
                 Width = 210,
                 Height = 42,
-                IsEnabled = false
+                IsEnabled = false,
+                HorizontalAlignment = HorizontalAlignment.Left,
+                Margin = new Thickness(0, 0, 0, 20)
             };
+
+            var resultTitle = new TextBlock
+            {
+                Text = "Felismert feladatok",
+                FontSize = 20,
+                FontWeight = FontWeights.SemiBold,
+                Foreground = (Brush)FindResource("TextBrush"),
+                Margin = new Thickness(0, 0, 0, 12)
+            };
+
+            var resultPanel = new StackPanel();
+
+            string? selectedFilePath = null;
 
             selectButton.Click += (sender, e) =>
             {
                 var dialog = new Microsoft.Win32.OpenFileDialog
                 {
-                    Title = "Dokumentum kiválasztása",
-                    Filter = "Dokumentumok|*.pdf;*.docx;*.txt|Minden fájl|*.*"
+                    Title = "Érettségi PDF kiválasztása",
+                    Filter = "PDF dokumentumok (*.pdf)|*.pdf",
+                    CheckFileExists = true,
+                    Multiselect = false
                 };
 
                 if (dialog.ShowDialog() == true)
                 {
-                    fileNameText.Text = dialog.FileName;
+                    selectedFilePath = dialog.FileName;
+                    fileNameText.Text = selectedFilePath;
+                    resultPanel.Children.Clear();
                     processButton.IsEnabled = true;
                 }
             };
 
             processButton.Click += (sender, e) =>
             {
-                MessageBox.Show(
-                    "A fájl feldolgozása elindult.",
-                    "Importálás",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Information);
+                if (string.IsNullOrWhiteSpace(selectedFilePath))
+                    return;
+
+                try
+                {
+                    var extractor = new PdfTextExtractor();
+                    string extractedText =
+                        extractor.ExtractText(selectedFilePath);
+
+                    var parser = new TaskParser();
+                    var tasks = parser.ParseTasks(extractedText);
+
+                    resultPanel.Children.Clear();
+
+                    if (tasks.Count == 0)
+                    {
+                        resultPanel.Children.Add(new TextBlock
+                        {
+                            Text = "Nem sikerült számozott feladatokat felismerni. " +
+                                   "Ellenőrizd a PDF szövegét.",
+                            TextWrapping = TextWrapping.Wrap,
+                            Foreground = (Brush)FindResource("MutedTextBrush"),
+                            Margin = new Thickness(0, 0, 0, 12)
+                        });
+                    }
+
+                    foreach (var task in tasks)
+                    {
+                        var card = new Border
+                        {
+                            Background = Brushes.White,
+                            BorderBrush = (Brush)FindResource("BorderBrush"),
+                            BorderThickness = new Thickness(1),
+                            CornerRadius = new CornerRadius(10),
+                            Padding = new Thickness(16),
+                            Margin = new Thickness(0, 0, 0, 12)
+                        };
+
+                        var cardPanel = new StackPanel();
+
+                        cardPanel.Children.Add(new TextBlock
+                        {
+                            Text = $"Felismerés #{task.Number}",
+                            FontSize = 16,
+                            FontWeight = FontWeights.SemiBold,
+                            Foreground = (Brush)FindResource("PrimaryBrush"),
+                            Margin = new Thickness(0, 0, 0, 8)
+                        });
+
+                        cardPanel.Children.Add(new TextBlock
+                        {
+                            Text = task.Text,
+                            FontSize = 13,
+                            TextWrapping = TextWrapping.Wrap,
+                            Foreground = (Brush)FindResource("TextBrush")
+                        });
+
+                        card.Child = cardPanel;
+                        resultPanel.Children.Add(card);
+                    }
+
+                    if (tasks.Count > 0)
+                    {
+                        MessageBox.Show(
+                            $"{tasks.Count} számozott szövegrészt találtunk.\n" +
+                            "Ezeket még ellenőrizni kell.",
+                            "Feldolgozás befejezve",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Information);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(
+                        $"Hiba a feldolgozás során:\n{ex.Message}",
+                        "PDF-feldolgozási hiba",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error);
+                }
             };
 
-            mainPanel.Children.Add(infoText);
+            mainPanel.Children.Add(new TextBlock
+            {
+                Text = "Válassz ki egy érettségi PDF-et.",
+                FontSize = 16,
+                Foreground = (Brush)FindResource("TextBrush"),
+                Margin = new Thickness(0, 0, 0, 12)
+            });
+
             mainPanel.Children.Add(fileNameText);
             mainPanel.Children.Add(selectButton);
             mainPanel.Children.Add(processButton);
+            mainPanel.Children.Add(resultTitle);
+            mainPanel.Children.Add(resultPanel);
 
-            var scrollViewer = new ScrollViewer
+            ContentArea.Content = new ScrollViewer
             {
                 VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
                 Content = mainPanel
             };
-
-            ContentArea.Content = scrollViewer;
         }
+
 
         private void ShowTopicsPage()
         {

@@ -127,7 +127,7 @@ function PracticePage() {
         const submission = buildSubmission();
         console.log('Beküldendő:', submission);
 
-        
+
     };
 
     const handleNext = () => {
@@ -147,23 +147,23 @@ function PracticePage() {
     };
 
     const buildSubmission = () =>
-    tasks.map((task, index) => {
-        const id = task.id ?? index;
-        const type = taskTypes[task.tipus] ?? fallbackType;
-        const serialize = type.serialize ?? defaultSerialize;
+        tasks.map((task, index) => {
+            const id = task.id ?? index;
+            const type = taskTypes[task.tipus] ?? fallbackType;
+            const serialize = type.serialize ?? defaultSerialize;
 
-        return {
-            feladat_id: id,
-            tipus: task.tipus,
-            valasz: serialize(answers[id], task),
-        };
-    });
+            return {
+                feladat_id: id,
+                tipus: task.tipus,
+                valasz: serialize(answers[id], task),
+            };
+        });
 
-    
+
 
     return (
         <div className="min-h-screen flex flex-col bg-background-light text-slate-900 font-display relative overflow-hidden">
-              <div className="pointer-events-none absolute inset-0 bg-grid-pattern opacity-100"></div>
+            <div className="pointer-events-none absolute inset-0 bg-grid-pattern opacity-100"></div>
 
 
             {/* Haladási sáv */}
@@ -178,35 +178,43 @@ function PracticePage() {
 
 
             {/* FŐ TARTALOM */}
-            <main className="relative z-10 flex-grow flex items-center justify-center pt-20 pb-6 px-4 sm:pt-24 sm:pb-8 sm:px-6 md:pt-28 md:pb-10 md:px-10">
+            <main className="
+                    relative z-10 flex-grow
+                    flex items-start justify-center
+                    pt-10 pb-6 px-3
+                    sm:pt-16 sm:pb-8 sm:px-6
+                    md:items-center md:pt-28 md:pb-10 md:px-10
+                ">
 
-                <div 
-                    className=" 
-                    max-w-7xl 
-                    w-full 
-                    bg-white 
-                    rounded-xl 
-                    shadow-2xl 
-                    shadow-primary/5 
-                    border border-primary/10 
-                    overflow-hidden 
-                    flex flex-col 
-                    md:flex-row 
-                    max-h-[850px] 
+                <div
+                className="
+                    max-w-7xl
+                    w-full
+                    min-w-0
+                    bg-white
+                    rounded-xl
+                    shadow-2xl
+                    shadow-primary/5
+                    border border-primary/10
+                    overflow-hidden
+                    flex flex-col
+                    md:flex-row
+                    md:max-h-[850px]
                 "
                 >
 
 
                     {/* BAL OLDAL */}
                     <div
-                        className="
+                    className="
                         w-full
                         md:w-1/2
                         bg-slate-50
-                        p-5 sm:p-8
+                        p-3 sm:p-6 lg:p-8
                         flex flex-col
+                        min-w-0
                     "
-                    >
+                >
 
                         <div className="flex items-center justify-between mb-4">
 
@@ -250,13 +258,14 @@ function PracticePage() {
 
                     {/* JOBB OLDAL */}
                     <div
-                        className="
+                    className="
                         w-full
                         md:w-1/2
-                        p-5 sm:p-8 md:p-12
+                        p-3 sm:p-6 lg:p-10
                         flex flex-col
+                        min-w-0
                     "
-                    >
+                >
 
                         <div className="mb-6 sm:mb-8">
 
@@ -276,7 +285,11 @@ function PracticePage() {
                             </div>
 
 
-                            <h2 className="text-xl sm:text-2xl font-semibold leading-snug">
+                            <h2 className="
+                                text-lg sm:text-xl md:text-2xl
+                                font-semibold leading-relaxed
+                                break-words
+                            ">
                                 {currentTask.feladat_szoveg ||
                                     currentTask.kerdes ||
                                     currentTask.kerdes_szoveg}
@@ -286,7 +299,13 @@ function PracticePage() {
 
 
                         {/* FELADAT */}
-                        <div className="flex-grow space-y-4 overflow-y-auto pr-2 p-3">
+                        <div className="
+                            flex-grow min-w-0
+                            space-y-4
+                            overflow-visible
+                            p-1 sm:p-3
+                            md:overflow-y-auto md:pr-2
+                        ">
 
                             {/* VÁLASZ (típusfüggő, lehet hiányzó is) */}
                             {Answer && (
@@ -303,14 +322,15 @@ function PracticePage() {
 
                         {/* GOMBOK */}
                         <div className="
-                        mt-8
-                        pt-6
-                        border-t border-slate-100
-                        flex
-                        items-center
-                        justify-between
-                        gap-3
-                    ">
+                            mt-5 sm:mt-8
+                            pt-4 sm:pt-6
+                            border-t border-slate-100
+                            flex
+                            items-center
+                            justify-between
+                            gap-3
+                            shrink-0
+                        ">
 
                             <button
                                 type="button"
@@ -344,7 +364,7 @@ function PracticePage() {
                             <button
                                 type="button"
                                 onClick={handleNext}
-                                
+
                                 className="
                                 flex
                                 items-center
