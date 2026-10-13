@@ -1,6 +1,9 @@
 import express from 'express'
 import sql from '../db.js'
 import { requireAuth } from '../middleware/auth.js'
+import { avatarUpload } from '../middleware/profilPictureUpload.js'
+import { supabaseForUser } from '../config/supabaseClient.js'
+import { feldolgozKep, KepHiba } from '../services/avatar.js'
 
 const router = express.Router()
 
@@ -207,6 +210,56 @@ router.get('/me/activities', async (req, res, next) => {
       items: rows.slice(0, limit),
       hasMore: rows.length > limit,
     })
+  } catch (err) {
+    next(err)
+  }
+})
+
+// Profilkép feltöltése / cseréje
+router.post('/me/avatar', avatarUpload, async (req, res, next) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'Nincs feltöltött fájl (mezőnév: kep)' })
+    }
+
+    const felhasznaloId = req.user.id
+    const token = req.headers.authorization?.split(' ')[1]
+
+    // 1) Ellenőrzés, újrakódolás, tömörítés
+    let kep
+    try {
+      kep = await feldolgozKep(req.file.buffer)
+    } catch (e) {
+      if (e instanceof KepHiba) {
+        return res.status(400).json({ error: e.message })
+      }
+      throw e
+    }
+
+    // 2) Feltöltés a felhasználó tokenjével (az RLS policy dönt)
+    const utvonal = `${felhasznaloId}/avatar`
+    const { error } = await supabaseForUser(token)
+      .storage
+      .from('profilkepek')
+      .upload(utvonal, kep.buffer, {
+        contentType: kep.mime,
+        upsert: true,
+        cacheControl: '3600',
+      })
+
+    if (error) {
+      console.error('Avatar feltöltési hiba:', error.message)
+      return res.status(403).json({ error: 'A feltöltés nem sikerült' })
+    }
+
+    // 3) Profiltábla frissítése
+    await sql`
+      update profilok
+      set profilkep = ${utvonal}
+      where id = ${felhasznaloId}
+    `
+
+    res.json({ profilkep: utvonal, meret: kep.buffer.length, tipus: kep.mime })
   } catch (err) {
     next(err)
   }
