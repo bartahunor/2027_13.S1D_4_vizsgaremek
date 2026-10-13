@@ -52,3 +52,12 @@ C:\Users\BartaHunor\Documents\GitHub\2027_13.S1D_4_vizsgaremek\TudasterAdmin\Tud
 C:\Users\BartaHunor\Documents\GitHub\2027_13.S1D_4_vizsgaremek\TudasterAdmin\TudasterAdmin\obj\Debug\net8.0-windows\TudasterAdmin.pdb
 C:\Users\BartaHunor\Documents\GitHub\2027_13.S1D_4_vizsgaremek\TudasterAdmin\TudasterAdmin\obj\Debug\net8.0-windows\TudasterAdmin.genruntimeconfig.cache
 C:\Users\BartaHunor\Documents\GitHub\2027_13.S1D_4_vizsgaremek\TudasterAdmin\TudasterAdmin\obj\Debug\net8.0-windows\ref\TudasterAdmin.dll
+C:\Users\KeseruFruzsina\Documents\GitHub\2027_13.S1D_4_vizsgaremek\TudasterAdmin\TudasterAdmin\bin\Debug\net8.0-windows\UglyToad.PdfPig.Core.dll
+C:\Users\KeseruFruzsina\Documents\GitHub\2027_13.S1D_4_vizsgaremek\TudasterAdmin\TudasterAdmin\bin\Debug\net8.0-windows\UglyToad.PdfPig.DocumentLayoutAnalysis.dll
+C:\Users\KeseruFruzsina\Documents\GitHub\2027_13.S1D_4_vizsgaremek\TudasterAdmin\TudasterAdmin\bin\Debug\net8.0-windows\UglyToad.PdfPig.Fonts.dll
+C:\Users\KeseruFruzsina\Documents\GitHub\2027_13.S1D_4_vizsgaremek\TudasterAdmin\TudasterAdmin\bin\Debug\net8.0-windows\UglyToad.PdfPig.Package.dll
+C:\Users\KeseruFruzsina\Documents\GitHub\2027_13.S1D_4_vizsgaremek\TudasterAdmin\TudasterAdmin\bin\Debug\net8.0-windows\UglyToad.PdfPig.Tokenization.dll
+C:\Users\KeseruFruzsina\Documents\GitHub\2027_13.S1D_4_vizsgaremek\TudasterAdmin\TudasterAdmin\bin\Debug\net8.0-windows\UglyToad.PdfPig.Tokens.dll
+C:\Users\KeseruFruzsina\Documents\GitHub\2027_13.S1D_4_vizsgaremek\TudasterAdmin\TudasterAdmin\bin\Debug\net8.0-windows\UglyToad.PdfPig.dll
+C:\Users\KeseruFruzsina\Documents\GitHub\2027_13.S1D_4_vizsgaremek\TudasterAdmin\TudasterAdmin\obj\Debug\net8.0-windows\TudasterAdmin.csproj.AssemblyReference.cache
+C:\Users\KeseruFruzsina\Documents\GitHub\2027_13.S1D_4_vizsgaremek\TudasterAdmin\TudasterAdmin\obj\Debug\net8.0-windows\Tudaster.046878C0.Up2Date

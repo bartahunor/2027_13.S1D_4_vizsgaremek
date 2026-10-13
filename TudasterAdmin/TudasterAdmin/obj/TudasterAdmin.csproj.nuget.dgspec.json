@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\BartaHunor\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\TudasterAdmin.csproj": {}
+    "C:\\Users\\KeseruFruzsina\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\TudasterAdmin.csproj": {}
   },
   "projects": {
-    "C:\\Users\\BartaHunor\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\TudasterAdmin.csproj": {
+    "C:\\Users\\KeseruFruzsina\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\TudasterAdmin.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\BartaHunor\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\TudasterAdmin.csproj",
+        "projectUniqueName": "C:\\Users\\KeseruFruzsina\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\TudasterAdmin.csproj",
         "projectName": "TudasterAdmin",
-        "projectPath": "C:\\Users\\BartaHunor\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\TudasterAdmin.csproj",
-        "packagesPath": "C:\\Users\\BartaHunor\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\BartaHunor\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\obj\\",
+        "projectPath": "C:\\Users\\KeseruFruzsina\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\TudasterAdmin.csproj",
+        "packagesPath": "C:\\Users\\KeseruFruzsina\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\KeseruFruzsina\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\BartaHunor\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\KeseruFruzsina\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -52,6 +52,12 @@
         "net8.0-windows": {
           "framework": "net8.0-windows7.0",
           "targetAlias": "net8.0-windows",
+          "dependencies": {
+            "PdfPig": {
+              "target": "Package",
+              "version": "[0.1.16, )"
+            }
+          },
           "imports": [
             "net461",
             "net462",
