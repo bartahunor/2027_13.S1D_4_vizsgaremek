@@ -481,3 +481,168 @@ html {
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: #351f5b;
 }
+
+/*Fruzsi svg kunkori csík*/
+.purple-squiggle {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+}
+
+.purple-squiggle-line,
+.purple-squiggle-glow {
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none;
+    stroke-dasharray: 180 2200;
+    animation: squiggle-flow 18s linear infinite;
+}
+
+.purple-squiggle-line {
+    stroke: #8b5cf6;
+    stroke-width: 2.5;
+    opacity: 0.3;
+}
+
+.purple-squiggle-glow {
+    stroke: #a78bfa;
+    stroke-width: 12;
+    opacity: 0.12;
+    filter: blur(8px);
+    animation-duration: 18s;
+}
+
+@keyframes squiggle-flow {
+    from {
+        stroke-dashoffset: 0;
+    }
+    to {
+        stroke-dashoffset: -2380;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .purple-squiggle-line,
+    .purple-squiggle-glow {
+        animation: none;
+    }
+}
+
+
+.organic-purple-line {
+    opacity: 0.3;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 0;
+    animation: organic-line-draw 5s ease-in-out infinite alternate;
+}
+
+@keyframes organic-line-draw {
+    from {
+        stroke-dashoffset: 0;
+        opacity: 0.15;
+    }
+
+    to {
+        stroke-dashoffset: 0;
+        opacity: 0.4;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .organic-purple-line {
+        animation: none;
+    }
+}
+
+.subjects-line-background {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.subjects-line-background svg {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+}
+
+/* Lágy lila fény */
+.subjects-line-glow {
+    fill: none;
+    stroke: #a78bfa;
+    stroke-width: 13;
+    stroke-linecap: round;
+    opacity: 0;
+    filter: url(#subjectsPurpleGlow);
+    animation: subjects-glow-appear 8s ease-in-out infinite;
+}
+
+/* Fő vonal: lassan végigrajzolódik */
+.subjects-line-main {
+    fill: none;
+    stroke: url(#subjectsPurpleGradient);
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    opacity: 0;
+    animation: subjects-line-draw 8s ease-in-out infinite;
+}
+
+@keyframes subjects-line-draw {
+    0% {
+        stroke-dashoffset: 1;
+        opacity: 0;
+    }
+
+    8% {
+        opacity: 0.35;
+    }
+
+    65% {
+        stroke-dashoffset: 0;
+        opacity: 0.5;
+    }
+
+    82% {
+        stroke-dashoffset: 0;
+        opacity: 0.35;
+    }
+
+    100% {
+        stroke-dashoffset: 0;
+        opacity: 0;
+    }
+}
+
+@keyframes subjects-glow-appear {
+    0%, 100% {
+        opacity: 0;
+    }
+
+    20% {
+        opacity: 0.12;
+    }
+
+    60% {
+        opacity: 0.22;
+    }
+
+    85% {
+        opacity: 0.08;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .subjects-line-main,
+    .subjects-line-glow {
+        animation: none;
+        opacity: 0.2;
+        stroke-dashoffset: 0;
+    }
+}
