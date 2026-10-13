@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 
 const szerepNevek = {
@@ -7,34 +6,39 @@ const szerepNevek = {
     admin: "Admin",
 };
 
-function ProfileHeader({ profildata }) {
+function ProfileHeader({ profildata, profilkepUrl }) {
     const [modalNyitva, setModalNyitva] = useState(false);
     const [animacioLathato, setAnimacioLathato] = useState(false);
     const [zarasFolyamatban, setZarasFolyamatban] = useState(false);
-    const [profilkep, setProfilkep] = useState(profildata.profilkep ?? null);
+    const [profilkep, setProfilkep] = useState(profilkepUrl ?? null);
     const [ujProfilkep, setUjProfilkep] = useState(null);
 
     const [felhasznalonev, setFelhasznalonev] = useState(
         profildata.felhasznalonev ?? ""
-
-        
     );
-    useEffect(() => {
-    if (profildata?.felhasznalonev) {
-        setFelhasznalonev(profildata.felhasznalonev);
-        setMonogram(
-            profildata.felhasznalonev.trim().charAt(0).toUpperCase() || "?"
-        );
-    }
-}, [profildata?.felhasznalonev]);
-
     const [email, setEmail] = useState(profildata.email ?? "");
     const [monogram, setMonogram] = useState(
         profildata.felhasznalonev?.charAt(0).toUpperCase() ?? "?"
     );
 
-    const eredetiNev = profildata.felhasznalonev ?? "";
-    const eredetiEmail = profildata.email ?? "";
+    // A profiladatok aszinkron érkeznek, ezért szinkronizáljuk az állapotot.
+    useEffect(() => {
+        if (profildata?.felhasznalonev) {
+            setFelhasznalonev(profildata.felhasznalonev);
+            setMonogram(
+                profildata.felhasznalonev.trim().charAt(0).toUpperCase() || "?"
+            );
+        }
+        if (profildata?.email) {
+            setEmail(profildata.email);
+        }
+    }, [profildata?.felhasznalonev, profildata?.email]);
+
+    // A signed URL (getProfilkepUrl) a szülőből érkezik, amikor betöltődik.
+    useEffect(() => {
+        setProfilkep(profilkepUrl ?? null);
+    }, [profilkepUrl]);
+
     const szerepFelirat =
         szerepNevek[profildata.szerep] ?? profildata.szerep;
 
@@ -49,15 +53,15 @@ function ProfileHeader({ profildata }) {
     useEffect(() => {
         if (!modalNyitva) return;
 
-        function escapeBezáras(event) {
+        function escapeBezaras(event) {
             if (event.key === "Escape") setModalNyitva(false);
         }
 
-        document.addEventListener("keydown", escapeBezáras);
+        document.addEventListener("keydown", escapeBezaras);
         document.body.style.overflow = "hidden";
 
         return () => {
-            document.removeEventListener("keydown", escapeBezáras);
+            document.removeEventListener("keydown", escapeBezaras);
             document.body.style.overflow = "";
         };
     }, [modalNyitva]);
@@ -71,16 +75,14 @@ function ProfileHeader({ profildata }) {
         setUjProfilkep(null);
     }
 
-
-
     function helyiAlkalmazas() {
-    // A név és a profilkép megtartása a komponens állapotában
-    if (ujProfilkep) {
-        setProfilkep(ujProfilkep);
-    }
+        // A név és a profilkép megtartása a komponens állapotában
+        if (ujProfilkep) {
+            setProfilkep(ujProfilkep);
+        }
 
-    setModalNyitva(false);
-}
+        setModalNyitva(false);
+    }
 
     const ablakMegnyitasa = () => {
         setModalNyitva(true);
@@ -113,8 +115,16 @@ function ProfileHeader({ profildata }) {
                 <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex min-w-0 items-center gap-4 sm:gap-5">
                         <div className="relative shrink-0">
-                            <div className="flex h-[68px] w-[68px] items-center justify-center rounded-2xl bg-[#351F5B] text-2xl font-bold tracking-tight text-white shadow-md sm:h-20 sm:w-20">
-                                {monogram}
+                            <div className="flex h-[68px] w-[68px] items-center justify-center overflow-hidden rounded-2xl bg-[#351F5B] text-2xl font-bold tracking-tight text-white shadow-md sm:h-20 sm:w-20">
+                                {profilkep ? (
+                                    <img
+                                        src={profilkep}
+                                        alt="Profilkép"
+                                        className="h-full w-full object-cover"
+                                    />
+                                ) : (
+                                    monogram
+                                )}
                             </div>
 
                             <div className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500 text-white shadow ring-2 ring-white">
@@ -304,8 +314,6 @@ function ProfileHeader({ profildata }) {
                                     placeholder="Add meg a felhasználóneved"
                                 />
                             </div>
-
-
                         </div>
 
                         <div className="mt-7 flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">

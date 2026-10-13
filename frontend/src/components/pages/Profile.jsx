@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { apiFetch } from '../../lib/apiClient';
+import { getProfilkepUrl } from '../../lib/supabaseStorage';
 import ProfileHeader from "../sections/profile/ProfileHeader";
 import ProgressAnalytics from "../sections/profile/ProgressAnalytics";
 import SubjectPieChart from "../sections/profile/SubjectPieChart";
@@ -9,6 +10,7 @@ import ActivityLog from "../sections/profile/ActivityLog";
 function ProfileTwoPage() {
 
     const [profildata, setProfildata] = useState([]);
+    const [profilkepUrl, setProfilkepUrl] = useState(null);
     const [pieStats, setPieStats] = useState([]);
     const [calendarStats, setCalendarStats] = useState([]);
     const [tabSubjects, setTabSubjects] = useState(["Mind"]);
@@ -29,8 +31,13 @@ function ProfileTwoPage() {
                     apiFetch('/profilroutes/me/calendar'),
                 ]);
 
+                // A /me végpont a profilkep bucket-útvonalat adja vissza,
+                // ebből generálunk signed URL-t (hiba esetén null, nem dob).
+                const kepUrl = await getProfilkepUrl(profil?.profilkep);
+
                 if (cancelled) return;
                 setProfildata(profil);
+                setProfilkepUrl(kepUrl);
                 setPieStats(pie);
                 setCalendarStats(calendar);
                 setTabSubjects(["Mind", ...new Set(pie.map((p) => p.tantargy))]);
@@ -51,7 +58,7 @@ function ProfileTwoPage() {
         <main className="w-full max-w-7xl mx-auto px-4 sm:px-6 pt-24 bg-transparent flex-grow">
             <div className="flex flex-col w-full pb-10">
 
-                <ProfileHeader profildata={profildata} />
+                <ProfileHeader profildata={profildata} profilkepUrl={profilkepUrl} />
 
                 <ProgressAnalytics tabSubjects={tabSubjects} />
 

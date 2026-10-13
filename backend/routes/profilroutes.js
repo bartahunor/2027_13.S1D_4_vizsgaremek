@@ -21,6 +21,7 @@ router.get('/me', async (req, res, next) => {
         p.felhasznalonev,
         p.email,
         p.szerep,
+        p.profilkep,
         u.created_at
       from profilok p
       join auth.users u on u.id = p.id
