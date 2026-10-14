@@ -17,7 +17,7 @@ using System.Windows.Shapes;
 using static TudasterAdmin.MainWindow;
 using System.Linq;
 using TudasterAdmin.Processing;
-
+using System.Collections.Generic;
 
 
 
@@ -957,32 +957,77 @@ namespace TudasterAdmin
                 }
             };
 
+
             processButton.Click += (sender, e) =>
             {
                 if (string.IsNullOrWhiteSpace(selectedFilePath))
+                {
+                    MessageBox.Show("Először válassz ki egy PDF-fájlt!");
                     return;
+                }
 
                 try
                 {
                     var extractor = new PdfTextExtractor();
-                    string extractedText =
-                        extractor.ExtractText(selectedFilePath);
+                    List<PdfPageContent> pages =
+                        extractor.ExtractPages(selectedFilePath);
+
+                    // Az oldalak szövegét egyetlen szöveggé fűzzük össze.
+                    var textBuilder = new System.Text.StringBuilder();
+
+                    foreach (var page in pages)
+                    {
+                        if (string.IsNullOrWhiteSpace(page.Text))
+                            continue;
+
+                        // Az oldalak határát megtartjuk, hogy a felismerő
+                        // ne kezelje az egész PDF-et egyetlen összefüggő blokként.
+                        textBuilder.AppendLine();
+                        textBuilder.AppendLine(
+                            $"[[PDF_OLDAL_{page.PageNumber}]]");
+                        textBuilder.AppendLine(page.Text.Trim());
+                        textBuilder.AppendLine();
+                    }
+
+                    string extractedText = textBuilder.ToString();
+
+
 
                     var parser = new TaskParser();
-                    var tasks = parser.ParseTasks(extractedText);
+
+                    List<ParsedTask> tasks = parser.ParseTasks(extractedText);
+                    MessageBox.Show(
+    $"Kiolvasott karakterek: {extractedText.Length}\n" +
+    $"Felismert feladatok: {tasks.Count}\n\n" +
+    $"Megtalálható benne az első kérdés: " +
+    $"{extractedText.Contains("A szerző szerint 1848")}",
+    "Felismerési ellenőrzés",
+    MessageBoxButton.OK,
+    MessageBoxImage.Information
+);
 
                     resultPanel.Children.Clear();
+
+                    resultPanel.Children.Add(new TextBlock
+                    {
+                        Text = $"Felismert feladatok: {tasks.Count}",
+                        FontSize = 20,
+                        FontWeight = FontWeights.SemiBold,
+                        Foreground = (Brush)FindResource("PrimaryBrush"),
+                        Margin = new Thickness(0, 0, 0, 16)
+                    });
 
                     if (tasks.Count == 0)
                     {
                         resultPanel.Children.Add(new TextBlock
                         {
-                            Text = "Nem sikerült számozott feladatokat felismerni. " +
-                                   "Ellenőrizd a PDF szövegét.",
+                            Text = "Nem sikerült feladatokat felismerni. " +
+                                   "Ellenőrizni kell a PDF szövegének szerkezetét.",
                             TextWrapping = TextWrapping.Wrap,
-                            Foreground = (Brush)FindResource("MutedTextBrush"),
-                            Margin = new Thickness(0, 0, 0, 12)
+                            Foreground = (Brush)FindResource("MutedTextBrush")
                         });
+
+                        return;
                     }
 
                     foreach (var task in tasks)
@@ -992,23 +1037,23 @@ namespace TudasterAdmin
                             Background = Brushes.White,
                             BorderBrush = (Brush)FindResource("BorderBrush"),
                             BorderThickness = new Thickness(1),
-                            CornerRadius = new CornerRadius(10),
-                            Padding = new Thickness(16),
-                            Margin = new Thickness(0, 0, 0, 12)
+                            CornerRadius = new CornerRadius(12),
+                            Padding = new Thickness(18),
+                            Margin = new Thickness(0, 0, 0, 14)
                         };
 
-                        var cardPanel = new StackPanel();
+                        var panel = new StackPanel();
 
-                        cardPanel.Children.Add(new TextBlock
+                        panel.Children.Add(new TextBlock
                         {
-                            Text = $"Felismerés #{task.Number}",
-                            FontSize = 16,
+                            Text = task.Title,
+                            FontSize = 17,
                             FontWeight = FontWeights.SemiBold,
                             Foreground = (Brush)FindResource("PrimaryBrush"),
-                            Margin = new Thickness(0, 0, 0, 8)
+                            Margin = new Thickness(0, 0, 0, 10)
                         });
 
-                        cardPanel.Children.Add(new TextBlock
+                        panel.Children.Add(new TextBlock
                         {
                             Text = task.Text,
                             FontSize = 13,
@@ -1016,29 +1061,42 @@ namespace TudasterAdmin
                             Foreground = (Brush)FindResource("TextBrush")
                         });
 
-                        card.Child = cardPanel;
-                        resultPanel.Children.Add(card);
-                    }
+                        if (task.SubQuestions.Count > 0)
+                        {
+                            panel.Children.Add(new TextBlock
+                            {
+                                Text = $"Felismerhető alpontok: {task.SubQuestions.Count}",
+                                FontSize = 12,
+                                Foreground = (Brush)FindResource("MutedTextBrush"),
+                                Margin = new Thickness(0, 10, 0, 0)
+                            });
+                        }
 
-                    if (tasks.Count > 0)
-                    {
-                        MessageBox.Show(
-                            $"{tasks.Count} számozott szövegrészt találtunk.\n" +
-                            "Ezeket még ellenőrizni kell.",
-                            "Feldolgozás befejezve",
-                            MessageBoxButton.OK,
-                            MessageBoxImage.Information);
+                        if (task.NeedsReview)
+                        {
+                            panel.Children.Add(new TextBlock
+                            {
+                                Text = "Ellenőrzés szükséges",
+                                FontSize = 12,
+                                Foreground = Brushes.DarkOrange,
+                                Margin = new Thickness(0, 8, 0, 0)
+                            });
+                        }
+
+                        card.Child = panel;
+                        resultPanel.Children.Add(card);
                     }
                 }
                 catch (Exception ex)
                 {
                     MessageBox.Show(
-                        $"Hiba a feldolgozás során:\n{ex.Message}",
+                        $"Hiba a PDF feldolgozásakor:\n{ex.Message}",
                         "PDF-feldolgozási hiba",
                         MessageBoxButton.OK,
                         MessageBoxImage.Error);
                 }
             };
+
 
             mainPanel.Children.Add(new TextBlock
             {

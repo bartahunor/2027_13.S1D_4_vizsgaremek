@@ -1,9 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System;
 using System.IO;
 using UglyToad.PdfPig;
 
@@ -11,7 +7,7 @@ namespace TudasterAdmin.Processing
 {
     internal class PdfTextExtractor
     {
-        public string ExtractText(string filePath)
+        public List<PdfPageContent> ExtractPages(string filePath)
         {
             if (string.IsNullOrWhiteSpace(filePath))
             {
@@ -37,19 +33,21 @@ namespace TudasterAdmin.Processing
                     nameof(filePath));
             }
 
-            var result = new StringBuilder();
+            var pages = new List<PdfPageContent>();
 
             using (var document = PdfDocument.Open(filePath))
             {
                 foreach (var page in document.GetPages())
                 {
-                    result.AppendLine($"--- {page.Number}. oldal ---");
-                    result.AppendLine(page.Text);
-                    result.AppendLine();
+                    pages.Add(new PdfPageContent
+                    {
+                        PageNumber = page.Number,
+                        Text = page.Text ?? ""
+                    });
                 }
             }
 
-            return result.ToString();
+            return pages;
         }
     }
 }
