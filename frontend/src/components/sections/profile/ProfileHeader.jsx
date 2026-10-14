@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { apiFetch } from "../../../lib/apiClient"; // a te elérési utad szerint
 
 const szerepNevek = {
     tanar: "Tanár",
@@ -12,6 +13,7 @@ function ProfileHeader({ profildata, profilkepUrl }) {
     const [zarasFolyamatban, setZarasFolyamatban] = useState(false);
     const [profilkep, setProfilkep] = useState(profilkepUrl ?? null);
     const [ujProfilkep, setUjProfilkep] = useState(null);
+    const [ujFajl, setUjFajl] = useState(null);
 
     const [felhasznalonev, setFelhasznalonev] = useState(
         profildata.felhasznalonev ?? ""
@@ -20,6 +22,9 @@ function ProfileHeader({ profildata, profilkepUrl }) {
     const [monogram, setMonogram] = useState(
         profildata.felhasznalonev?.charAt(0).toUpperCase() ?? "?"
     );
+
+    const [mentesFolyamatban, setMentesFolyamatban] = useState(false);
+    const [hiba, setHiba] = useState("");
 
     // A profiladatok aszinkron érkeznek, ezért szinkronizáljuk az állapotot.
     useEffect(() => {
@@ -68,20 +73,45 @@ function ProfileHeader({ profildata, profilkepUrl }) {
 
     function visszaallitas() {
         setFelhasznalonev(profildata.felhasznalonev ?? "");
-        setEmail(profildata.email ?? "");
         setMonogram(
             profildata.felhasznalonev?.charAt(0).toUpperCase() ?? "?"
         );
         setUjProfilkep(null);
+        setUjFajl(null);
+        setHiba("");
     }
 
-    function helyiAlkalmazas() {
-        // A név és a profilkép megtartása a komponens állapotában
-        if (ujProfilkep) {
-            setProfilkep(ujProfilkep);
-        }
+    async function helyiAlkalmazas() {
+        if (mentesFolyamatban) return;
 
-        setModalNyitva(false);
+        setMentesFolyamatban(true);
+        setHiba("");
+
+        try {
+            if (ujFajl) {
+                const fd = new FormData();
+                fd.append("kep", ujFajl); // a backend mezőneve: kep
+
+                // Content-Type-ot NE állíts be, a böngésző teszi hozzá a boundary-val
+                await apiFetch("/profilroutes/me/avatar", {
+                    method: "POST",
+                    body: fd,
+                });
+
+                setUjFajl(null);
+            }
+
+            if (ujProfilkep) {
+                setProfilkep(ujProfilkep);
+                setUjProfilkep(null);
+            }
+
+            setModalNyitva(false);
+        } catch (e) {
+            setHiba(e.message || "A profilkép módosítása nem sikerült.");
+        } finally {
+            setMentesFolyamatban(false);
+        }
     }
 
     const ablakMegnyitasa = () => {
@@ -252,13 +282,23 @@ function ProfileHeader({ profildata, profilkepUrl }) {
                                 className="hidden"
                                 onChange={(event) => {
                                     const file = event.target.files?.[0];
+                                    event.target.value = ""; // ugyanaz a fájl újra kiválasztható legyen
 
                                     if (!file) return;
 
-                                    if (!file.type.startsWith("image/")) {
-                                        event.target.value = "";
+                                    const engedelyezett = ["image/jpeg", "image/png", "image/webp", "image/jpg"];
+
+                                    if (!engedelyezett.includes(file.type)) {
+                                        setHiba("Nem támogatott fájlformátum. Csak JPEG, PNG, WebP vagy JPG tölthető fel.");
                                         return;
                                     }
+
+                                    if (file.size > 5 * 1024 * 1024) {
+                                        setHiba("A kép túl nagy, legfeljebb 5 MB lehet.");
+                                        return;
+                                    }
+
+                                    setHiba("");
 
                                     const reader = new FileReader();
 
@@ -267,6 +307,7 @@ function ProfileHeader({ profildata, profilkepUrl }) {
                                     };
 
                                     reader.readAsDataURL(file);
+                                    setUjFajl(file);
                                 }}
                             />
 
@@ -315,6 +356,15 @@ function ProfileHeader({ profildata, profilkepUrl }) {
                                 />
                             </div>
                         </div>
+                        
+                        {hiba && (
+                            <p
+                                role="alert"
+                                className="mt-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+                            >
+                                {hiba}
+                            </p>
+                        )}
 
                         <div className="mt-7 flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
                             <button
@@ -326,22 +376,17 @@ function ProfileHeader({ profildata, profilkepUrl }) {
                             </button>
 
                             <div className="flex flex-col gap-3 sm:flex-row">
-                                <button
-                                    type="button"
-                                    onClick={bezaras}
-                                    className="rounded-xl px-4 py-3 text-sm font-semibold text-[#62576F] transition hover:bg-[#F7F6F8] sm:py-2.5"
-                                >
-                                    Mégse
-                                </button>
+
                                 <button
                                     type="button"
                                     onClick={helyiAlkalmazas}
-                                    className="flex items-center justify-center gap-2 rounded-xl bg-[#351F5B] px-5 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-[#4B2A7F] active:scale-[0.98] sm:py-2.5"
+                                    disabled={mentesFolyamatban}
+                                    className="flex items-center justify-center gap-2 rounded-xl bg-[#351F5B] px-5 py-3 text-sm font-semibold text-white shadow-md transition hover:bg-[#4B2A7F] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 sm:py-2.5"
                                 >
                                     <span className="material-symbols-outlined text-lg">
-                                        check
+                                        {mentesFolyamatban ? "progress_activity" : "check"}
                                     </span>
-                                    Alkalmazás
+                                    {mentesFolyamatban ? "Mentés…" : "Alkalmazás"}
                                 </button>
                             </div>
                         </div>
