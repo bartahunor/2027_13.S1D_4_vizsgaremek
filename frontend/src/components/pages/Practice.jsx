@@ -33,6 +33,7 @@ function PracticePage() {
     // Feladatonkénti válaszok: { [taskId]: value }
     const [answers, setAnswers] = useState({});
 
+    const [submitting, setSubmitting] = useState(false);
 
     useEffect(() => {
         const loadTasks = async () => {
@@ -124,10 +125,24 @@ function PracticePage() {
     };
 
     const handleFinish = async () => {
-        const submission = buildSubmission();
-        console.log('Beküldendő:', submission);
+        if (submitting) return;
+        setSubmitting(true);
 
+        try {
+            const submission = buildSubmission();
+            console.log('Beküldendő:', submission);
 
+            const result = await apiFetch('/correctionroutes/incoming', {
+                method: 'POST',
+                body: JSON.stringify({ valaszok: submission }),
+            });
+
+            console.log('Backend válasza:', result);
+        } catch (err) {
+            console.error('Beküldési hiba:', err);
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     const handleNext = () => {

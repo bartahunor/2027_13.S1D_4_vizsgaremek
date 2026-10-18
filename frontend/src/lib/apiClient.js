@@ -4,11 +4,16 @@ const API_BASE_URL = 'http://localhost:3000/api';
 
 /**
  * Fetch wrapper, ami automatikusan hozzáadja a Supabase access tokent
- * Authorization headerként minden híváshoz, és egységesen kezeli a hibákat.
+ * Authorization headerként minden híváshoz, JSON törzs esetén beállítja
+ * a Content-Type fejlécet, és egységesen kezeli a hibákat.
  *
  * Használat:
  *   const data = await apiFetch('/taskroutes/subjects');
  *   const data = await apiFetch('/taskroutes/ev?tantargy_id=3');
+ *   const data = await apiFetch('/taskroutes/feladatok/ellenorzes', {
+ *     method: 'POST',
+ *     body: JSON.stringify({ valaszok }),
+ *   });
  */
 export async function apiFetch(path, options = {}) {
   const { data: { session } } = await supabase.auth.getSession();
@@ -17,12 +22,18 @@ export async function apiFetch(path, options = {}) {
     throw new Error('Nincs bejelentkezve a felhasználó.');
   }
 
+  // A Headers objektum összefésüli a hívásnál megadott fejléceket a sajátjainkkal
+  const headers = new Headers(options.headers);
+  headers.set('Authorization', `Bearer ${session.access_token}`);
+
+  // JSON fejléc csak szöveges törzsnél (FormData-nál a böngésző állítja be magától)
+  if (typeof options.body === 'string' && !headers.has('Content-Type')) {
+    headers.set('Content-Type', 'application/json');
+  }
+
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...options,
-    headers: {
-      ...options.headers,
-      Authorization: `Bearer ${session.access_token}`,
-    },
+    headers,
   });
 
   if (!response.ok) {
@@ -35,6 +46,9 @@ export async function apiFetch(path, options = {}) {
     }
     throw new Error(errorMessage);
   }
+
+  // Üres válasz (pl. 204) esetén nincs mit JSON-ként olvasni
+  if (response.status === 204) return null;
 
   return response.json();
 }
