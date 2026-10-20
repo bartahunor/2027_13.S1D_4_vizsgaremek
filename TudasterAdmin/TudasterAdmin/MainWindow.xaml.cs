@@ -958,7 +958,7 @@ namespace TudasterAdmin
             };
 
 
-            processButton.Click += (sender, e) =>
+            processButton.Click += async (sender, e) =>
             {
                 if (string.IsNullOrWhiteSpace(selectedFilePath))
                 {
@@ -966,46 +966,54 @@ namespace TudasterAdmin
                     return;
                 }
 
+                processButton.IsEnabled = false;
+                selectButton.IsEnabled = false;
+
+                resultPanel.Children.Clear();
+                resultPanel.Children.Add(new TextBlock
+                {
+                    Text = "Feldolgozás folyamatban... ez akár 1-2 percig is eltarthat.",
+                    Foreground = (Brush)FindResource("MutedTextBrush")
+                });
+
                 try
                 {
+                    // 1) A PDF szövege: már csak a forrásszövegek ellenőrzéséhez kell
                     var extractor = new PdfTextExtractor();
-                    List<PdfPageContent> pages =
-                        extractor.ExtractPages(selectedFilePath);
+                    List<PdfPageContent> pages = extractor.ExtractPages(selectedFilePath);
 
-                    // Az oldalak szövegét egyetlen szöveggé fűzzük össze.
                     var textBuilder = new System.Text.StringBuilder();
-
                     foreach (var page in pages)
                     {
                         if (string.IsNullOrWhiteSpace(page.Text))
                             continue;
 
-                        // Az oldalak határát megtartjuk, hogy a felismerő
-                        // ne kezelje az egész PDF-et egyetlen összefüggő blokként.
                         textBuilder.AppendLine();
-                        textBuilder.AppendLine(
-                            $"[[PDF_OLDAL_{page.PageNumber}]]");
+                        textBuilder.AppendLine($"[[PDF_OLDAL_{page.PageNumber}]]");
                         textBuilder.AppendLine(page.Text.Trim());
                         textBuilder.AppendLine();
                     }
-
                     string extractedText = textBuilder.ToString();
 
+                    // 2) Gemini
+                    byte[] pdfBytes = await System.IO.File.ReadAllBytesAsync(selectedFilePath);
+                    var ai = new GeminiService();
+                    AiExamDto exam = await ai.ParseExamAsync(pdfBytes);
 
+                    // Hibakereséshez: a nyers eredmény a %TEMP% mappában
+                    System.IO.File.WriteAllText(
+                        System.IO.Path.Combine(System.IO.Path.GetTempPath(), "exam.json"),
+                        JsonSerializer.Serialize(exam, new JsonSerializerOptions
+                        {
+                            WriteIndented = true,
+                            Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+                        }));
 
-                    var parser = new TaskParser();
+                    // 3) Átalakítás és ellenőrzés
+                    List<ParsedTask> tasks =
+                        AiExamMapper.ToParsedTasks(exam, extractedText, out List<string> globalWarnings);
 
-                    List<ParsedTask> tasks = parser.ParseTasks(extractedText);
-                    MessageBox.Show(
-    $"Kiolvasott karakterek: {extractedText.Length}\n" +
-    $"Felismert feladatok: {tasks.Count}\n\n" +
-    $"Megtalálható benne az első kérdés: " +
-    $"{extractedText.Contains("A szerző szerint 1848")}",
-    "Felismerési ellenőrzés",
-    MessageBoxButton.OK,
-    MessageBoxImage.Information
-);
-
+                    // 4) Megjelenítés (adatbázisba még NEM megy semmi)
                     resultPanel.Children.Clear();
 
                     resultPanel.Children.Add(new TextBlock
@@ -1014,86 +1022,56 @@ namespace TudasterAdmin
                         FontSize = 20,
                         FontWeight = FontWeights.SemiBold,
                         Foreground = (Brush)FindResource("PrimaryBrush"),
-                        Margin = new Thickness(0, 0, 0, 16)
+                        Margin = new Thickness(0, 0, 0, 6)
                     });
+
+                    resultPanel.Children.Add(new TextBlock
+                    {
+                        Text = $"{exam.Subject} • {exam.Level} • {exam.Date}",
+                        FontSize = 13,
+                        Foreground = (Brush)FindResource("MutedTextBrush"),
+                        Margin = new Thickness(0, 0, 0, 12)
+                    });
+
+                    foreach (string warning in globalWarnings)
+                    {
+                        resultPanel.Children.Add(new TextBlock
+                        {
+                            Text = "⚠ " + warning,
+                            FontSize = 13,
+                            TextWrapping = TextWrapping.Wrap,
+                            Foreground = Brushes.DarkOrange,
+                            Margin = new Thickness(0, 0, 0, 6)
+                        });
+                    }
 
                     if (tasks.Count == 0)
                     {
                         resultPanel.Children.Add(new TextBlock
                         {
-                            Text = "Nem sikerült feladatokat felismerni. " +
-                                   "Ellenőrizni kell a PDF szövegének szerkezetét.",
+                            Text = "A modell nem talált feladatokat. Nézd meg a %TEMP%\\exam.json fájlt.",
                             TextWrapping = TextWrapping.Wrap,
                             Foreground = (Brush)FindResource("MutedTextBrush")
                         });
-
                         return;
                     }
 
                     foreach (var task in tasks)
-                    {
-                        var card = new Border
-                        {
-                            Background = Brushes.White,
-                            BorderBrush = (Brush)FindResource("BorderBrush"),
-                            BorderThickness = new Thickness(1),
-                            CornerRadius = new CornerRadius(12),
-                            Padding = new Thickness(18),
-                            Margin = new Thickness(0, 0, 0, 14)
-                        };
-
-                        var panel = new StackPanel();
-
-                        panel.Children.Add(new TextBlock
-                        {
-                            Text = task.Title,
-                            FontSize = 17,
-                            FontWeight = FontWeights.SemiBold,
-                            Foreground = (Brush)FindResource("PrimaryBrush"),
-                            Margin = new Thickness(0, 0, 0, 10)
-                        });
-
-                        panel.Children.Add(new TextBlock
-                        {
-                            Text = task.Text,
-                            FontSize = 13,
-                            TextWrapping = TextWrapping.Wrap,
-                            Foreground = (Brush)FindResource("TextBrush")
-                        });
-
-                        if (task.SubQuestions.Count > 0)
-                        {
-                            panel.Children.Add(new TextBlock
-                            {
-                                Text = $"Felismerhető alpontok: {task.SubQuestions.Count}",
-                                FontSize = 12,
-                                Foreground = (Brush)FindResource("MutedTextBrush"),
-                                Margin = new Thickness(0, 10, 0, 0)
-                            });
-                        }
-
-                        if (task.NeedsReview)
-                        {
-                            panel.Children.Add(new TextBlock
-                            {
-                                Text = "Ellenőrzés szükséges",
-                                FontSize = 12,
-                                Foreground = Brushes.DarkOrange,
-                                Margin = new Thickness(0, 8, 0, 0)
-                            });
-                        }
-
-                        card.Child = panel;
-                        resultPanel.Children.Add(card);
-                    }
+                        AddTaskCard(resultPanel, task);
                 }
                 catch (Exception ex)
                 {
+                    resultPanel.Children.Clear();
                     MessageBox.Show(
                         $"Hiba a PDF feldolgozásakor:\n{ex.Message}",
                         "PDF-feldolgozási hiba",
                         MessageBoxButton.OK,
                         MessageBoxImage.Error);
+                }
+                finally
+                {
+                    processButton.IsEnabled = true;
+                    selectButton.IsEnabled = true;
                 }
             };
 
@@ -1117,6 +1095,157 @@ namespace TudasterAdmin
                 VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
                 Content = mainPanel
             };
+        }
+
+        private void AddTaskCard(StackPanel target, ParsedTask task)
+        {
+            var card = new Border
+            {
+                Background = Brushes.White,
+                BorderBrush = (Brush)FindResource("BorderBrush"),
+                BorderThickness = new Thickness(1),
+                CornerRadius = new CornerRadius(12),
+                Padding = new Thickness(18),
+                Margin = new Thickness(0, 0, 0, 14)
+            };
+
+            var panel = new StackPanel();
+
+            panel.Children.Add(new TextBlock
+            {
+                Text = task.Title,
+                FontSize = 17,
+                FontWeight = FontWeights.SemiBold,
+                Foreground = (Brush)FindResource("PrimaryBrush")
+            });
+
+            string meta = task.TypeName;
+            if (task.Points.HasValue) meta += $" • {task.Points} pont";
+            meta += task.PageFrom == task.PageTo
+                ? $" • {task.PageFrom}. oldal"
+                : $" • {task.PageFrom}–{task.PageTo}. oldal";
+
+            panel.Children.Add(new TextBlock
+            {
+                Text = meta,
+                FontSize = 12,
+                Foreground = (Brush)FindResource("MutedTextBrush"),
+                Margin = new Thickness(0, 4, 0, 10)
+            });
+
+            // Forrásszöveg (görgethető, szürke háttéren)
+            if (!string.IsNullOrWhiteSpace(task.SourceText))
+            {
+                panel.Children.Add(new TextBlock
+                {
+                    Text = "Forrás",
+                    FontSize = 12,
+                    FontWeight = FontWeights.SemiBold,
+                    Foreground = (Brush)FindResource("MutedTextBrush"),
+                    Margin = new Thickness(0, 0, 0, 4)
+                });
+
+                panel.Children.Add(new Border
+                {
+                    Background = new SolidColorBrush(Color.FromRgb(245, 245, 245)),
+                    CornerRadius = new CornerRadius(8),
+                    Padding = new Thickness(10),
+                    Margin = new Thickness(0, 0, 0, 10),
+                    Child = new ScrollViewer
+                    {
+                        MaxHeight = 180,
+                        VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+                        Content = new TextBlock
+                        {
+                            Text = task.SourceText,
+                            FontSize = 12,
+                            TextWrapping = TextWrapping.Wrap,
+                            Foreground = (Brush)FindResource("TextBrush")
+                        }
+                    }
+                });
+            }
+
+            panel.Children.Add(new TextBlock
+            {
+                Text = task.Text,
+                FontSize = 13,
+                TextWrapping = TextWrapping.Wrap,
+                Foreground = (Brush)FindResource("TextBrush")
+            });
+
+            foreach (string option in task.Options)
+            {
+                panel.Children.Add(new TextBlock
+                {
+                    Text = "• " + option,
+                    FontSize = 13,
+                    TextWrapping = TextWrapping.Wrap,
+                    Foreground = (Brush)FindResource("TextBrush"),
+                    Margin = new Thickness(12, 4, 0, 0)
+                });
+            }
+
+            foreach (string sub in task.SubQuestions)
+            {
+                panel.Children.Add(new TextBlock
+                {
+                    Text = sub,
+                    FontSize = 13,
+                    TextWrapping = TextWrapping.Wrap,
+                    Foreground = (Brush)FindResource("TextBrush"),
+                    Margin = new Thickness(12, 8, 0, 0)
+                });
+            }
+
+            if (task.AnswerLines > 0)
+            {
+                panel.Children.Add(new TextBlock
+                {
+                    Text = $"Válaszsorok: {task.AnswerLines}",
+                    FontSize = 12,
+                    Foreground = (Brush)FindResource("MutedTextBrush"),
+                    Margin = new Thickness(0, 10, 0, 0)
+                });
+            }
+
+            if (task.HasFigure)
+            {
+                panel.Children.Add(new TextBlock
+                {
+                    Text = "🖼 Ábra tartozik a feladathoz, kézzel kell hozzárendelni.",
+                    FontSize = 12,
+                    Foreground = Brushes.DarkOrange,
+                    Margin = new Thickness(0, 8, 0, 0)
+                });
+            }
+
+            foreach (string warning in task.Warnings)
+            {
+                panel.Children.Add(new TextBlock
+                {
+                    Text = "⚠ " + warning,
+                    FontSize = 12,
+                    TextWrapping = TextWrapping.Wrap,
+                    Foreground = Brushes.DarkOrange,
+                    Margin = new Thickness(0, 6, 0, 0)
+                });
+            }
+
+            if (task.NeedsReview)
+            {
+                panel.Children.Add(new TextBlock
+                {
+                    Text = "Ellenőrzés szükséges",
+                    FontSize = 12,
+                    FontWeight = FontWeights.SemiBold,
+                    Foreground = Brushes.DarkOrange,
+                    Margin = new Thickness(0, 8, 0, 0)
+                });
+            }
+
+            card.Child = panel;
+            target.Children.Add(card);
         }
 
 

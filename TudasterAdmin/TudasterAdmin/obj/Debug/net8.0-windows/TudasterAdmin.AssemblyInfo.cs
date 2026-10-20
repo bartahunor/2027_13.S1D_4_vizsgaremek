@@ -11,10 +11,11 @@
 using System;
 using System.Reflection;
 
+[assembly: Microsoft.Extensions.Configuration.UserSecrets.UserSecretsIdAttribute("bc11a4cc-92d0-46ca-92de-cd40f602e208")]
 [assembly: System.Reflection.AssemblyCompanyAttribute("TudasterAdmin")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+bffdbfa2c98ba4fae2b7fc95bb115899042f2d5a")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c63898d434751d95b67074a098c862330be120e7")]
 [assembly: System.Reflection.AssemblyProductAttribute("TudasterAdmin")]
 [assembly: System.Reflection.AssemblyTitleAttribute("TudasterAdmin")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

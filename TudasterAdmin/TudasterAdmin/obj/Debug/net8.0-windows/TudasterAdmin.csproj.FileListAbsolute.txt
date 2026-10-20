@@ -61,3 +61,13 @@ C:\Users\KeseruFruzsina\Documents\GitHub\2027_13.S1D_4_vizsgaremek\TudasterAdmin
 C:\Users\KeseruFruzsina\Documents\GitHub\2027_13.S1D_4_vizsgaremek\TudasterAdmin\TudasterAdmin\bin\Debug\net8.0-windows\UglyToad.PdfPig.dll
 C:\Users\KeseruFruzsina\Documents\GitHub\2027_13.S1D_4_vizsgaremek\TudasterAdmin\TudasterAdmin\obj\Debug\net8.0-windows\TudasterAdmin.csproj.AssemblyReference.cache
 C:\Users\KeseruFruzsina\Documents\GitHub\2027_13.S1D_4_vizsgaremek\TudasterAdmin\TudasterAdmin\obj\Debug\net8.0-windows\Tudaster.046878C0.Up2Date
+C:\Users\KeseruFruzsina\Documents\GitHub\2027_13.S1D_4_vizsgaremek\TudasterAdmin\TudasterAdmin\bin\Debug\net8.0-windows\Microsoft.Extensions.Configuration.dll
+C:\Users\KeseruFruzsina\Documents\GitHub\2027_13.S1D_4_vizsgaremek\TudasterAdmin\TudasterAdmin\bin\Debug\net8.0-windows\Microsoft.Extensions.Configuration.Abstractions.dll
+C:\Users\KeseruFruzsina\Documents\GitHub\2027_13.S1D_4_vizsgaremek\TudasterAdmin\TudasterAdmin\bin\Debug\net8.0-windows\Microsoft.Extensions.Configuration.EnvironmentVariables.dll
+C:\Users\KeseruFruzsina\Documents\GitHub\2027_13.S1D_4_vizsgaremek\TudasterAdmin\TudasterAdmin\bin\Debug\net8.0-windows\Microsoft.Extensions.Configuration.FileExtensions.dll
+C:\Users\KeseruFruzsina\Documents\GitHub\2027_13.S1D_4_vizsgaremek\TudasterAdmin\TudasterAdmin\bin\Debug\net8.0-windows\Microsoft.Extensions.Configuration.Json.dll
+C:\Users\KeseruFruzsina\Documents\GitHub\2027_13.S1D_4_vizsgaremek\TudasterAdmin\TudasterAdmin\bin\Debug\net8.0-windows\Microsoft.Extensions.Configuration.UserSecrets.dll
+C:\Users\KeseruFruzsina\Documents\GitHub\2027_13.S1D_4_vizsgaremek\TudasterAdmin\TudasterAdmin\bin\Debug\net8.0-windows\Microsoft.Extensions.FileProviders.Abstractions.dll
+C:\Users\KeseruFruzsina\Documents\GitHub\2027_13.S1D_4_vizsgaremek\TudasterAdmin\TudasterAdmin\bin\Debug\net8.0-windows\Microsoft.Extensions.FileProviders.Physical.dll
+C:\Users\KeseruFruzsina\Documents\GitHub\2027_13.S1D_4_vizsgaremek\TudasterAdmin\TudasterAdmin\bin\Debug\net8.0-windows\Microsoft.Extensions.FileSystemGlobbing.dll
+C:\Users\KeseruFruzsina\Documents\GitHub\2027_13.S1D_4_vizsgaremek\TudasterAdmin\TudasterAdmin\bin\Debug\net8.0-windows\Microsoft.Extensions.Primitives.dll

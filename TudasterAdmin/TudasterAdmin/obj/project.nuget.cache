@@ -1,10 +1,23 @@
 {
   "version": 2,
-  "dgSpecHash": "fH1GOdnrScM=",
+  "dgSpecHash": "aok3ZTpeS9Y=",
   "success": true,
   "projectFilePath": "C:\\Users\\KeseruFruzsina\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\TudasterAdmin.csproj",
   "expectedPackageFiles": [
-    "C:\\Users\\KeseruFruzsina\\.nuget\\packages\\pdfpig\\0.1.16\\pdfpig.0.1.16.nupkg.sha512"
+    "C:\\Users\\KeseruFruzsina\\.nuget\\packages\\microsoft.extensions.configuration\\10.0.13\\microsoft.extensions.configuration.10.0.13.nupkg.sha512",
+    "C:\\Users\\KeseruFruzsina\\.nuget\\packages\\microsoft.extensions.configuration.abstractions\\10.0.13\\microsoft.extensions.configuration.abstractions.10.0.13.nupkg.sha512",
+    "C:\\Users\\KeseruFruzsina\\.nuget\\packages\\microsoft.extensions.configuration.environmentvariables\\10.0.13\\microsoft.extensions.configuration.environmentvariables.10.0.13.nupkg.sha512",
+    "C:\\Users\\KeseruFruzsina\\.nuget\\packages\\microsoft.extensions.configuration.fileextensions\\6.0.0\\microsoft.extensions.configuration.fileextensions.6.0.0.nupkg.sha512",
+    "C:\\Users\\KeseruFruzsina\\.nuget\\packages\\microsoft.extensions.configuration.json\\6.0.0\\microsoft.extensions.configuration.json.6.0.0.nupkg.sha512",
+    "C:\\Users\\KeseruFruzsina\\.nuget\\packages\\microsoft.extensions.configuration.usersecrets\\6.0.1\\microsoft.extensions.configuration.usersecrets.6.0.1.nupkg.sha512",
+    "C:\\Users\\KeseruFruzsina\\.nuget\\packages\\microsoft.extensions.fileproviders.abstractions\\6.0.0\\microsoft.extensions.fileproviders.abstractions.6.0.0.nupkg.sha512",
+    "C:\\Users\\KeseruFruzsina\\.nuget\\packages\\microsoft.extensions.fileproviders.physical\\6.0.0\\microsoft.extensions.fileproviders.physical.6.0.0.nupkg.sha512",
+    "C:\\Users\\KeseruFruzsina\\.nuget\\packages\\microsoft.extensions.filesystemglobbing\\6.0.0\\microsoft.extensions.filesystemglobbing.6.0.0.nupkg.sha512",
+    "C:\\Users\\KeseruFruzsina\\.nuget\\packages\\microsoft.extensions.primitives\\10.0.13\\microsoft.extensions.primitives.10.0.13.nupkg.sha512",
+    "C:\\Users\\KeseruFruzsina\\.nuget\\packages\\pdfpig\\0.1.16\\pdfpig.0.1.16.nupkg.sha512",
+    "C:\\Users\\KeseruFruzsina\\.nuget\\packages\\system.runtime.compilerservices.unsafe\\6.0.0\\system.runtime.compilerservices.unsafe.6.0.0.nupkg.sha512",
+    "C:\\Users\\KeseruFruzsina\\.nuget\\packages\\system.text.encodings.web\\6.0.0\\system.text.encodings.web.6.0.0.nupkg.sha512",
+    "C:\\Users\\KeseruFruzsina\\.nuget\\packages\\system.text.json\\6.0.0\\system.text.json.6.0.0.nupkg.sha512"
   ],
   "logs": []
 }
