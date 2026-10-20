@@ -149,30 +149,33 @@ function PracticePage() {
     };
 
     const handlePrevious = () => {
-        if (currentTaskIndex > 0) {
-            setCurrentTaskIndex((prev) => prev - 1);
-        }
+      if (currentTaskIndex > 0) {
+        setCurrentTaskIndex((prev) => prev - 1);
+      }
     };
 
     const handleFinish = async () => {
-        if (submitting) return;
-        setSubmitting(true);
+      if (submitting) return;
+      setSubmitting(true);
 
-        try {
-            const submission = buildSubmission();
-            console.log("Beküldendő:", submission);
+      try {
+        const submission = buildSubmission();
+        console.log("Beküldendő:", submission);
 
-            const result = await apiFetch("/correctionroutes/incoming", {
-                method: "POST",
-                body: JSON.stringify({ valaszok: submission }),
-            });
+        const result = await apiFetch("/correctionroutes/incoming", {
+          method: "POST",
+          body: JSON.stringify({
+            valaszok: submission,
+            ido: Math.max(0, Math.round(elapsedSeconds)),
+          }),
+        });
 
-            console.log("Backend válasza:", result);
-        } catch (err) {
-            console.error("Beküldési hiba:", err);
-        } finally {
-            setSubmitting(false);
-        }
+        console.log("Backend válasza:", result);
+      } catch (err) {
+        console.error("Beküldési hiba:", err);
+      } finally {
+        setSubmitting(false);
+      }
     };
 
     const handleNext = () => {
