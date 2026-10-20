@@ -1,27 +1,26 @@
-import { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { apiFetch } from '../../lib/apiClient';
-import { getForrasKepUrl } from '../../lib/supabaseStorage';
-import { taskTypes, fallbackType } from '../ui/tasktypes/tasktypes.js';
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
+import { apiFetch } from "../../lib/apiClient";
+import { getForrasKepUrl } from "../../lib/supabaseStorage";
+import { taskTypes, fallbackType } from "../ui/tasktypes/tasktypes.js";
 
 // Alapértelmezett serializer: a szöveget trimeli, az üreset null-ra alakítja,
 // a számot és a tömböt változatlanul hagyja, az undefined-ot null-ra alakítja.
 const defaultSerialize = (value) => {
-    if (typeof value === 'string') {
+    if (typeof value === "string") {
         const trimmed = value.trim();
-        return trimmed === '' ? null : trimmed;
+        return trimmed === "" ? null : trimmed;
     }
     return value ?? null;
 };
 
 function PracticePage() {
-
     const [searchParams] = useSearchParams();
 
-    const subject = searchParams.get('subject');
-    const level = searchParams.get('level');
-    const year = searchParams.get('year');   // null, ha nincs beállítva
-    const topic = searchParams.get('topic'); // null, ha nincs beállítva
+    const subject = searchParams.get("subject");
+    const level = searchParams.get("level");
+    const year = searchParams.get("year"); // null, ha nincs beállítva
+    const topic = searchParams.get("topic"); // null, ha nincs beállítva
 
     const [tasks, setTasks] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -35,6 +34,35 @@ function PracticePage() {
 
     const [submitting, setSubmitting] = useState(false);
 
+    const [startedAt, setStartedAt] = useState(null);
+    const [elapsedSeconds, setElapsedSeconds] = useState(0);
+
+    useEffect(() => {
+        if (startedAt === null) return;
+
+        const updateTimer = () => {
+            setElapsedSeconds(Math.floor((Date.now() - startedAt) / 1000));
+        };
+
+        updateTimer();
+
+        const intervalId = setInterval(updateTimer, 1000);
+
+        return () => clearInterval(intervalId);
+    }, [startedAt]);
+
+    const formatTime = (seconds) => {
+        const hours = Math.floor(seconds / 3600);
+        const minutes = Math.floor((seconds % 3600) / 60);
+        const secs = seconds % 60;
+
+        const pad = (number) => String(number).padStart(2, "0");
+
+        return hours > 0
+            ? `${pad(hours)}:${pad(minutes)}:${pad(secs)}`
+            : `${pad(minutes)}:${pad(secs)}`;
+    };
+
     useEffect(() => {
         const loadTasks = async () => {
             setLoading(true);
@@ -46,22 +74,26 @@ function PracticePage() {
                     szint: level,
                 });
 
-                if (year) params.set('ev', year);
-                else if (topic) params.set('temakor_id', topic);
+                if (year) params.set("ev", year);
+                else if (topic) params.set("temakor_id", topic);
 
-                const data = await apiFetch(`/taskroutes/chosentasks?${params.toString()}`);
+                const data = await apiFetch(
+                    `/taskroutes/chosentasks?${params.toString()}`,
+                );
 
                 const tasksWithImages = await Promise.all(
                     data.map(async (task) => ({
                         ...task,
                         forras_kep_url: await getForrasKepUrl(task.forras_kep),
-                    }))
+                    })),
                 );
 
                 setTasks(tasksWithImages);
                 setCurrentTaskIndex(0);
                 setAnswers({});
-                console.log('Beérkezett adat:', tasksWithImages);
+                setElapsedSeconds(0);
+                setStartedAt(tasksWithImages.length > 0 ? Date.now() : null);
+                console.log("Beérkezett adat:", tasksWithImages);
             } catch (err) {
                 setError(err.message);
             } finally {
@@ -85,9 +117,7 @@ function PracticePage() {
                         assignment
                     </span>
 
-                    <h2 className="text-lg font-semibold mt-3">
-                        Nincsenek feladatok
-                    </h2>
+                    <h2 className="text-lg font-semibold mt-3">Nincsenek feladatok</h2>
 
                     <p className="text-sm text-slate-500 mt-2">
                         A kiválasztott feltételekhez nem található feladat.
@@ -130,16 +160,16 @@ function PracticePage() {
 
         try {
             const submission = buildSubmission();
-            console.log('Beküldendő:', submission);
+            console.log("Beküldendő:", submission);
 
-            const result = await apiFetch('/correctionroutes/incoming', {
-                method: 'POST',
+            const result = await apiFetch("/correctionroutes/incoming", {
+                method: "POST",
                 body: JSON.stringify({ valaszok: submission }),
             });
 
-            console.log('Backend válasza:', result);
+            console.log("Backend válasza:", result);
         } catch (err) {
-            console.error('Beküldési hiba:', err);
+            console.error("Beküldési hiba:", err);
         } finally {
             setSubmitting(false);
         }
@@ -174,35 +204,49 @@ function PracticePage() {
             };
         });
 
-
-
     return (
         <div className="min-h-screen flex flex-col bg-background-light text-slate-900 font-display relative overflow-hidden">
             <div className="pointer-events-none absolute inset-0 bg-grid-pattern opacity-100"></div>
-
-
-            {/* Haladási sáv */}
-            <div className="fixed top-0 left-0 w-full h-1.5 bg-primary/10 z-50">
-                <div
-                    className="h-full bg-primary transition-all duration-500"
-                    style={{
-                        width: `${progress}%`,
-                    }}
-                />
-            </div>
-
+           
 
             {/* FŐ TARTALOM */}
-            <main className="
-                    relative z-10 flex-grow
-                    flex items-start justify-center
-                    pt-10 pb-6 px-3
-                    sm:pt-16 sm:pb-8 sm:px-6
-                    md:items-center md:pt-28 md:pb-10 md:px-10
-                ">
+            <main
+                className="
+                     relative z-10 flex-grow
+    flex flex-col items-stretch
+    pt-24 pb-6 px-3
+    sm:pt-16 sm:pb-8 sm:px-6
+    md:items-center md:pt-28 md:pb-10 md:px-10
 
+                "
+            >
                 <div
                 className="
+                    relative z-20
+                    flex items-center gap-2
+                    w-fit ml-auto mb-3
+                    rounded-2xl
+                    border border-[#4B2A7F]/20
+                    bg-white
+                    px-3 py-2
+                    text-[#351F5B]
+                    shadow-lg shadow-[#351F5B]/10
+                    text-sm font-semibold
+                    tabular-nums
+                    sm:hidden
+                "
+                role="timer"
+                aria-label={`Eltelt idő: ${formatTime(elapsedSeconds)}`}
+            >
+                <span className="material-symbols-outlined text-xl text-[#4B2A7F]">
+                    timer
+                </span>
+                <span>{formatTime(elapsedSeconds)}</span>
+            </div>
+
+              
+                <div
+                    className="
                     max-w-7xl
                     w-full
                     min-w-0
@@ -217,11 +261,33 @@ function PracticePage() {
                     md:max-h-[850px]
                 "
                 >
-
-
+                      <div
+                className="
+    hidden sm:flex
+    fixed top-24 right-8
+    z-[100]
+    items-center gap-2
+    rounded-2xl
+    border border-[#4B2A7F]/20
+    bg-white/95
+    px-4 py-3
+    text-[#351F5B]
+    shadow-lg shadow-[#351F5B]/10
+    backdrop-blur-md
+    text-sm font-semibold
+    tabular-nums
+"
+                role="timer"
+                aria-label={`Eltelt idő: ${formatTime(elapsedSeconds)}`}
+            >
+                <span className="material-symbols-outlined text-xl text-[#4B2A7F]">
+                    timer
+                </span>
+                <span>{formatTime(elapsedSeconds)}</span>
+            </div>
                     {/* BAL OLDAL */}
                     <div
-                    className="
+                        className="
                         w-full
                         md:w-1/2
                         bg-slate-50
@@ -229,10 +295,8 @@ function PracticePage() {
                         flex flex-col
                         min-w-0
                     "
-                >
-
+                    >
                         <div className="flex items-center justify-between mb-4">
-
                             <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">
                                 {currentNumber}. feladat
                             </span>
@@ -256,9 +320,7 @@ function PracticePage() {
                                     fullscreen
                                 </span>
                             </button>
-
                         </div>
-
 
                         {/* FORRÁSANYAG (típusfüggő) */}
                         <Source
@@ -267,24 +329,21 @@ function PracticePage() {
                             value={value}
                             onChange={onChange}
                         />
-
                     </div>
-
 
                     {/* JOBB OLDAL */}
                     <div
-                    className="
+                        className="
                         w-full
                         md:w-1/2
                         p-3 sm:p-6 lg:p-10
                         flex flex-col
                         min-w-0
                     "
-                >
-
+                    >
                         <div className="mb-6 sm:mb-8">
-
-                            <div className="
+                            <div
+                                className="
                             inline-flex
                             items-center
                             px-3
@@ -295,33 +354,34 @@ function PracticePage() {
                             text-xs
                             font-bold
                             mb-4
-                        ">
+                        "
+                            >
                                 {currentNumber} / {totalTasks}
                             </div>
 
-
-                            <h2 className="
+                            <h2
+                                className="
                                 text-lg sm:text-xl md:text-2xl
                                 font-semibold leading-relaxed
                                 break-words
-                            ">
+                            "
+                            >
                                 {currentTask.feladat_szoveg ||
                                     currentTask.kerdes ||
                                     currentTask.kerdes_szoveg}
                             </h2>
-
                         </div>
 
-
                         {/* FELADAT */}
-                        <div className="
+                        <div
+                            className="
                             flex-grow min-w-0
                             space-y-4
                             overflow-visible
                             p-1 sm:p-3
                             md:overflow-y-auto md:pr-2
-                        ">
-
+                        "
+                        >
                             {/* VÁLASZ (típusfüggő, lehet hiányzó is) */}
                             {Answer && (
                                 <Answer
@@ -331,12 +391,11 @@ function PracticePage() {
                                     onChange={onChange}
                                 />
                             )}
-
                         </div>
 
-
                         {/* GOMBOK */}
-                        <div className="
+                        <div
+                            className="
                             mt-5 sm:mt-8
                             pt-4 sm:pt-6
                             border-t border-slate-100
@@ -345,8 +404,8 @@ function PracticePage() {
                             justify-between
                             gap-3
                             shrink-0
-                        ">
-
+                        "
+                        >
                             <button
                                 type="button"
                                 onClick={handlePrevious}
@@ -370,16 +429,12 @@ function PracticePage() {
                                     arrow_back
                                 </span>
 
-                                <span className="hidden sm:inline">
-                                    Előző
-                                </span>
+                                <span className="hidden sm:inline">Előző</span>
                             </button>
-
 
                             <button
                                 type="button"
                                 onClick={handleNext}
-
                                 className="
                                 flex
                                 items-center
@@ -400,28 +455,21 @@ function PracticePage() {
                                 <span>
                                     {currentTaskIndex === totalTasks - 1
                                         ? "Befejezés"
-                                        : "Következő"
-                                    }
+                                        : "Következő"}
                                 </span>
 
                                 <span className="material-symbols-outlined text-sm">
                                     {currentTaskIndex === totalTasks - 1
                                         ? "check"
-                                        : "arrow_forward"
-                                    }
+                                        : "arrow_forward"}
                                 </span>
                             </button>
-
                         </div>
-
                     </div>
-
                 </div>
-
             </main>
-
         </div>
     );
 }
 
-export default PracticePage
+export default PracticePage;
