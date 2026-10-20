@@ -1,6 +1,7 @@
 import express from 'express'
 import sql from '../db.js'
 import { requireAuth } from '../middleware/auth.js'
+import { startTest, TestServiceError } from '../services/testCorrector.js'
 
 const router = express.Router()
 
@@ -215,6 +216,50 @@ router.get('/chosentasks', async (req, res, next) => {
 
     res.json(rows)
   } catch (err) {
+    next(err)
+  }
+})
+
+
+//Teszt indítása: létrehoz egy folyamatban lévő tesztet a kiadott feladatokkal
+router.post('/starttest', async (req, res, next) => {
+  try {
+    const { tantargy_id, feladat_idk, nev } = req.body
+
+    const tantargyIdSzam = Number(tantargy_id)
+    if (!Number.isInteger(tantargyIdSzam) || tantargyIdSzam <= 0) {
+      return res.status(400).json({ error: 'A tantargy_id kötelező és érvényes egész szám kell legyen' })
+    }
+
+    if (!Array.isArray(feladat_idk) || feladat_idk.length === 0) {
+      return res.status(400).json({ error: 'A feladat_idk kötelező, nem üres tömb kell legyen' })
+    }
+
+    const feladatIdkSzamok = feladat_idk.map(Number)
+    if (!feladatIdkSzamok.every(id => Number.isInteger(id) && id > 0)) {
+      return res.status(400).json({ error: 'A feladat_idk csak pozitív egész számokat tartalmazhat' })
+    }
+
+    if (nev !== undefined && (typeof nev !== 'string' || nev.length > 100)) {
+      return res.status(400).json({ error: 'A nev szöveg kell legyen, legfeljebb 100 karakter' })
+    }
+
+    const teszt = await startTest({
+      userId: req.user.id, // a requireAuth által validált felhasználó, NEM a body-ból
+      tantargyId: tantargyIdSzam,
+      feladatIdk: feladatIdkSzamok,
+      nev,
+    })
+
+    res.status(201).json({
+      teszt_id: teszt.id,
+      status: teszt.status,
+      feladat_idk: teszt.feladatIdk,
+    })
+  } catch (err) {
+    if (err instanceof TestServiceError && err.status < 500) {
+      return res.status(err.status).json({ error: err.message, code: err.code })
+    }
     next(err)
   }
 })
