@@ -332,30 +332,7 @@ function ProfileHeader({ profildata, profilkepUrl }) {
                             </div>
                         </div>
 
-                        <div className="space-y-5">
-                            <div>
-                                <label
-                                    htmlFor="profile-username"
-                                    className="mb-2 block text-sm font-semibold text-[#351F5B]"
-                                >
-                                    Felhasználónév
-                                </label>
-                                <input
-                                    id="profile-username"
-                                    value={felhasznalonev}
-                                    onChange={(event) => {
-                                        const nev = event.target.value;
-                                        setFelhasznalonev(nev);
-                                        setMonogram(
-                                            nev.trim().charAt(0).toUpperCase() || "?"
-                                        );
-                                    }}
-                                    maxLength={40}
-                                    className="w-full rounded-xl border border-[#E3DCED] bg-white px-4 py-3 text-sm text-[#27222E] outline-none transition placeholder:text-[#A49BAF] focus:border-[#8060A8] focus:ring-4 focus:ring-[#8060A8]/10"
-                                    placeholder="Add meg a felhasználóneved"
-                                />
-                            </div>
-                        </div>
+                        
                         
                         {hiba && (
                             <p

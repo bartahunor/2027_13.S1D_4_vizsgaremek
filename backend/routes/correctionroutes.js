@@ -20,6 +20,7 @@ const MAX_ELEM = 50       // sorba rendezős válasz max. hossza
 const MAX_SZOVEG = 500    // egy szöveges válasz max. hossza
 const MAX_ROVID = 300        // rövid szöveges válasz max. hossza
 const MAX_VALASZTAS = 20     // több válaszos feladatban max. kiválasztott opció
+const MAX_IDO_MASODPERC = 24 * 60 * 60  // a beadáshoz tartozó idő max. 24 óra (másodpercben)
 
 const TIPUSOK = new Set([
   'tobb_opcio',
@@ -170,25 +171,60 @@ function validalBeadast(valaszok) {
 }
 
 /* =========================
+   Időérték ellenőrzése és másodpercre alakítása
+   Visszatér: { hiba } vagy { masodperc }
+========================= */
+
+function feldolgozIdo(ido) {
+  if (ido === undefined || ido === null) return { hiba: 'az "ido" mező hiányzik' }
+  if (typeof ido !== 'number' || !Number.isFinite(ido)) {
+    return { hiba: 'az "ido" mező szám kell legyen' }
+  }
+  if (ido < 0) return { hiba: 'az "ido" nem lehet negatív' }
+
+  let masodperc = ido
+
+  // Ha a szám nagyobb, mint a lehetséges másodperc-érték, akkor milliszekundumnak vesszük.
+  if (masodperc > MAX_IDO_MASODPERC) {
+    masodperc = masodperc / 1000
+  }
+
+  // Ha az átváltás után is túl nagy, akkor nem fogadjuk el.
+  if (masodperc > MAX_IDO_MASODPERC) {
+    return { hiba: `az "ido" túl nagy (legfeljebb ${MAX_IDO_MASODPERC} másodperc)` }
+  }
+
+  return { masodperc }
+}
+
+/* =========================
    POST /incoming
-   Body: { valaszok: [ { feladat_id, tipus, valasz }, ... ] }
+   Body: { valaszok: [ { feladat_id, tipus, valasz }, ... ], ido: <szám> }
 ========================= */
 
 router.post('/incoming', express.json({ limit: '100kb' }), (req, res) => {
-  const { valaszok } = req.body ?? {}
+  const { valaszok, ido } = req.body ?? {}
 
   const hiba = validalBeadast(valaszok)
   if (hiba) {
     return res.status(400).json({ error: hiba })
   }
 
+  const idoEredmeny = feldolgozIdo(ido)
+  if (idoEredmeny.hiba) {
+    return res.status(400).json({ error: idoEredmeny.hiba })
+  }
+  const idoMasodperc = idoEredmeny.masodperc
+
   console.log('Felhasználó:', req.user?.id)
   console.log('Érvényes beadás, feladatok száma:', valaszok.length)
+  console.log('Eltelt idő (mp):', idoMasodperc)
 
   res.json({
     ok: true,
     felhasznalo: req.user?.id ?? null,
     fogadott_feladatok: valaszok.length,
+    ido_masodperc: idoMasodperc,
   })
 })
 
