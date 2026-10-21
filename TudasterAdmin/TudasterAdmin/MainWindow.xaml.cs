@@ -1,10 +1,8 @@
 ﻿using System.Collections.ObjectModel;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -1459,13 +1457,6 @@ namespace TudasterAdmin
                 Width = 100
             });
 
-            _examSetGrid.Columns.Add(new DataGridTextColumn
-            {
-                Header = "Állapot",
-                Binding = new Binding("Status"),
-                Width = 140
-            });
-
             _examSetGrid.ItemsSource = _examSets;
 
             // Törlés gomb
@@ -1650,32 +1641,8 @@ namespace TudasterAdmin
             toolbar.Children.Add(searchBorder);
 
 
-            // ÁLLAPOT SZŰRŐ
-            Border filterBorder = new Border
-            {
-                Width = 190,
-                Height = 44,
-                Margin = new Thickness(12, 0, 0, 0),
-                Background = (Brush)FindResource("WhiteBrush"),
-                BorderBrush = (Brush)FindResource("BorderBrush"),
-                BorderThickness = new Thickness(1),
-                CornerRadius = new CornerRadius(10)
-            };
+         
 
-            _taskStatusFilter = new ComboBox
-            {
-                BorderThickness = new Thickness(0),
-                Background = Brushes.Transparent,
-                FontSize = 13,
-                VerticalContentAlignment = VerticalAlignment.Center
-            };
-
-            _taskStatusFilter.Items.Add("Összes állapot");
-            _taskStatusFilter.Items.Add("Ellenőrzött");
-            _taskStatusFilter.Items.Add("Ellenőrzésre vár");
-
-            _taskStatusFilter.SelectedIndex = 0;
-            _taskStatusFilter.SelectionChanged += StatusFilter_SelectionChanged;
             Border subjectFilterBorder = new Border
             {
                 Width = 170,
@@ -1733,10 +1700,7 @@ namespace TudasterAdmin
 
             levelFilterBorder.Child = _taskLevelFilter;
 
-            filterBorder.Child = _taskStatusFilter;
 
-            Grid.SetColumn(filterBorder, 1);
-            toolbar.Children.Add(filterBorder);
             Grid.SetColumn(subjectFilterBorder, 2);
             toolbar.Children.Add(subjectFilterBorder);
             Grid.SetColumn(levelFilterBorder, 3);
@@ -2122,9 +2086,6 @@ namespace TudasterAdmin
 
             string searchText = _taskSearchBox?.Text?.Trim() ?? "";
 
-            string selectedStatus =
-                _taskStatusFilter?.SelectedItem?.ToString()
-                ?? "Összes állapot";
 
             string selectedSubject =
                 _taskSubjectFilter?.SelectedItem?.ToString()
