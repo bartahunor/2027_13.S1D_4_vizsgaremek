@@ -37,6 +37,8 @@ function PracticePage() {
     const [startedAt, setStartedAt] = useState(null);
     const [elapsedSeconds, setElapsedSeconds] = useState(0);
 
+    const [testId, setTestId] = useState(null);
+
     useEffect(() => {
         if (startedAt === null) return;
 
@@ -64,9 +66,12 @@ function PracticePage() {
     };
 
     useEffect(() => {
+        let cancelled = false;
+
         const loadTasks = async () => {
             setLoading(true);
             setError(null);
+            setTestId(null);
 
             try {
                 const params = new URLSearchParams({
@@ -88,22 +93,44 @@ function PracticePage() {
                     })),
                 );
 
+                if (cancelled) return;
+
+                // Teszt indítása a megérkezett feladatokból (a nev-et nem küldjük)
+                let newTestId = null;
+                if (tasksWithImages.length > 0) {
+                    const started = await apiFetch("/taskroutes/starttest", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            tantargy_id: Number(subject),
+                            feladat_idk: tasksWithImages.map((task) => task.id),
+                        }),
+                    });
+
+                    if (cancelled) return;
+                    newTestId = started.teszt_id;
+                }
+
                 setTasks(tasksWithImages);
+                setTestId(newTestId);
                 setCurrentTaskIndex(0);
                 setAnswers({});
                 setElapsedSeconds(0);
                 setStartedAt(tasksWithImages.length > 0 ? Date.now() : null);
-                console.log("Beérkezett adat:", tasksWithImages);
             } catch (err) {
-                setError(err.message);
+                if (!cancelled) setError(err.message);
             } finally {
-                setLoading(false);
+                if (!cancelled) setLoading(false);
             }
         };
 
         if (subject && level && (year || topic)) {
             loadTasks();
         }
+
+        return () => {
+            cancelled = true;
+        };
     }, [subject, level, year, topic]);
 
     if (loading) return <div>Betöltés...</div>;

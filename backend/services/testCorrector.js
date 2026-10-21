@@ -62,7 +62,7 @@ export async function startTest({ userId, tantargyId, feladatIdk, nev = 'Teszt' 
       }
 
       const [ujTeszt] = await tx`
-        insert into tesztek (felhasznalo_id, tantargy_id, nev, datum, kitoltesi_ido, status)
+        insert into tesztek (felhasznalo_id, tantargy_id, nev, datum, kitoltesi_ido, statusz)
         values (${userId}, ${tantargyId}, ${nev}, now(), null, 'folyamatban')
         returning id
       `;
@@ -78,7 +78,7 @@ export async function startTest({ userId, tantargyId, feladatIdk, nev = 'Teszt' 
       return ujTeszt;
     });
 
-    return { id: teszt.id, status: 'folyamatban', feladatIdk: egyediFeladatIdk };
+    return { id: teszt.id, statusz: 'folyamatban', feladatIdk: egyediFeladatIdk };
   } catch (err) {
     if (err instanceof TestServiceError) throw err;
     throw new TestServiceError('Nem sikerült elindítani a tesztet', {

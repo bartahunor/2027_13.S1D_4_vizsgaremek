@@ -253,7 +253,7 @@ router.post('/starttest', async (req, res, next) => {
 
     res.status(201).json({
       teszt_id: teszt.id,
-      status: teszt.status,
+      statusz: teszt.statusz,
       feladat_idk: teszt.feladatIdk,
     })
   } catch (err) {
