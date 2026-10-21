@@ -17,7 +17,9 @@ namespace TudasterAdmin.Processing
     {
         public string Subject { get; set; } = "";
         public string Level { get; set; } = "";
-        public string Date { get; set; } = "";
+        public string? Date { get; set; }
+        public int? Year { get; set; }
+        public string? Period { get; set; }
         public int? TotalPoints { get; set; }
         public List<AiSourceDto> Sources { get; set; } = new();
         public List<AiTaskDto> Tasks { get; set; } = new();
@@ -36,9 +38,15 @@ namespace TudasterAdmin.Processing
         public int? Points { get; set; }
     }
 
+    internal class AiCellDto
+    {
+        public string Value { get; set; } = "";
+        public bool Visible { get; set; } = true;
+    }
+
     internal class AiRowDto
     {
-        public List<string> Cells { get; set; } = new();
+        public List<AiCellDto> Cells { get; set; } = new();
     }
 
     internal class AiTableDto
@@ -52,6 +60,7 @@ namespace TudasterAdmin.Processing
         public int Number { get; set; }
         public string Type { get; set; } = "";
         public int? Points { get; set; }
+        public int? TopicId { get; set; }
         public string Stem { get; set; } = "";
         public string? SourceKey { get; set; }
         public List<AiSubDto> SubQuestions { get; set; } = new();
@@ -82,8 +91,8 @@ namespace TudasterAdmin.Processing
         public GeminiService()
         {
             var config = new ConfigurationBuilder()
-                .AddUserSecrets<GeminiService>()   // először a user secrets
-                .AddEnvironmentVariables()         // tartaléknak a környezeti változók
+                .AddUserSecrets<GeminiService>()
+                .AddEnvironmentVariables()
                 .Build();
 
             _apiKey = config["Gemini:ApiKey"] ?? config["GEMINI_API_KEY"] ?? "";
@@ -91,11 +100,10 @@ namespace TudasterAdmin.Processing
                 throw new InvalidOperationException(
                     "Nem találom az API-kulcsot. A user secretsben a kulcs neve: Gemini:ApiKey");
 
-            // Ellenőrizd az AI Studióban, mi az aktuális Flash modell neve.
             _model = config["Gemini:Model"] ?? config["GEMINI_MODEL"] ?? "gemini-3.8-flash";
         }
 
-        private const string Prompt = """
+        private const string BasePrompt = """
             Ez egy magyar érettségi írásbeli feladatlap PDF-je. Add vissza a feladatait a megadott JSON-szerkezetben.
 
             Szabályok:
@@ -105,18 +113,42 @@ namespace TudasterAdmin.Processing
             - A forrásszövegeket a sources tömbbe tedd ("f1", "f2", ... kulccsal), a feladat sourceKey mezője hivatkozzon rá. Ha több feladat ugyanazt a forrást használja, ugyanazt a kulcsot kapják. Ha nincs forrás, sourceKey null.
             - A bevezető szöveg és az utasítás a stem. Az a), b), c) részkérdések a subQuestions tömbbe kerülnek (label: "a", "b", ...), részpontszámmal, ha az látszik.
             - A feleletválasztós (A, B, C, D) lehetőségek az options tömbbe kerülnek, a stem-be nem.
-            - Táblázat esetén töltsd ki a table.columns és table.rows mezőt. Ha nincs táblázat, mindkettő üres tömb.
+            - Táblázat esetén töltsd ki a table.columns és table.rows mezőt. Minden cella {value, visible}. Az előre megadott cellák visible=true. Ha a táblázatot a diáknak kell kitöltenie, és a cella üres vagy pontozott, akkor visible=false és value üres. Ha nincs táblázat, mindkettő üres tömb.
             - A pontozott vagy üres válaszsorokat ne másold át, csak számold meg őket (answerLines).
             - A matematikai képleteket LaTeX formában írd, $...$ jelek között.
             - points: a feladat mellett szereplő pontszám egész számként; ha nincs megadva, null.
             - Ha a feladathoz ábra, kép, térkép vagy diagram tartozik, hasFigure legyen true. A kép tartalmát NE találd ki.
             - pageFrom / pageTo: a feladat oldalszáma a PDF-ben (1-től számolva).
             - Ha egy feladatnál bizonytalan vagy, uncertain legyen true, és írd a note mezőbe, miért.
-            - subject, level ("közép" vagy "emelt"), date és totalPoints (a teljes feladatlap összpontszáma) a címoldalról.
+            - subject, level ("közép" vagy "emelt"), year (a vizsga éve egész számként), period ("május" vagy "október"), date és totalPoints (a teljes feladatlap összpontszáma) a címoldalról.
             - Ne találj ki semmit, ami nincs a dokumentumban.
             """;
 
-        public async Task<AiExamDto> ParseExamAsync(byte[] pdfBytes, CancellationToken ct = default)
+        private static string BuildPrompt(IReadOnlyList<TopicInfo> topics)
+        {
+            var sb = new StringBuilder(BasePrompt);
+            sb.AppendLine().AppendLine();
+
+            if (topics.Count > 0)
+            {
+                sb.AppendLine("Témakörök (azonosító | tantárgy | név):");
+                foreach (var t in topics)
+                    sb.AppendLine($"{t.Id} | {t.Subject} | {t.Name}");
+                sb.AppendLine(
+                    "A topicId mezőben a feladathoz leginkább illő témakör azonosítóját add meg, " +
+                    "kizárólag a fenti listából, a vizsga tantárgyához tartozók közül. " +
+                    "Ha egyik sem illik egyértelműen, topicId legyen null.");
+            }
+            else
+            {
+                sb.AppendLine("A topicId mindig null.");
+            }
+
+            return sb.ToString();
+        }
+
+        public async Task<AiExamDto> ParseExamAsync(
+            byte[] pdfBytes, IReadOnlyList<TopicInfo> topics, CancellationToken ct = default)
         {
             string url = $"https://generativelanguage.googleapis.com/v1beta/models/{_model}:generateContent";
 
@@ -128,7 +160,7 @@ namespace TudasterAdmin.Processing
                     {
                         parts = new object[]
                         {
-                            new { text = Prompt },
+                            new { text = BuildPrompt(topics) },
                             new { inlineData = new { mimeType = "application/pdf", data = Convert.ToBase64String(pdfBytes) } }
                         }
                     }
@@ -165,7 +197,6 @@ namespace TudasterAdmin.Processing
                     throw new InvalidOperationException($"Gemini hiba ({(int)resp.StatusCode}): {shortPayload}");
                 }
 
-                // 5 mp, 15 mp, 45 mp várakozás
                 await Task.Delay(TimeSpan.FromSeconds(5 * Math.Pow(3, attempt)), ct);
             }
         }
@@ -220,18 +251,26 @@ namespace TudasterAdmin.Processing
                 ["points"] = Int(true)
             }, "label", "text");
 
+            var cell = Obj(new Dictionary<string, object>
+            {
+                ["value"] = Str(),
+                ["visible"] = Bool()
+            }, "value", "visible");
+
             var table = Obj(new Dictionary<string, object>
             {
                 ["columns"] = Arr(Str()),
-                ["rows"] = Arr(Obj(new Dictionary<string, object> { ["cells"] = Arr(Str()) }, "cells"))
+                ["rows"] = Arr(Obj(new Dictionary<string, object> { ["cells"] = Arr(cell) }, "cells"))
             }, "columns", "rows");
 
+            // A típusneveket igazítsd a feladat_tipusok tábla soraihoz.
             var task = Obj(new Dictionary<string, object>
             {
                 ["number"] = Int(),
                 ["type"] = EnumStr("feleletvalasztos", "igaz_hamis", "parositas", "tablazatos",
                                    "esszé", "szamitas", "tobbReszes", "rovid_valasz"),
                 ["points"] = Int(true),
+                ["topicId"] = Int(true),
                 ["stem"] = Str(),
                 ["sourceKey"] = Str(true),
                 ["subQuestions"] = Arr(sub),
@@ -257,6 +296,8 @@ namespace TudasterAdmin.Processing
                 ["subject"] = Str(),
                 ["level"] = Str(),
                 ["date"] = Str(true),
+                ["year"] = Int(true),
+                ["period"] = Str(true),
                 ["totalPoints"] = Int(true),
                 ["sources"] = Arr(source),
                 ["tasks"] = Arr(task)

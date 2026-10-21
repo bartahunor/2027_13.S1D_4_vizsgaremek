@@ -935,6 +935,7 @@ namespace TudasterAdmin
             };
 
             var resultPanel = new StackPanel();
+            var draftPanel = new StackPanel();
 
             string? selectedFilePath = null;
 
@@ -997,8 +998,10 @@ namespace TudasterAdmin
 
                     // 2) Gemini
                     byte[] pdfBytes = await System.IO.File.ReadAllBytesAsync(selectedFilePath);
+                    var topics = _topics.Select(t => new TopicInfo(t.Id, t.Name, t.Subject)).ToList();
+
                     var ai = new GeminiService();
-                    AiExamDto exam = await ai.ParseExamAsync(pdfBytes);
+                    AiExamDto exam = await ai.ParseExamAsync(pdfBytes, topics);
 
                     // Hibakereséshez: a nyers eredmény a %TEMP% mappában
                     System.IO.File.WriteAllText(
@@ -1009,17 +1012,20 @@ namespace TudasterAdmin
                             Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
                         }));
 
-                    // 3) Átalakítás és ellenőrzés
-                    List<ParsedTask> tasks =
-                        AiExamMapper.ToParsedTasks(exam, extractedText, out List<string> globalWarnings);
+                    DraftExam draft = AiExamMapper.ToDraft(
+           exam, System.IO.Path.GetFileName(selectedFilePath), extractedText, topics);
 
-                    // 4) Megjelenítés (adatbázisba még NEM megy semmi)
+                    // 4) Mentés HELYBEN (az adatbázishoz még nem nyúlunk)
+                    DraftStore.SavePdfCopy(draft, selectedFilePath);
+                    DraftStore.Save(draft);
+                    RefreshDraftList(draftPanel);
+
                     resultPanel.Children.Clear();
 
                     resultPanel.Children.Add(new TextBlock
                     {
-                        Text = $"Felismert feladatok: {tasks.Count}",
-                        FontSize = 20,
+                        Text = $"Kész: {draft.Tasks.Count} feladat felismerve, a piszkozat elmentve.",
+                        FontSize = 18,
                         FontWeight = FontWeights.SemiBold,
                         Foreground = (Brush)FindResource("PrimaryBrush"),
                         Margin = new Thickness(0, 0, 0, 6)
@@ -1027,13 +1033,13 @@ namespace TudasterAdmin
 
                     resultPanel.Children.Add(new TextBlock
                     {
-                        Text = $"{exam.Subject} • {exam.Level} • {exam.Date}",
+                        Text = draft.Title,
                         FontSize = 13,
                         Foreground = (Brush)FindResource("MutedTextBrush"),
-                        Margin = new Thickness(0, 0, 0, 12)
+                        Margin = new Thickness(0, 0, 0, 10)
                     });
 
-                    foreach (string warning in globalWarnings)
+                    foreach (string warning in draft.Warnings)
                     {
                         resultPanel.Children.Add(new TextBlock
                         {
@@ -1045,19 +1051,20 @@ namespace TudasterAdmin
                         });
                     }
 
-                    if (tasks.Count == 0)
+                    var openButton = new Button
                     {
-                        resultPanel.Children.Add(new TextBlock
-                        {
-                            Text = "A modell nem talált feladatokat. Nézd meg a %TEMP%\\exam.json fájlt.",
-                            TextWrapping = TextWrapping.Wrap,
-                            Foreground = (Brush)FindResource("MutedTextBrush")
-                        });
-                        return;
-                    }
-
-                    foreach (var task in tasks)
-                        AddTaskCard(resultPanel, task);
+                        Content = "MEGNYITÁS A SZERKESZTŐBEN",
+                        Width = 250,
+                        Height = 42,
+                        HorizontalAlignment = HorizontalAlignment.Left,
+                        Margin = new Thickness(0, 8, 0, 0)
+                    };
+                    openButton.Click += (s2, e2) =>
+                    {
+                        OpenDraftEditor(draft.Id);
+                        RefreshDraftList(draftPanel);
+                    };
+                    resultPanel.Children.Add(openButton);
                 }
                 catch (Exception ex)
                 {
@@ -1090,6 +1097,17 @@ namespace TudasterAdmin
             mainPanel.Children.Add(resultTitle);
             mainPanel.Children.Add(resultPanel);
 
+            mainPanel.Children.Add(new TextBlock
+            {
+                Text = "Mentett piszkozatok",
+                FontSize = 20,
+                FontWeight = FontWeights.SemiBold,
+                Foreground = (Brush)FindResource("TextBrush"),
+                Margin = new Thickness(0, 30, 0, 12)
+            });
+            mainPanel.Children.Add(draftPanel);
+            RefreshDraftList(draftPanel);
+
             ContentArea.Content = new ScrollViewer
             {
                 VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
@@ -1097,155 +1115,104 @@ namespace TudasterAdmin
             };
         }
 
-        private void AddTaskCard(StackPanel target, ParsedTask task)
+        private void RefreshDraftList(StackPanel target)
         {
-            var card = new Border
+            target.Children.Clear();
+
+            var drafts = DraftStore.List();
+            if (drafts.Count == 0)
             {
-                Background = Brushes.White,
-                BorderBrush = (Brush)FindResource("BorderBrush"),
-                BorderThickness = new Thickness(1),
-                CornerRadius = new CornerRadius(12),
-                Padding = new Thickness(18),
-                Margin = new Thickness(0, 0, 0, 14)
-            };
-
-            var panel = new StackPanel();
-
-            panel.Children.Add(new TextBlock
-            {
-                Text = task.Title,
-                FontSize = 17,
-                FontWeight = FontWeights.SemiBold,
-                Foreground = (Brush)FindResource("PrimaryBrush")
-            });
-
-            string meta = task.TypeName;
-            if (task.Points.HasValue) meta += $" • {task.Points} pont";
-            meta += task.PageFrom == task.PageTo
-                ? $" • {task.PageFrom}. oldal"
-                : $" • {task.PageFrom}–{task.PageTo}. oldal";
-
-            panel.Children.Add(new TextBlock
-            {
-                Text = meta,
-                FontSize = 12,
-                Foreground = (Brush)FindResource("MutedTextBrush"),
-                Margin = new Thickness(0, 4, 0, 10)
-            });
-
-            // Forrásszöveg (görgethető, szürke háttéren)
-            if (!string.IsNullOrWhiteSpace(task.SourceText))
-            {
-                panel.Children.Add(new TextBlock
+                target.Children.Add(new TextBlock
                 {
-                    Text = "Forrás",
-                    FontSize = 12,
-                    FontWeight = FontWeights.SemiBold,
-                    Foreground = (Brush)FindResource("MutedTextBrush"),
-                    Margin = new Thickness(0, 0, 0, 4)
+                    Text = "Még nincs mentett piszkozat.",
+                    Foreground = (Brush)FindResource("MutedTextBrush")
                 });
+                return;
+            }
 
-                panel.Children.Add(new Border
+            foreach (var d in drafts)
+            {
+                var card = new Border
                 {
-                    Background = new SolidColorBrush(Color.FromRgb(245, 245, 245)),
-                    CornerRadius = new CornerRadius(8),
-                    Padding = new Thickness(10),
-                    Margin = new Thickness(0, 0, 0, 10),
-                    Child = new ScrollViewer
+                    Background = Brushes.White,
+                    BorderBrush = (Brush)FindResource("BorderBrush"),
+                    BorderThickness = new Thickness(1),
+                    CornerRadius = new CornerRadius(12),
+                    Padding = new Thickness(18),
+                    Margin = new Thickness(0, 0, 0, 12)
+                };
+
+                var row = new Grid();
+                row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+                row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+
+                var info = new StackPanel();
+                info.Children.Add(new TextBlock
+                {
+                    Text = d.Title,
+                    FontSize = 16,
+                    FontWeight = FontWeights.SemiBold,
+                    Foreground = (Brush)FindResource("TextBrush")
+                });
+                info.Children.Add(new TextBlock
+                {
+                    Text = $"{d.TaskCount} feladat • {d.ApprovedCount} jóváhagyva • módosítva: {d.UpdatedUtc.ToLocalTime():yyyy.MM.dd HH:mm}",
+                    FontSize = 13,
+                    Foreground = (Brush)FindResource("MutedTextBrush"),
+                    Margin = new Thickness(0, 4, 0, 0)
+                });
+                Grid.SetColumn(info, 0);
+                row.Children.Add(info);
+
+                var openBtn = new Button { Content = "MEGNYITÁS", Width = 120, Height = 38 };
+                var deleteBtn = new Button { Content = "TÖRLÉS", Width = 100, Height = 38, Margin = new Thickness(8, 0, 0, 0) };
+
+                openBtn.Click += (s, e) =>
+                {
+                    OpenDraftEditor(d.Id);
+                    RefreshDraftList(target);
+                };
+
+                deleteBtn.Click += (s, e) =>
+                {
+                    var answer = MessageBox.Show(
+                        $"Biztosan törölni szeretnéd a piszkozatot?\n\n{d.Title}\n\nA hozzá tartozó képek is törlődnek.",
+                        "Piszkozat törlése",
+                        MessageBoxButton.YesNo,
+                        MessageBoxImage.Question);
+
+                    if (answer == MessageBoxResult.Yes)
                     {
-                        MaxHeight = 180,
-                        VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
-                        Content = new TextBlock
-                        {
-                            Text = task.SourceText,
-                            FontSize = 12,
-                            TextWrapping = TextWrapping.Wrap,
-                            Foreground = (Brush)FindResource("TextBrush")
-                        }
+                        DraftStore.Delete(d.Id);
+                        RefreshDraftList(target);
                     }
-                });
+                };
+
+                var buttons = new StackPanel { Orientation = Orientation.Horizontal };
+                buttons.Children.Add(openBtn);
+                buttons.Children.Add(deleteBtn);
+                Grid.SetColumn(buttons, 1);
+                row.Children.Add(buttons);
+
+                card.Child = row;
+                target.Children.Add(card);
+            }
+        }
+
+        private void OpenDraftEditor(string draftId)
+        {
+            var draft = DraftStore.Load(draftId);
+            if (draft == null)
+            {
+                MessageBox.Show("A piszkozat nem tölthető be.", "Hiba");
+                return;
             }
 
-            panel.Children.Add(new TextBlock
-            {
-                Text = task.Text,
-                FontSize = 13,
-                TextWrapping = TextWrapping.Wrap,
-                Foreground = (Brush)FindResource("TextBrush")
-            });
+            var topics = _topics.Select(t => new TopicInfo(t.Id, t.Name, t.Subject)).ToList();
+            var subjects = _subjects.Select(s => s.Name).ToList();
 
-            foreach (string option in task.Options)
-            {
-                panel.Children.Add(new TextBlock
-                {
-                    Text = "• " + option,
-                    FontSize = 13,
-                    TextWrapping = TextWrapping.Wrap,
-                    Foreground = (Brush)FindResource("TextBrush"),
-                    Margin = new Thickness(12, 4, 0, 0)
-                });
-            }
-
-            foreach (string sub in task.SubQuestions)
-            {
-                panel.Children.Add(new TextBlock
-                {
-                    Text = sub,
-                    FontSize = 13,
-                    TextWrapping = TextWrapping.Wrap,
-                    Foreground = (Brush)FindResource("TextBrush"),
-                    Margin = new Thickness(12, 8, 0, 0)
-                });
-            }
-
-            if (task.AnswerLines > 0)
-            {
-                panel.Children.Add(new TextBlock
-                {
-                    Text = $"Válaszsorok: {task.AnswerLines}",
-                    FontSize = 12,
-                    Foreground = (Brush)FindResource("MutedTextBrush"),
-                    Margin = new Thickness(0, 10, 0, 0)
-                });
-            }
-
-            if (task.HasFigure)
-            {
-                panel.Children.Add(new TextBlock
-                {
-                    Text = "🖼 Ábra tartozik a feladathoz, kézzel kell hozzárendelni.",
-                    FontSize = 12,
-                    Foreground = Brushes.DarkOrange,
-                    Margin = new Thickness(0, 8, 0, 0)
-                });
-            }
-
-            foreach (string warning in task.Warnings)
-            {
-                panel.Children.Add(new TextBlock
-                {
-                    Text = "⚠ " + warning,
-                    FontSize = 12,
-                    TextWrapping = TextWrapping.Wrap,
-                    Foreground = Brushes.DarkOrange,
-                    Margin = new Thickness(0, 6, 0, 0)
-                });
-            }
-
-            if (task.NeedsReview)
-            {
-                panel.Children.Add(new TextBlock
-                {
-                    Text = "Ellenőrzés szükséges",
-                    FontSize = 12,
-                    FontWeight = FontWeights.SemiBold,
-                    Foreground = Brushes.DarkOrange,
-                    Margin = new Thickness(0, 8, 0, 0)
-                });
-            }
-
-            card.Child = panel;
-            target.Children.Add(card);
+            var window = new DraftEditorWindow(draft, topics, subjects) { Owner = this };
+            window.ShowDialog();
         }
 
 
@@ -1907,12 +1874,7 @@ namespace TudasterAdmin
                 Width = 70
             });
 
-            _taskGrid.Columns.Add(new DataGridTextColumn
-            {
-                Header = "Állapot",
-                Binding = new System.Windows.Data.Binding("Status"),
-                Width = 140
-            });
+            
 
             // Tesztadatok
 
