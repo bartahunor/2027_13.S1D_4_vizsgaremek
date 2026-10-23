@@ -1,6 +1,7 @@
 import express from 'express'
 import sql from '../db.js'
 import { requireAuth } from '../middleware/auth.js'
+import { receiveSubmission, TestServiceError } from '../services/testCorrector.js'
 
 const router = express.Router()
 
@@ -202,30 +203,46 @@ function feldolgozIdo(ido) {
    Body: { valaszok: [ { feladat_id, tipus, valasz }, ... ], ido: <szám> }
 ========================= */
 
-router.post('/incoming', express.json({ limit: '100kb' }), (req, res) => {
-  const { valaszok, ido } = req.body ?? {}
-
+router.post('/incoming', express.json({ limit: '100kb' }), async (req, res) => {
+  const { teszt_id, valaszok, ido } = req.body ?? {}
+ 
+  if (!pozitivEgesz(teszt_id)) {
+    return res.status(400).json({ error: 'a "teszt_id" mező hiányzik, vagy nem pozitív egész szám' })
+  }
+ 
   const hiba = validalBeadast(valaszok)
   if (hiba) {
     return res.status(400).json({ error: hiba })
   }
-
+ 
   const idoEredmeny = feldolgozIdo(ido)
   if (idoEredmeny.hiba) {
     return res.status(400).json({ error: idoEredmeny.hiba })
   }
   const idoMasodperc = idoEredmeny.masodperc
-
-  console.log('Felhasználó:', req.user?.id)
-  console.log('Érvényes beadás, feladatok száma:', valaszok.length)
-  console.log('Eltelt idő (mp):', idoMasodperc)
-
-  res.json({
-    ok: true,
-    felhasznalo: req.user?.id ?? null,
-    fogadott_feladatok: valaszok.length,
-    ido_masodperc: idoMasodperc,
-  })
+ 
+  try {
+    const eredmeny = await receiveSubmission({
+      userId: req.user?.id,   // a tokenből, nem a body-ból
+      testId: teszt_id,
+      valaszok,
+      idoMasodperc,
+    })
+ 
+    res.json({
+      ok: true,
+      felhasznalo: req.user?.id ?? null,
+      teszt_id: eredmeny.testId,
+      fogadott_feladatok: eredmeny.fogadottFeladatok,
+      ido_masodperc: eredmeny.idoMasodperc,
+    })
+  } catch (err) {
+    if (err instanceof TestServiceError) {
+      return res.status(err.status).json({ error: err.message, code: err.code })
+    }
+    console.error('Hiba a beadás feldolgozásakor:', err)
+    res.status(500).json({ error: 'Szerverhiba a beadás feldolgozásakor' })
+  }
 })
 
 

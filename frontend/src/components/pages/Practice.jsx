@@ -192,6 +192,7 @@ function PracticePage() {
         const result = await apiFetch("/correctionroutes/incoming", {
           method: "POST",
           body: JSON.stringify({
+            tesztId: testId, // A teszt azonosítója, amit a starttest hívásból kaptunk
             valaszok: submission,
             ido: Math.max(0, Math.round(elapsedSeconds)),
           }),
