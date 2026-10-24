@@ -2,7 +2,8 @@
 // Teszt indítása: létrehoz egy "folyamatban" állapotú tesztet,
 // a kiadott feladatokkal és üres válaszokkal, egyetlen tranzakcióban.
 
-import sql from '../db.js'; // 
+import sql from '../db.js'; 
+import { javit, JavitoHiba } from './correctors/index.js';
 
 export class TestServiceError extends Error {
   constructor(message, { code = 'TEST_SERVICE_ERROR', status = 500, cause } = {}) {
@@ -15,6 +16,9 @@ export class TestServiceError extends Error {
 }
 
 const isPositiveInt = (n) => Number.isInteger(n) && n > 0;
+
+// Ennyi másodpercnél kisebb eltérésnél elfogadjuk a kliens által mért időt
+const IDO_TOLERANCIA_MASODPERC = 10;
 
 /**
  * Új teszt indítása.
@@ -146,6 +150,69 @@ export async function parositTesztet({ userId, testId, valaszok }) {
 }
  
 /**
+ * A teszthez kiadott feladatok megoldásainak és pontjainak betöltése az adatbázisból.
+ * A teszt_feladatok a kiadott feladatokat adja, így hiányzó (be nem küldött) feladat is szerepel.
+ *
+ * @param {number} testId
+ * @returns {Promise<Map<number, {
+ *   feladatId: number, tipus: string, pont: number,
+ *   helyesValaszok: string[]|null,
+ *   cellak: {sor_sorszam: number, oszlop_sorszam: number, ertek: string|null, lathato: boolean}[]
+ * }>>} feladat_id -> megoldás
+ */
+async function betoltMegoldasokat(testId) {
+  try {
+    const feladatok = await sql`
+      select
+        f.id as feladat_id,
+        ft.nev as tipus,
+        f.pont,
+        f.helyes_valaszok
+      from teszt_feladatok tf
+      join feladatok f on f.id = tf.feladat_id
+      join feladat_tipusok ft on ft.id = f.tipus_id
+      where tf.teszt_id = ${testId}
+    `;
+ 
+    // Táblázatos feladatok cellái (a többi típusnál nincs találat)
+    const cellak = await sql`
+      select c.feladat_id, c.sor_sorszam, c.oszlop_sorszam, c.ertek, c.lathato
+      from teszt_feladatok tf
+      join tablazatos_feladat_cellak c on c.feladat_id = tf.feladat_id
+      where tf.teszt_id = ${testId}
+      order by c.feladat_id, c.sor_sorszam, c.oszlop_sorszam
+    `;
+ 
+    const megoldasok = new Map();
+    for (const f of feladatok) {
+      megoldasok.set(f.feladat_id, {
+        feladatId: f.feladat_id,
+        tipus: f.tipus,
+        pont: f.pont,
+        helyesValaszok: f.helyes_valaszok,
+        cellak: [],
+      });
+    }
+    for (const c of cellak) {
+      megoldasok.get(c.feladat_id)?.cellak.push({
+        sor_sorszam: c.sor_sorszam,
+        oszlop_sorszam: c.oszlop_sorszam,
+        ertek: c.ertek,
+        lathato: c.lathato,
+      });
+    }
+ 
+    return megoldasok;
+  } catch (err) {
+    throw new TestServiceError('Nem sikerült betölteni a feladatok megoldásait', {
+      code: 'SOLUTIONS_LOAD_FAILED',
+      status: 500,
+      cause: err,
+    });
+  }
+}
+ 
+/**
  * A párosított beadás feldolgozásának belépési pontja.
  * Csak a parositTesztet sikeres lefutása után hívható.
  *
@@ -158,20 +225,82 @@ export async function parositTesztet({ userId, testId, valaszok }) {
  * @param {number}   parositottBeadas.idoMasodperc
  */
 export async function feldolgozBeadast(parositottBeadas) {
-
+  const { userId, testId, idoMasodperc } = parositottBeadas;
+ 
+  // Csak helyi változók: nincs megosztott (modul szintű) állapot, így egyszerre több
+  // felhasználó javítása sem keveredhet össze.
+  let szerverMasodperc;
+ 
   // Teszt státusza "folyamatban" -> "javitas"
-
-  /** Idő számítás
-   * Teszt kezdési idejének lekérése
-   * Teszt kitöltési idő számítása
-   * Kis eltérés estén még a kliens válaszsa helyes, nagyobbnál az addatbázisé a mérvadó
-   */
+  // Egyetlen atomi UPDATE: ha két kérés párhuzamosan érkezik, csak az egyik találja
+  // még "folyamatban" állapotban a tesztet, a másik 0 sort módosít és elutasításra kerül.
+  // Ugyanebben a lekérdezésben számoljuk ki az adatbázis órájával az eltelt időt a teszt
+  // kezdése (datum) óta, így nincs eltérés az alkalmazás és az adatbázis órája között.
+  try {
+    const lefoglalt = await sql`
+      update tesztek
+      set statusz = 'javitas'
+      where id = ${testId}
+        and felhasznalo_id = ${userId}::uuid
+        and statusz = 'folyamatban'
+      returning id, round(extract(epoch from (now() - datum)))::int as szerver_masodperc
+    `;
+ 
+    if (lefoglalt.length === 0) {
+      throw new TestServiceError('Ez a teszt már nem adható be', { code: 'TEST_NOT_IN_PROGRESS', status: 409 });
+    }
+ 
+    szerverMasodperc = Math.max(0, lefoglalt[0].szerver_masodperc);
+  } catch (err) {
+    if (err instanceof TestServiceError) throw err;
+    throw new TestServiceError('Nem sikerült a teszt állapotát átállítani', {
+      code: 'TEST_STATUS_UPDATE_FAILED',
+      status: 500,
+      cause: err,
+    });
+  }
+ 
+  // Kitöltési idő (másodperc): kis eltérésnél a kliens értéke, nagyobbnál az adatbázisé a mérvadó
+  const kitoltesiIdo = Math.abs(idoMasodperc - szerverMasodperc) <= IDO_TOLERANCIA_MASODPERC
+    ? idoMasodperc
+    : szerverMasodperc;
+ 
+  // TODO: a kitoltesiIdo mentése a tesztek.kitoltesi_ido mezőbe a záró tranzakcióban
   
-  /** Feladat ellenőrzési logika:
-   * 1. Minden feladat megoldásának és pontjának lekérése a folyamatban lévő tesztből (teszt_feladatok)
-   * 2. Feladat típusunkénti ellenőrzés és javítás
-   * 3. Javított feladatok egységese válasszal a függvényektől
-   * 4. Egy tranzakcióban teszt mentés és státusz váltás "befejezett"-re
+  // 1. Minden feladat megoldásának és pontjának lekérése a tesztből (teszt_feladatok)
+  const megoldasok = await betoltMegoldasokat(testId);
+  // 2-3. Feladatonkénti javítás a típusnak megfelelő javító függvénnyel.
+  // A kiadott feladatokon megyünk végig (nem a beküldötteken), így a be nem küldött
+  // feladat is kap eredményt (0 pont).
+  const beadottValaszok = new Map(parositottBeadas.valaszok.map((v) => [v.feladat_id, v]));
+  const javitottak = [];
+ 
+  for (const megoldas of megoldasok.values()) {
+    const beadott = beadottValaszok.get(megoldas.feladatId);
+ 
+    // A kliens által küldött típus egyezzen az adatbázisban lévővel
+    if (beadott && beadott.tipus !== megoldas.tipus) {
+      throw new TestServiceError(
+        `A(z) ${megoldas.feladatId} feladat típusa nem egyezik (várt: ${megoldas.tipus}, kapott: ${beadott.tipus})`,
+        { code: 'TIPUS_MISMATCH', status: 400 },
+      );
+      
+    }
+ 
+    try {
+      const eredmeny = javit(megoldas, beadott?.valasz);
+      javitottak.push({ feladatId: megoldas.feladatId, tipus: megoldas.tipus, pont: megoldas.pont, ...eredmeny });
+    } catch (err) {
+      throw new TestServiceError('Nem sikerült kijavítani a tesztet', {
+        code: err instanceof JavitoHiba ? err.code : 'CORRECTION_FAILED',
+        status: 500,
+        cause: err,
+      });
+    }
+  }
+ 
+  /** Feladat ellenőrzési logika (folytatás):
+   * 4. Egy tranzakcióban teszt mentés (javitottak, kitoltesiIdo) és státusz váltás "befejezett"-re
    * 5. Kliens válasz
    */
 }
