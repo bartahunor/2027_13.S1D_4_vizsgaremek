@@ -8,3 +8,5 @@
 export function javitTablazatos(valasz, megoldas) {
   throw new Error('javitTablazatos: még nincs implementálva')
 }
+
+// ADATBÁZISBA EGY JSON TÖMB MEGY A MEGOLDÁSOKRÓL PL: [{"sor":2,"oszlop":3,"valasz":"42"},{"sor":2,"oszlop":4,"valasz":"x²"}]

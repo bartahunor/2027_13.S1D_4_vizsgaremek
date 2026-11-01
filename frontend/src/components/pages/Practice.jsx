@@ -21,6 +21,7 @@ function PracticePage() {
     const level = searchParams.get("level");
     const year = searchParams.get("year"); // null, ha nincs beállítva
     const topic = searchParams.get("topic"); // null, ha nincs beállítva
+    const topicName = searchParams.get("topic_name"); // null, ha nincs beállítva
 
     const [tasks, setTasks] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -80,7 +81,8 @@ function PracticePage() {
                 });
 
                 if (year) params.set("ev", year);
-                else if (topic) params.set("temakor_id", topic);
+                if (topic) params.set("temakor_id", topic);
+                if (topicName) params.set("temakor_nev", topicName);
 
                 const data = await apiFetch(
                     `/taskroutes/chosentasks?${params.toString()}`,
@@ -97,6 +99,14 @@ function PracticePage() {
 
                 // Teszt indítása a megérkezett feladatokból (a nev-et nem küldjük)
                 let newTestId = null;
+
+                // A teszt neve: témakörnél "<témakör> gyakorlás", évszámnál "<év> érettségi feladatsor gyakorlás"
+                const testName = topicName
+                    ? `${topicName} témakör gyakorlás`
+                    : year
+                        ? `${year} érettségi feladatsor gyakorlás`
+                        : undefined;
+
                 if (tasksWithImages.length > 0) {
                     const started = await apiFetch("/taskroutes/starttest", {
                         method: "POST",
@@ -104,6 +114,7 @@ function PracticePage() {
                         body: JSON.stringify({
                             tantargy_id: Number(subject),
                             feladat_idk: tasksWithImages.map((task) => task.id),
+                            nev: testName 
                         }),
                     });
 

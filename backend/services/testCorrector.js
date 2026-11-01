@@ -287,6 +287,7 @@ export async function feldolgozBeadast(parositottBeadas) {
       
     }
  
+    // !!!! MÉG CSAK A rovid_valasz TÍPUS VAN !!!! //
     try {
       const eredmeny = javit(megoldas, beadott?.valasz);
       javitottak.push({ feladatId: megoldas.feladatId, tipus: megoldas.tipus, pont: megoldas.pont, ...eredmeny });
@@ -298,6 +299,9 @@ export async function feldolgozBeadast(parositottBeadas) {
       });
     }
   }
+
+  // Ideiglenes naplózás a teszteléshez (a mentés elkészültekor törölhető)
+  console.log(`[javítás] teszt ${testId}: ${javitottak.length} feladat kijavítva, idő: ${kitoltesiIdo} mp`, javitottak);
  
   /** Feladat ellenőrzési logika (folytatás):
    * 4. Egy tranzakcióban teszt mentés (javitottak, kitoltesiIdo) és státusz váltás "befejezett"-re

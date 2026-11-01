@@ -140,7 +140,15 @@ function TaskSelection() {
         });
 
         if (selectedYear) params.set('year', selectedYear);
-        if (selectedTopic) params.set('topic', selectedTopic);
+        if (selectedTopic) {
+            params.set('topic', selectedTopic);
+
+            // A választott témakör neve, hogy a gyakorlás oldalnak ne kelljen külön lekérnie
+            const topicName = topics.find(
+                (topic) => String(topic.id) === String(selectedTopic),
+            )?.nev;
+            if (topicName) params.set('topic_name', topicName);
+        }
 
         navigate(`/practice?${params.toString()}`);
     };
