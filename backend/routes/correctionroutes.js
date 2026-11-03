@@ -228,20 +228,16 @@ router.post('/incoming', express.json({ limit: '100kb' }), async (req, res) => {
       valaszok,
       idoMasodperc,
     })
- 
-    res.json({
-      ok: true,
-      felhasznalo: req.user?.id ?? null,
-      teszt_id: eredmeny.testId,
-      fogadott_feladatok: eredmeny.fogadottFeladatok,
-      ido_masodperc: eredmeny.idoMasodperc,
-    })
+
+    // Ide csak akkor jutunk, ha a javítás lefutott és az eredmény el is mentődött
+    res.json({ ok: true, teszt_id: eredmeny.testId })
   } catch (err) {
     if (err instanceof TestServiceError) {
-      return res.status(err.status).json({ error: err.message, code: err.code })
+      if (err.status >= 500) console.error('Hiba a beadás feldolgozásakor:', err.code, err.cause ?? err)
+      return res.status(err.status).json({ ok: false, error: err.message, code: err.code, teszt_id })
     }
     console.error('Hiba a beadás feldolgozásakor:', err)
-    res.status(500).json({ error: 'Szerverhiba a beadás feldolgozásakor' })
+    res.status(500).json({ ok: false, error: 'Szerverhiba a beadás feldolgozásakor', teszt_id })
   }
 })
 
