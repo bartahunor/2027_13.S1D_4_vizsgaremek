@@ -35,7 +35,6 @@ export function javitRovidValasz(valasz, megoldas) {
 
   return {
     elertPont: talalt ? Number(megoldas.pont) : 0,
-    helyes: talalt ? 'helyes' : 'helytelen',
     adottValasz: [String(valasz)],
   }
 }

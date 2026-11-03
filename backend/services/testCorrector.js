@@ -180,6 +180,7 @@ async function betoltMegoldasokat(testId) {
       from teszt_feladatok tf
       join tablazatos_feladat_cellak c on c.feladat_id = tf.feladat_id
       where tf.teszt_id = ${testId}
+        and c.lathato = false
       order by c.feladat_id, c.sor_sorszam, c.oszlop_sorszam
     `;
  
@@ -303,10 +304,61 @@ export async function feldolgozBeadast(parositottBeadas) {
   // Ideiglenes naplózás a teszteléshez (a mentés elkészültekor törölhető)
   console.log(`[javítás] teszt ${testId}: ${javitottak.length} feladat kijavítva, idő: ${kitoltesiIdo} mp`, javitottak);
  
-  /** Feladat ellenőrzési logika (folytatás):
-   * 4. Egy tranzakcióban teszt mentés (javitottak, kitoltesiIdo) és státusz váltás "befejezett"-re
-   * 5. Kliens válasz
-   */
+  
+   // 4. Egy tranzakcióban teszt mentés (javitottak, kitoltesiIdo) és státusz váltás "befejezett"-re
+  try {
+    await sql.begin(async (tx) => {
+      const sorok = javitottak.map((j) => ({
+        feladat_id: j.feladatId,
+        adott_valasz: j.adottValasz ?? [],
+        elert_pont: j.elertPont,
+      }));
+
+      // Az összes feladat válasza és pontja egyetlen UPDATE-tel
+      const frissitett = await tx`
+        update teszt_feladatok tf
+        set adott_valasz = array(
+              select e
+              from jsonb_array_elements_text(x.adott_valasz) with ordinality as t(e, n)
+              order by n
+            ),
+            elert_pont = x.elert_pont
+        from jsonb_to_recordset(${tx.json(sorok)}::jsonb)
+             as x(feladat_id int4, adott_valasz jsonb, elert_pont numeric)
+        where tf.teszt_id = ${testId}
+          and tf.feladat_id = x.feladat_id
+      `;
+
+      // Minden kiadott feladat sorának frissülnie kell, különben visszagörgetünk
+      if (frissitett.count !== sorok.length) {
+        throw new Error(`Várt ${sorok.length} frissített feladat, kapott: ${frissitett.count}`);
+      }
+
+      // Kitöltési idő mentése és státuszváltás. A "javitas" feltétel miatt csak az a kérés
+      // zárhatja le a tesztet, amelyik az elején le is foglalta.
+      const [kesz] = await tx`
+        update tesztek
+        set kitoltesi_ido = ${kitoltesiIdo},
+            statusz = 'befejezett'
+        where id = ${testId}
+          and felhasznalo_id = ${userId}::uuid
+          and statusz = 'javitas'
+        returning id
+      `;
+
+      if (!kesz) {
+        throw new Error('A teszt már nem "javitas" állapotban van');
+      }
+    });
+  } catch (err) {
+    throw new TestServiceError('Nem sikerült elmenteni a teszt eredményét', {
+      code: 'TEST_SAVE_FAILED',
+      status: 500,
+      cause: err,
+    });
+  }
+   // 5. Kliens válasz
+   
 }
  
 /**
