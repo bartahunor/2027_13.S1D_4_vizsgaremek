@@ -241,6 +241,126 @@ router.post('/incoming', express.json({ limit: '100kb' }), async (req, res) => {
   }
 })
 
+// GET /correctionroutes/eredmeny/:testId
+router.get('/result/:testId', async (req, res, next) => {
+  try {
+    const felhasznaloId = req.user.id
+    const testId = Number(req.params.testId)
+
+    if (!Number.isInteger(testId)) {
+      return res.status(400).json({ error: 'Érvénytelen teszt azonosító' })
+    }
+
+    // 1) Teszt alapadatok + összesítések (csak a saját tesztjét kérheti le)
+    const tesztRows = await sql`
+      select
+        t.id,
+        t.nev,
+        t.datum,
+        t.statusz,
+        t.kitoltesi_ido,
+        tt.nev as tantargy,
+        count(tf.id)::int as feladatok_szama,
+        coalesce(sum(f.pont), 0)::int as max_pont,
+        coalesce(sum(tf.elert_pont), 0)::float as elert_pont
+      from tesztek t
+      join tantargyak tt on tt.id = t.tantargy_id
+      left join teszt_feladatok tf on tf.teszt_id = t.id
+      left join feladatok f on f.id = tf.feladat_id
+      where t.id = ${testId}
+        and t.felhasznalo_id = ${felhasznaloId}
+      group by t.id, tt.nev
+    `
+
+    if (tesztRows.length === 0) {
+      return res.status(404).json({ error: 'A teszt nem található' })
+    }
+
+    // 2) Témakörönkénti bontás
+    const temakorok = await sql`
+      select
+        tm.id,
+        tm.nev,
+        count(tf.id)::int as feladatok_szama,
+        coalesce(sum(f.pont), 0)::int as max_pont,
+        coalesce(sum(tf.elert_pont), 0)::float as elert_pont
+      from teszt_feladatok tf
+      join feladatok f on f.id = tf.feladat_id
+      join temakorok tm on tm.id = f.temakor_id
+      where tf.teszt_id = ${testId}
+      group by tm.id, tm.nev
+      order by tm.nev
+    `
+
+    const t = tesztRows[0]
+
+    res.json({
+      teszt: {
+        id: t.id,
+        nev: t.nev,
+        tantargy: t.tantargy,
+        datum: t.datum,
+        statusz: t.statusz,
+        feladatok_szama: t.feladatok_szama,
+      },
+      max_pont: t.max_pont,                  // 1. feladatok pontjainak összege
+      elert_pont: t.elert_pont,              // 2. a felhasználó pontjai
+      szazalek: t.max_pont > 0
+        ? Math.round((t.elert_pont / t.max_pont) * 100)
+        : 0,
+      idotartam_masodperc: t.kitoltesi_ido,  // 3. időtartam
+      temakorok,                             // 4. témakörök bontása
+    })
+  } catch (err) {
+    next(err)
+  }
+})
+
+// GET /correctionroutes/eredmeny/:testId/feladatok
+router.get('/correctedtasks/:testId', async (req, res, next) => {
+  try {
+    const felhasznaloId = req.user.id
+    const testId = Number(req.params.testId)
+
+    if (!Number.isInteger(testId)) {
+      return res.status(400).json({ error: 'Érvénytelen teszt azonosító' })
+    }
+
+    // Jogosultság: csak a saját tesztjét kérheti le
+    const tesztRows = await sql`
+      select id
+      from tesztek
+      where id = ${testId}
+        and felhasznalo_id = ${felhasznaloId}
+    `
+
+    if (tesztRows.length === 0) {
+      return res.status(404).json({ error: 'A teszt nem található' })
+    }
+
+    const feladatok = await sql`
+      select
+        f.id as feladat_id,
+        f.kerdes,                                  -- 1. kérdés
+        f.helyes_valaszok,                         -- 2. helyes megoldás(ok)
+        tf.adott_valasz,                           -- 3. felhasználó válasza
+        tm.id as temakor_id,
+        tm.nev as temakor,                         -- 4. témakör
+        coalesce(tf.elert_pont, 0)::float as elert_pont,  -- 5. kapott pont
+        f.pont as max_pont                         -- 6. járó pont
+      from teszt_feladatok tf
+      join feladatok f on f.id = tf.feladat_id
+      join temakorok tm on tm.id = f.temakor_id
+      where tf.teszt_id = ${testId}
+      order by tf.id
+    `
+
+    res.json({ teszt_id: testId, feladatok })
+  } catch (err) {
+    next(err)
+  }
+})
+
 
 
 export default router

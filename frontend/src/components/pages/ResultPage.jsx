@@ -1,5 +1,7 @@
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useLocation, Navigate } from "react-router-dom";
+import { apiFetch } from "../../lib/apiClient";
 import TaskCard from "../ui/CorrectedTaskCard";
 
 const mockResult = {
@@ -21,54 +23,7 @@ const topicResults = [
     { name: "Függvénytan", earned: 18, max: 25 },
 ];
 
-const questions = [
-    {
-        id: 1,
-        title: "Másodfokú egyenletek",
-        topic: "Algebra",
-        question: "Oldja meg a következő egyenletet a valós számok halmazán: 2x² - 5x + 2 = 0.",
-        userAnswer: "x₁ = 2, x₂ = 0,5",
-        correctAnswer: "x₁ = 2, x₂ = 0,5",
-        earned: 4,
-        max: 4,
-        explanation: [
-            "Az egyenletet nullára rendezett másodfokú egyenletként kezeljük.",
-            "A megoldóképlet alkalmazásával meghatározzuk a gyököket.",
-            "A két megoldás: x₁ = 2 és x₂ = 0,5.",
-        ],
-    },
-    {
-        id: 2,
-        title: "Geometriai sorozatok",
-        topic: "Geometria",
-        question: "Egy mértani sorozat első tagja 3, a hányadosa 2. Mennyi az első tíz tag összege?",
-        userAnswer: "1536",
-        correctAnswer: "3069",
-        earned: 0,
-        max: 6,
-        explanation: [
-            "Azonosítsuk az adatokat: a₁ = 3, q = 2, n = 10.",
-            "Alkalmazzuk a mértani sorozat összegképletét: Sₙ = a₁ · (qⁿ - 1) / (q - 1).",
-            "Helyettesítsünk be: S₁₀ = 3 · (2¹⁰ - 1) / (2 - 1).",
-            "Az eredmény: 3069.",
-        ],
-    },
-    {
-        id: 3,
-        title: "Trigonometrikus függvények",
-        topic: "Függvénytan",
-        question: "Adja meg a sin(x) = 0,5 egyenlet megoldásait a [0, 2π] intervallumon.",
-        userAnswer: "x = π/6",
-        correctAnswer: "x₁ = π/6, x₂ = 5π/6",
-        earned: 3,
-        max: 5,
-        explanation: [
-            "Keressük meg azokat a szögeket, amelyek szinusza 0,5.",
-            "Az első megoldás π/6.",
-            "A második megoldás 5π/6.",
-        ],
-    },
-];
+
 
 const getStatus = (question) => {
     if (question.earned === question.max) return "correct";
@@ -76,44 +31,81 @@ const getStatus = (question) => {
     return "partial";
 };
 
-const statusConfig = {
-    correct: {
-        label: "Helyes",
-        icon: "check_circle",
-        color: "text-emerald-700",
-        badge: "bg-emerald-50 border-emerald-200",
-        border: "border-emerald-500",
-    },
-    incorrect: {
-        label: "Hibás",
-        icon: "cancel",
-        color: "text-red-700",
-        badge: "bg-red-50 border-red-200",
-        border: "border-red-500",
-    },
-    partial: {
-        label: "Részben helyes",
-        icon: "warning",
-        color: "text-amber-700",
-        badge: "bg-amber-50 border-amber-200",
-        border: "border-amber-500",
-    },
-};
+
 
 function ResultPage() {
     const [filter, setFilter] = useState("all");
     const [expandedQuestions, setExpandedQuestions] = useState([2]);
 
+    const [osszesito, setOsszesito] = useState(null);
+    const [feladatok, setFeladatok] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    const { state } = useLocation();
+
+    // ha valaki közvetlenül, állapot nélkül nyitja meg az oldalt
+    if (!state?.result) {
+        return <Navigate to="/" replace />;
+    }
+
+    const { result } = state;
+    console.log(result)
+
+    
+
+    useEffect(() => {
+        let cancelled = false;
+
+        const loadData = async () => {
+            setLoading(true);
+            setError(null);
+
+            try {
+                // a két API párhuzamosan hívódik meg
+                const [osszesitoRes, feladatokRes] = await Promise.all([
+                    apiFetch(`/correctionroutes/result/${result.teszt_id}`),
+                    apiFetch(`/correctionroutes/correctedtasks/${result.teszt_id}`),
+                ]);
+
+                if (cancelled) return;
+
+                setOsszesito(osszesitoRes);
+                setFeladatok(feladatokRes.feladatok);
+                console.log(osszesitoRes)
+                console.log(feladatokRes.feladatok)
+            } catch (err) {
+                if (cancelled) return;
+                console.error("Eredmény lekérési hiba:", err);
+                setError("Nem sikerült betölteni az eredményt.");
+            } finally {
+                if (!cancelled) setLoading(false);
+            }
+        };
+
+        loadData();
+
+        // cleanup: ha az oldal elhagyásakor még fut a kérés, ne állítson state-et
+        return () => {
+            cancelled = true;
+        };
+    }, [result]);
+
+    if (loading) return <p>Betöltés...</p>;
+    if (error) return <p>{error}</p>;
+    if (!osszesito) return null;
+
     const percentage = Math.round(
         (mockResult.totalPoints / mockResult.maxPoints) * 100
     );
 
+    /*
     const filteredQuestions = questions.filter((question) => {
         if (filter === "incorrect") {
             return getStatus(question) !== "correct";
         }
         return true;
-    });
+    });*/
 
     const toggleExplanation = (id) => {
         setExpandedQuestions((prev) =>
@@ -284,6 +276,7 @@ function ResultPage() {
                         </div>
 
                         <div className="flex items-center gap-1 p-1 bg-[#EAE5F1] rounded-xl w-fit">
+                        {/*
                             <button
                                 onClick={() => setFilter("all")}
                                 className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
@@ -305,6 +298,7 @@ function ResultPage() {
                             >
                                 Hibák ({questions.filter(q => getStatus(q) !== "correct").length})
                             </button>
+                        */}
                         </div>
                     </div>
 
