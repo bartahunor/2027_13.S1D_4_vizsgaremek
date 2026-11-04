@@ -1040,7 +1040,7 @@ namespace TudasterAdmin
             {
                 byte[] bytes = await File.ReadAllBytesAsync(dialog.FileName);
 
-                var ai = new GeminiService();
+                var ai = new GeminiService(useAnswerKeyApiKey: true);
                 AiAnswerKeyDto key = await ai.ParseAnswerKeyAsync(bytes, _draft);
 
                 // Hibakereséshez: a nyers eredmény a %TEMP% mappában

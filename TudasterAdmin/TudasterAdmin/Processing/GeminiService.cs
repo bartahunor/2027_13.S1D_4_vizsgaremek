@@ -118,20 +118,49 @@ namespace TudasterAdmin.Processing
         private readonly string _apiKey;
         private readonly string _model;
         private readonly string _fallbackModel;
-        public GeminiService()
+        public GeminiService(bool useAnswerKeyApiKey = false)
         {
             var config = new ConfigurationBuilder()
                 .AddUserSecrets<GeminiService>()
                 .AddEnvironmentVariables()
                 .Build();
 
-            _apiKey = config["Gemini:ApiKey"] ?? config["GEMINI_API_KEY"] ?? "";
-            if (string.IsNullOrWhiteSpace(_apiKey))
-                throw new InvalidOperationException(
-                    "Nem találom az API-kulcsot. A user secretsben a kulcs neve: Gemini:ApiKey");
+            if (useAnswerKeyApiKey)
+            {
+                _apiKey = config["Gemini:AnswerKeyApiKey"]
+                    ?? config["GEMINI_ANSWER_KEY_API_KEY"]
+                    ?? "";
 
-            _model = config["Gemini:Model"] ?? config["GEMINI_MODEL"] ?? "gemini-3.8-flash";
-            _fallbackModel = config["Gemini:FallbackModel"] ?? config["GEMINI_FALLBACK_MODEL"] ?? "";
+                _model = config["Gemini:AnswerKeyModel"]
+                    ?? config["GEMINI_ANSWER_KEY_MODEL"]
+                    ?? "gemini-3.8-flash";
+
+                _fallbackModel = config["Gemini:AnswerKeyFallbackModel"]
+                    ?? config["GEMINI_ANSWER_KEY_FALLBACK_MODEL"]
+                    ?? "";
+            }
+            else
+            {
+                _apiKey = config["Gemini:ExamApiKey"]
+                    ?? config["GEMINI_EXAM_API_KEY"]
+                    ?? "";
+
+                _model = config["Gemini:ExamModel"]
+                    ?? config["GEMINI_EXAM_MODEL"]
+                    ?? "gemini-3.8-flash";
+
+                _fallbackModel = config["Gemini:ExamFallbackModel"]
+                    ?? config["GEMINI_EXAM_FALLBACK_MODEL"]
+                    ?? "";
+            }
+
+            if (string.IsNullOrWhiteSpace(_apiKey))
+            {
+                throw new InvalidOperationException(
+                    useAnswerKeyApiKey
+                        ? "Nem található a megoldókulcs API-kulcsa. Gemini:AnswerKeyApiKey"
+                        : "Nem található a feladatlap API-kulcsa. Gemini:ExamApiKey");
+            }
         }
 
         // ---------- Utasítások ----------
@@ -139,7 +168,7 @@ namespace TudasterAdmin.Processing
             Ez egy magyar érettségi írásbeli feladatlap PDF-je. Add vissza a feladatait a megadott JSON-szerkezetben.
 
             Szabályok:
-            - Hagyd ki a címoldalt, a tudnivalók oldalait, az üres oldalakat, a fejléceket és lábléceket, az oldalszámokat, valamint az értékelő tanár által kitöltendő pontozó táblázatot.
+            - Hagyd ki a címoldalt, a tudnivalók oldalait, az üres oldalakat, a fejléceket és lábléceket, az oldalszámokat, valamint az értékelő tanár által kitöltendő pontozó táblázatot illetve az esszé feladarokat.
             - A feladatok és a forrásszövegek szövegét SZÓ SZERINT másold át. Ne javítsd, ne rövidítsd, ne fordítsd, ne foglald össze.
             - Minden feladat a saját sorszámát kapja (number). A forrásszövegben, idézetben vagy felsorolásban szereplő számok NEM új feladatok.
             - A forrásszövegeket a sources tömbbe tedd ("f1", "f2", ... kulccsal), a feladat sourceKey mezője hivatkozzon rá. Ha több feladat ugyanazt a forrást használja, ugyanazt a kulcsot kapják. Ha nincs forrás, sourceKey null.
@@ -321,13 +350,14 @@ namespace TudasterAdmin.Processing
                     // Nem átmeneti hiba (rossz kulcs, rossz kérés, nincs ilyen modell): nincs értelme újrapróbálni.
                     if (!retryable)
                     {
-                        string shortPayload = payload.Length > 600 ? payload.Substring(0, 600) : payload;
-                        throw new InvalidOperationException($"Gemini hiba ({status}): {shortPayload}");
+                        throw new InvalidOperationException(
+                            $"Gemini hiba ({status}):\n{payload}");
                     }
 
                     last = new InvalidOperationException(
-                        $"A Gemini szolgáltatás jelenleg túlterhelt vagy nem elérhető (hibakód: {status}, modell: {model}). " +
-                        "Próbáld újra néhány perc múlva.");
+                        $"Gemini hiba ({status})\n" +
+                        $"Modell: {model}\n" +
+                        $"Részletes válasz:\n{payload}");
 
                     if (attempt < maxAttempts - 1)
                     {
