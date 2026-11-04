@@ -129,8 +129,7 @@
               "RelativeToolTip": "..\\..\\..\\..\\AppData\\Roaming\\Microsoft\\UserSecrets\\bc11a4cc-92d0-46ca-92de-cd40f602e208\\secrets.json",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAkAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2026-10-21T09:01:31.78Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-10-21T09:01:31.78Z"
             },
             {
               "$type": "Document",
@@ -150,9 +149,9 @@
               "Title": "GeminiService.cs",
               "DocumentMoniker": "C:\\Users\\KeseruFruzsina\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\Processing\\GeminiService.cs",
               "RelativeDocumentMoniker": "TudasterAdmin\\Processing\\GeminiService.cs",
-              "ToolTip": "C:\\Users\\KeseruFruzsina\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\Processing\\GeminiService.cs",
-              "RelativeToolTip": "TudasterAdmin\\Processing\\GeminiService.cs",
-              "ViewState": "AgIAAE4BAAAAAAAAAAAhwGcBAAA5AAAAAAAAAA==",
+              "ToolTip": "C:\\Users\\KeseruFruzsina\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\Processing\\GeminiService.cs*",
+              "RelativeToolTip": "TudasterAdmin\\Processing\\GeminiService.cs*",
+              "ViewState": "AgIAAHEAAAAAAAAAAAAhwHYAAAAnAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-10-20T08:43:54.99Z",
               "EditorCaption": ""
@@ -167,8 +166,7 @@
               "RelativeToolTip": "TudasterAdmin\\DraftEditorWindow.cs",
               "ViewState": "AgIAAAIEAAAAAAAAAAAhwBIEAABFAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-10-21T09:39:13.344Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-10-21T09:39:13.344Z"
             },
             {
               "$type": "Document",
@@ -180,8 +178,7 @@
               "RelativeToolTip": "TudasterAdmin\\Processing\\AnswerKeyMapper.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAN0AAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-11-04T07:38:51.743Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-11-04T07:38:51.743Z"
             },
             {
               "$type": "Document",
