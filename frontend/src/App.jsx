@@ -8,7 +8,7 @@ import HomePage from './components/pages/HomePage'
 import LoginPage from './components/pages/LoginPage'
 import RegisterPage from './components/pages/RegisterPage'
 import TaskSelection from './components/pages/TaskType'
-
+import ResultPage from './components/pages/ResultPage'
 import PracticePage from './components/pages/Practice'
 import ProfilePage from './components/pages/Profile'
 
@@ -43,6 +43,15 @@ export default function App() {
               element={
                 <ProtectedRoute>
                   <PracticePage />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/result"
+              element={
+                <ProtectedRoute>
+                  <ResultPage/>
                 </ProtectedRoute>
               }
             />

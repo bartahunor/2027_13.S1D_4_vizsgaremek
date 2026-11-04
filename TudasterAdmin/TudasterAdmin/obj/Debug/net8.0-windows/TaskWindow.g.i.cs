@@ -116,7 +116,7 @@ namespace TudasterAdmin {
                 return;
             }
             _contentLoaded = true;
-            System.Uri resourceLocater = new System.Uri("/TudasterAdmin;V1.0.0.0;component/taskwindow.xaml", System.UriKind.Relative);
+            System.Uri resourceLocater = new System.Uri("/TudasterAdmin;component/taskwindow.xaml", System.UriKind.Relative);
             
             #line 1 "..\..\..\TaskWindow.xaml"
             System.Windows.Application.LoadComponent(this, resourceLocater);
