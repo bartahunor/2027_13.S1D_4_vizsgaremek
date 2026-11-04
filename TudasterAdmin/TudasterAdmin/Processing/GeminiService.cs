@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
@@ -12,7 +13,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace TudasterAdmin.Processing
 {
-    // ---------- A modell által visszaadott szerkezet ----------
+    // ---------- A feladatlap beolvasásának szerkezete ----------
     internal class AiExamDto
     {
         public string Subject { get; set; } = "";
@@ -74,6 +75,35 @@ namespace TudasterAdmin.Processing
         public string? Note { get; set; }
     }
 
+    // ---------- A megoldókulcs beolvasásának szerkezete ----------
+    internal class AiAnswerKeyDto
+    {
+        public string Subject { get; set; } = "";
+        public string Level { get; set; } = "";
+        public int? Year { get; set; }
+        public string? Period { get; set; }
+        public int? TotalPoints { get; set; }
+        public List<AiAnswerDto> Answers { get; set; } = new();
+    }
+
+    internal class AiAnswerDto
+    {
+        public int Number { get; set; }
+        public List<string> CorrectAnswers { get; set; } = new();
+        public string? Solution { get; set; }
+        public int? Points { get; set; }
+        public List<AiTableAnswerDto> TableAnswers { get; set; } = new();
+        public bool Uncertain { get; set; }
+        public string? Note { get; set; }
+    }
+
+    internal class AiTableAnswerDto
+    {
+        public int Row { get; set; }
+        public int Column { get; set; }
+        public string Value { get; set; } = "";
+    }
+
     // ---------- Gemini hívás ----------
     internal class GeminiService
     {
@@ -87,7 +117,7 @@ namespace TudasterAdmin.Processing
 
         private readonly string _apiKey;
         private readonly string _model;
-
+        private readonly string _fallbackModel;
         public GeminiService()
         {
             var config = new ConfigurationBuilder()
@@ -101,8 +131,10 @@ namespace TudasterAdmin.Processing
                     "Nem találom az API-kulcsot. A user secretsben a kulcs neve: Gemini:ApiKey");
 
             _model = config["Gemini:Model"] ?? config["GEMINI_MODEL"] ?? "gemini-3.8-flash";
+            _fallbackModel = config["Gemini:FallbackModel"] ?? config["GEMINI_FALLBACK_MODEL"] ?? "";
         }
 
+        // ---------- Utasítások ----------
         private const string BasePrompt = """
             Ez egy magyar érettségi írásbeli feladatlap PDF-je. Add vissza a feladatait a megadott JSON-szerkezetben.
 
@@ -122,6 +154,23 @@ namespace TudasterAdmin.Processing
             - Ha egy feladatnál bizonytalan vagy, uncertain legyen true, és írd a note mezőbe, miért.
             - subject, level ("közép" vagy "emelt"), year (a vizsga éve egész számként), period ("május" vagy "október"), date és totalPoints (a teljes feladatlap összpontszáma) a címoldalról.
             - Ne találj ki semmit, ami nincs a dokumentumban.
+            """;
+
+        private const string AnswerKeyBasePrompt = """
+            Ez egy magyar érettségi írásbeli vizsga javítási-értékelési útmutatója (megoldókulcsa) PDF-ben. Az alább felsorolt feladatok megoldásait keresd meg benne, és add vissza a megadott JSON-szerkezetben.
+
+            Szabályok:
+            - Csak az alább felsorolt feladatokhoz adj elemet, a number a feladat sorszáma. Ha egy feladat megoldását nem találod, hagyd ki az elemet.
+            - correctAnswers: a helyes válaszok, egy elem egy válasz. Több részkérdésnél (a), b), c)) a részkérdések sorrendjében adj egy-egy elemet, az elem elején a részkérdés jelével, például "a) 12".
+            - Feleletválasztós feladatnál a helyes válasz a feladat lehetőségeinek PONTOS szövege legyen (nem a betűjel), a lehetőségek listája lent látható.
+            - Igaz-hamis feladatnál a válasz "igaz" vagy "hamis".
+            - solution: a megoldás menete, az értékelési szempontok, a várt tartalmi elemek, az elfogadható alternatív megoldások és a pontozási megjegyzések az útmutató szavaival, szó szerint. Ha az útmutató nem ad ilyet, legyen null.
+            - points: a feladatra adható maximális pontszám az útmutató szerint; ha nem látszik, null.
+            - tableAnswers: azoknál a táblázatos feladatoknál, ahol kitöltendő cellák vannak (lent felsorolva), minden kitöltendő cellához add meg a helyes értéket (row = adatsor sorszáma 1-től, column = oszlop sorszáma 1-től, pontosan a lent megadott koordináták szerint). Más feladatnál üres tömb.
+            - A matematikai képleteket LaTeX formában írd, $...$ jelek között.
+            - A szövegeket szó szerint másold. Ne javítsd, ne foglald össze, ne találj ki semmit.
+            - Ha egy feladatnál bizonytalan vagy, uncertain legyen true, és írd a note mezőbe, miért.
+            - subject, level ("közép" vagy "emelt"), year, period ("május" vagy "október") és totalPoints az útmutató címoldaláról.
             """;
 
         private static string BuildPrompt(IReadOnlyList<TopicInfo> topics)
@@ -147,61 +196,152 @@ namespace TudasterAdmin.Processing
             return sb.ToString();
         }
 
+        private static string BuildAnswerKeyPrompt(DraftExam draft)
+        {
+            var sb = new StringBuilder(AnswerKeyBasePrompt);
+            sb.AppendLine().AppendLine();
+            sb.AppendLine($"A feladatsor: {draft.Title}");
+            sb.AppendLine("Feladatok:");
+
+            foreach (var t in draft.Tasks)
+            {
+                string q = t.Question.Replace("\r", " ").Replace("\n", " ");
+                if (q.Length > 350) q = q.Substring(0, 350) + "…";
+
+                string points = t.Points.HasValue ? t.Points + " pont" : "pont ismeretlen";
+                sb.AppendLine($"{t.Number}. [{t.TypeName}, {points}] {q}");
+
+                foreach (string option in t.Options)
+                    sb.AppendLine($"   - lehetőség: {option}");
+
+                if (t.TableColumns.Count > 0)
+                    sb.AppendLine("   táblázat oszlopai: " + string.Join(" | ", t.TableColumns));
+
+                var hidden = t.TableCells
+                    .Where(c => !c.Visible)
+                    .OrderBy(c => c.Row)
+                    .ThenBy(c => c.Column)
+                    .ToList();
+                if (hidden.Count > 0)
+                    sb.AppendLine("   kitöltendő táblázatcellák (sor, oszlop): " +
+                                  string.Join("; ", hidden.Select(c => $"({c.Row},{c.Column})")));
+            }
+
+            return sb.ToString();
+        }
+
+        // ---------- Nyilvános metódusok ----------
         public async Task<AiExamDto> ParseExamAsync(
             byte[] pdfBytes, IReadOnlyList<TopicInfo> topics, CancellationToken ct = default)
         {
-            string url = $"https://generativelanguage.googleapis.com/v1beta/models/{_model}:generateContent";
+            string text = await GenerateAsync(BuildPrompt(topics), pdfBytes, BuildSchema(), ct);
+            return Deserialize<AiExamDto>(text);
+        }
 
+        public async Task<AiAnswerKeyDto> ParseAnswerKeyAsync(
+            byte[] pdfBytes, DraftExam draft, CancellationToken ct = default)
+        {
+            if (draft.Tasks.Count == 0)
+                throw new InvalidOperationException("A piszkozatban nincs feladat, amihez megoldást kereshetnénk.");
+
+            string text = await GenerateAsync(BuildAnswerKeyPrompt(draft), pdfBytes, BuildAnswerKeySchema(), ct);
+            return Deserialize<AiAnswerKeyDto>(text);
+        }
+
+        private static T Deserialize<T>(string text) where T : class
+        {
+            try
+            {
+                return JsonSerializer.Deserialize<T>(text, ReadOpts)
+                    ?? throw new InvalidOperationException("A válasz nem értelmezhető JSON.");
+            }
+            catch (JsonException)
+            {
+                throw new InvalidOperationException("A válasz nem értelmezhető JSON.");
+            }
+        }
+
+        // ---------- Közös küldés újrapróbálással ----------
+        private async Task<string> GenerateAsync(
+    string prompt, byte[] pdfBytes, object schema, CancellationToken ct)
+        {
             var body = new
             {
                 contents = new[]
                 {
-                    new
-                    {
-                        parts = new object[]
-                        {
-                            new { text = BuildPrompt(topics) },
-                            new { inlineData = new { mimeType = "application/pdf", data = Convert.ToBase64String(pdfBytes) } }
-                        }
-                    }
-                },
+            new
+            {
+                parts = new object[]
+                {
+                    new { text = prompt },
+                    new { inlineData = new { mimeType = "application/pdf", data = Convert.ToBase64String(pdfBytes) } }
+                }
+            }
+        },
                 generationConfig = new
                 {
                     temperature = 0,
                     responseMimeType = "application/json",
-                    responseSchema = BuildSchema(),
+                    responseSchema = schema,
                     maxOutputTokens = 30000
                 }
             };
 
             string json = JsonSerializer.Serialize(body, WriteOpts);
 
-            for (int attempt = 0; ; attempt++)
+            // Először a fő modell, ha az tartósan túlterhelt, akkor a tartalék (ha van beállítva).
+            var models = new List<string> { _model };
+            if (!string.IsNullOrWhiteSpace(_fallbackModel) && _fallbackModel != _model)
+                models.Add(_fallbackModel);
+
+            InvalidOperationException? last = null;
+
+            foreach (string model in models)
             {
-                using var req = new HttpRequestMessage(HttpMethod.Post, url)
+                int maxAttempts = model == _model ? 5 : 3;
+                string url = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent";
+
+                for (int attempt = 0; attempt < maxAttempts; attempt++)
                 {
-                    Content = new StringContent(json, Encoding.UTF8, "application/json")
-                };
-                req.Headers.Add("x-goog-api-key", _apiKey);
+                    using var req = new HttpRequestMessage(HttpMethod.Post, url)
+                    {
+                        Content = new StringContent(json, Encoding.UTF8, "application/json")
+                    };
+                    req.Headers.Add("x-goog-api-key", _apiKey);
 
-                using var resp = await Http.SendAsync(req, ct);
-                string payload = await resp.Content.ReadAsStringAsync(ct);
+                    using var resp = await Http.SendAsync(req, ct);
+                    string payload = await resp.Content.ReadAsStringAsync(ct);
 
-                if (resp.IsSuccessStatusCode)
-                    return ParseResponse(payload);
+                    if (resp.IsSuccessStatusCode)
+                        return ExtractText(payload);
 
-                bool retryable = resp.StatusCode == (HttpStatusCode)429 || (int)resp.StatusCode >= 500;
-                if (!retryable || attempt >= 3)
-                {
-                    string shortPayload = payload.Length > 600 ? payload.Substring(0, 600) : payload;
-                    throw new InvalidOperationException($"Gemini hiba ({(int)resp.StatusCode}): {shortPayload}");
+                    int status = (int)resp.StatusCode;
+                    bool retryable = status == 429 || status >= 500;
+
+                    // Nem átmeneti hiba (rossz kulcs, rossz kérés, nincs ilyen modell): nincs értelme újrapróbálni.
+                    if (!retryable)
+                    {
+                        string shortPayload = payload.Length > 600 ? payload.Substring(0, 600) : payload;
+                        throw new InvalidOperationException($"Gemini hiba ({status}): {shortPayload}");
+                    }
+
+                    last = new InvalidOperationException(
+                        $"A Gemini szolgáltatás jelenleg túlterhelt vagy nem elérhető (hibakód: {status}, modell: {model}). " +
+                        "Próbáld újra néhány perc múlva.");
+
+                    if (attempt < maxAttempts - 1)
+                    {
+                        // 5, 10, 20, 40 másodperc + egy kis véletlen eltérés
+                        double wait = Math.Min(60, 5 * Math.Pow(2, attempt)) + Random.Shared.NextDouble() * 3;
+                        await Task.Delay(TimeSpan.FromSeconds(wait), ct);
+                    }
                 }
-
-                await Task.Delay(TimeSpan.FromSeconds(5 * Math.Pow(3, attempt)), ct);
             }
+
+            throw last ?? new InvalidOperationException("Ismeretlen hiba a Gemini hívásakor.");
         }
 
-        private static AiExamDto ParseResponse(string payload)
+        private static string ExtractText(string payload)
         {
             var root = JsonNode.Parse(payload);
             var cand = root?["candidates"]?[0];
@@ -222,18 +362,18 @@ namespace TudasterAdmin.Processing
             {
                 string? block = root?["promptFeedback"]?["blockReason"]?.GetValue<string>();
                 throw new InvalidOperationException(
-                    "A modell nem adott vissza szöveget." + (block != null ? $" Tiltás oka: {block}." : $" finishReason: {finish}."));
+                    "A modell nem adott vissza szöveget." +
+                    (block != null ? $" Tiltás oka: {block}." : $" finishReason: {finish}."));
             }
 
             if (finish == "MAX_TOKENS")
                 throw new InvalidOperationException(
-                    "A válasz levágódott (túl hosszú a feladatlap egy kéréshez). Küldd két részletben.");
+                    "A válasz levágódott (túl hosszú a dokumentum egy kéréshez).");
 
-            var dto = JsonSerializer.Deserialize<AiExamDto>(sb.ToString(), ReadOpts);
-            return dto ?? throw new InvalidOperationException("A válasz nem értelmezhető JSON.");
+            return sb.ToString();
         }
 
-        // ---------- A kért JSON-séma ----------
+        // ---------- JSON-sémák ----------
         private static object Str(bool nullable = false) => new { type = "STRING", nullable };
         private static object Int(bool nullable = false) => new { type = "INTEGER", nullable };
         private static object Bool() => new { type = "BOOLEAN" };
@@ -263,7 +403,6 @@ namespace TudasterAdmin.Processing
                 ["rows"] = Arr(Obj(new Dictionary<string, object> { ["cells"] = Arr(cell) }, "cells"))
             }, "columns", "rows");
 
-            // A típusneveket igazítsd a feladat_tipusok tábla soraihoz.
             var task = Obj(new Dictionary<string, object>
             {
                 ["number"] = Int(),
@@ -302,6 +441,37 @@ namespace TudasterAdmin.Processing
                 ["sources"] = Arr(source),
                 ["tasks"] = Arr(task)
             }, "subject", "level", "sources", "tasks");
+        }
+
+        private static object BuildAnswerKeySchema()
+        {
+            var tableAnswer = Obj(new Dictionary<string, object>
+            {
+                ["row"] = Int(),
+                ["column"] = Int(),
+                ["value"] = Str()
+            }, "row", "column", "value");
+
+            var answer = Obj(new Dictionary<string, object>
+            {
+                ["number"] = Int(),
+                ["correctAnswers"] = Arr(Str()),
+                ["solution"] = Str(true),
+                ["points"] = Int(true),
+                ["tableAnswers"] = Arr(tableAnswer),
+                ["uncertain"] = Bool(),
+                ["note"] = Str(true)
+            }, "number", "correctAnswers", "tableAnswers", "uncertain");
+
+            return Obj(new Dictionary<string, object>
+            {
+                ["subject"] = Str(),
+                ["level"] = Str(),
+                ["year"] = Int(true),
+                ["period"] = Str(true),
+                ["totalPoints"] = Int(true),
+                ["answers"] = Arr(answer)
+            }, "subject", "level", "answers");
         }
     }
 }
