@@ -78,6 +78,11 @@ namespace TudasterAdmin.Processing
             Directory.CreateDirectory(DraftDir(draft.Id));
             File.Copy(pdfPath, Path.Combine(DraftDir(draft.Id), "source.pdf"), overwrite: true);
         }
+        public static void SaveAnswerKeyCopy(DraftExam draft, string pdfPath)
+        {
+            Directory.CreateDirectory(DraftDir(draft.Id));
+            File.Copy(pdfPath, Path.Combine(DraftDir(draft.Id), "answerkey.pdf"), overwrite: true);
+        }
 
         public static string? ImagePath(DraftExam draft, string? fileName) =>
             string.IsNullOrEmpty(fileName) ? null : Path.Combine(ImagesDir(draft.Id), fileName);
