@@ -1,5 +1,6 @@
 
 import { useState } from "react";
+import TaskCard from "../ui/CorrectedTaskCard";
 
 const mockResult = {
     subject: "Matematika",
@@ -307,121 +308,9 @@ function ResultPage() {
                         </div>
                     </div>
 
-                    <div className="space-y-4">
-                        {filteredQuestions.map((question) => {
-                            const status = getStatus(question);
-                            const config = statusConfig[status];
-                            const expanded = expandedQuestions.includes(question.id);
+                    <TaskCard />
 
-                            return (
-                                <article
-                                    key={question.id}
-                                    className="bg-white rounded-2xl border border-[#351F5B]/10 shadow-sm overflow-hidden hover:shadow-md transition-shadow"
-                                >
-                                    <div className={`p-5 sm:p-6 border-l-4 ${config.border}`}>
-                                        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-4">
-                                            <div>
-                                                <div className="flex flex-wrap items-center gap-2 mb-2">
-                                                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs font-bold ${config.badge} ${config.color}`}>
-                                                        <span className="material-symbols-outlined text-sm">
-                                                            {config.icon}
-                                                        </span>
-                                                        {config.label}
-                                                    </span>
-
-                                                    <span className="text-xs text-[#8A8196]">
-                                                        {question.topic}
-                                                    </span>
-                                                </div>
-
-                                                <h3 className="text-lg font-bold text-[#351F5B]">
-                                                    {question.id}. feladat: {question.title}
-                                                </h3>
-                                            </div>
-
-                                            <span className="font-bold text-[#351F5B] whitespace-nowrap">
-                                                {question.earned}/{question.max} pont
-                                            </span>
-                                        </div>
-
-                                        <p className="text-sm sm:text-base text-[#514760] leading-relaxed mb-5">
-                                            {question.question}
-                                        </p>
-
-                                        <div className="space-y-3">
-                                            <div className="rounded-xl bg-[#F4F2F8] border border-[#351F5B]/10 p-4">
-                                                <p className="text-xs font-bold text-[#756B83] uppercase tracking-wide mb-2">
-                                                    A te válaszod
-                                                </p>
-                                                <p className="text-sm font-medium text-[#35284B]">
-                                                    {question.userAnswer || "Nem adtál meg választ."}
-                                                </p>
-                                            </div>
-
-                                            {status !== "correct" && (
-                                                <div className="rounded-xl bg-emerald-50 border border-emerald-100 p-4">
-                                                    <p className="text-xs font-bold text-emerald-700 uppercase tracking-wide mb-2">
-                                                        Helyes válasz
-                                                    </p>
-                                                    <p className="text-sm font-medium text-emerald-800">
-                                                        {question.correctAnswer}
-                                                    </p>
-                                                </div>
-                                            )}
-                                        </div>
-
-                                        <button
-                                            onClick={() => toggleExplanation(question.id)}
-                                            className="mt-5 flex items-center gap-2 text-sm font-bold text-[#4B2A7F] hover:text-[#24123D] transition-colors"
-                                        >
-                                            <span className="material-symbols-outlined text-lg">
-                                                menu_book
-                                            </span>
-                                            Javítási útmutató
-                                            <span className={`material-symbols-outlined text-lg transition-transform ${expanded ? "rotate-180" : ""}`}>
-                                                expand_more
-                                            </span>
-                                        </button>
-
-                                        {expanded && (
-                                            <div className="mt-4 p-5 rounded-xl bg-[#F8F6FB] border border-[#351F5B]/10">
-                                                <h4 className="font-bold text-[#351F5B] flex items-center gap-2 mb-4">
-                                                    <span className="material-symbols-outlined">
-                                                        format_list_numbered
-                                                    </span>
-                                                    Lépésről lépésre megoldás
-                                                </h4>
-
-                                                <div className="space-y-4">
-                                                    {question.explanation.map((step, index) => (
-                                                        <div key={index} className="flex gap-3 items-start">
-                                                            <span className="flex-shrink-0 w-7 h-7 rounded-lg bg-[#351F5B]/10 text-[#4B2A7F] flex items-center justify-center text-xs font-bold">
-                                                                {String(index + 1).padStart(2, "0")}
-                                                            </span>
-                                                            <p className="text-sm text-[#514760] leading-relaxed pt-1">
-                                                                {step}
-                                                            </p>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                </article>
-                            );
-                        })}
-
-                        {filteredQuestions.length === 0 && (
-                            <div className="bg-white rounded-2xl border border-[#351F5B]/10 p-10 text-center">
-                                <span className="material-symbols-outlined text-4xl text-[#4B2A7F]">
-                                    task_alt
-                                </span>
-                                <p className="font-semibold mt-3">
-                                    Nincs megjeleníthető feladat.
-                                </p>
-                            </div>
-                        )}
-                    </div>
+                    
                 </section>
 
                 {/* ALSÓ SEGÍTSÉG BLOKK */}
