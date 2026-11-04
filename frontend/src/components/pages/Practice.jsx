@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { apiFetch } from "../../lib/apiClient";
 import { getForrasKepUrl } from "../../lib/supabaseStorage";
 import { taskTypes, fallbackType } from "../ui/tasktypes/tasktypes.js";
@@ -39,6 +40,8 @@ function PracticePage() {
     const [elapsedSeconds, setElapsedSeconds] = useState(0);
 
     const [testId, setTestId] = useState(null);
+
+    const navigate = useNavigate();
 
     useEffect(() => {
         if (startedAt === null) return;
@@ -193,12 +196,11 @@ function PracticePage() {
     };
 
     const handleFinish = async () => {
-      if (submitting) return;
-      setSubmitting(true);
+        if (submitting) return;
+        setSubmitting(true);
 
         try {
             const submission = buildSubmission();
-            console.log("Beküldendő:", submission);
 
             const result = await apiFetch("/correctionroutes/incoming", {
                 method: "POST",
@@ -210,12 +212,16 @@ function PracticePage() {
                 }),
             });
 
-        console.log("Backend válasza:", result);
-      } catch (err) {
-        console.error("Beküldési hiba:", err);
-      } finally {
-        setSubmitting(false);
-      }
+            console.log("Backend válasza:", result);
+
+            // átirányítás az eredménnyel
+            navigate("/result", { state: { result }, replace: true });
+        } catch (err) {
+            console.error("Beküldési hiba:", err);
+            // itt érdemes hibaüzenetet megjeleníteni a felhasználónak
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     const handleNext = () => {
