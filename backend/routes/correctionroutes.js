@@ -316,7 +316,7 @@ router.get('/result/:testId', async (req, res, next) => {
   }
 })
 
-// GET /correctionroutes/eredmeny/:testId/feladatok
+// GET /correctionroutes/correctedtasks/:testId
 router.get('/correctedtasks/:testId', async (req, res, next) => {
   try {
     const felhasznaloId = req.user.id
@@ -341,21 +341,102 @@ router.get('/correctedtasks/:testId', async (req, res, next) => {
     const feladatok = await sql`
       select
         f.id as feladat_id,
-        f.kerdes,                                  -- 1. kérdés
-        f.helyes_valaszok,                         -- 2. helyes megoldás(ok)
-        tf.adott_valasz,                           -- 3. felhasználó válasza
+        f.kerdes,
+        f.helyes_valaszok,
+        f.tipus_id,
+        ft.nev as tipus,
+        tf.adott_valasz,
         tm.id as temakor_id,
-        tm.nev as temakor,                         -- 4. témakör
-        coalesce(tf.elert_pont, 0)::float as elert_pont,  -- 5. kapott pont
-        f.pont as max_pont                         -- 6. járó pont
+        tm.nev as temakor,
+        coalesce(tf.elert_pont, 0)::float as elert_pont,
+        f.pont as max_pont
       from teszt_feladatok tf
       join feladatok f on f.id = tf.feladat_id
       join temakorok tm on tm.id = f.temakor_id
+      left join feladat_tipusok ft on ft.id = f.tipus_id
       where tf.teszt_id = ${testId}
       order by tf.id
     `
 
-    res.json({ teszt_id: testId, feladatok })
+    // --- Táblázatos feladatok kiegészítése ---
+    const feladatIds = feladatok.map(f => f.feladat_id)
+
+    let oszlopok = []
+    let cellak = []
+
+    if (feladatIds.length > 0) {
+      oszlopok = await sql`
+        select feladat_id, oszlop_sorszam, oszlop_nev
+        from tablazatos_feladat_oszlopok
+        where feladat_id in ${sql(feladatIds)}
+        order by feladat_id, oszlop_sorszam
+      `
+
+      cellak = await sql`
+        select
+          id,
+          feladat_id,
+          sor_sorszam,
+          oszlop_sorszam,
+          ertek,
+          lathato
+        from tablazatos_feladat_cellak
+        where feladat_id in ${sql(feladatIds)}
+        order by feladat_id, sor_sorszam, oszlop_sorszam
+      `
+    }
+
+    // Csoportosítás feladat_id szerint
+    const oszlopokByFeladat = new Map()
+    for (const o of oszlopok) {
+      if (!oszlopokByFeladat.has(o.feladat_id)) oszlopokByFeladat.set(o.feladat_id, [])
+      oszlopokByFeladat.get(o.feladat_id).push({
+        oszlop_sorszam: o.oszlop_sorszam,
+        oszlop_nev: o.oszlop_nev,
+      })
+    }
+
+    const cellakByFeladat = new Map()
+    for (const c of cellak) {
+      if (!cellakByFeladat.has(c.feladat_id)) cellakByFeladat.set(c.feladat_id, [])
+      cellakByFeladat.get(c.feladat_id).push(c)
+    }
+
+    const eredmeny = feladatok.map(f => {
+      const feladatCellak = cellakByFeladat.get(f.feladat_id)
+
+      // Nem táblázatos feladat: változatlan marad
+      if (!feladatCellak) return f
+
+      // Táblázatos feladat: a lathato = false cellák a megoldások
+      // (ide írt a felhasználó, az ertek a helyes megoldás)
+      const megoldasok = feladatCellak
+        .filter(c => c.lathato === false)
+        .map(c => ({
+          cella_id: c.id,
+          sor_sorszam: c.sor_sorszam,
+          oszlop_sorszam: c.oszlop_sorszam,
+          helyes_ertek: c.ertek,
+        }))
+
+      return {
+        ...f,
+        tablazat: {
+          oszlopok: oszlopokByFeladat.get(f.feladat_id) ?? [],
+          // teljes rács a megjelenítéshez (látható + kitöltendő cellák)
+          cellak: feladatCellak.map(c => ({
+            cella_id: c.id,
+            sor_sorszam: c.sor_sorszam,
+            oszlop_sorszam: c.oszlop_sorszam,
+            ertek: c.lathato ? c.ertek : null, // a megoldást nem a rácsban küldjük
+            lathato: c.lathato,
+          })),
+          megoldasok,
+        },
+      }
+    })
+
+    res.json({ teszt_id: testId, feladatok: eredmeny })
   } catch (err) {
     next(err)
   }
