@@ -27,8 +27,6 @@ namespace TudasterAdmin.Processing
         public DateTime CreatedUtc { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedUtc { get; set; } = DateTime.UtcNow;
         public DateTime? UploadedUtc { get; set; }   // később: mikor került fel az adatbázisba
-        public string AnswerKeyPdfName { get; set; } = "";
-        public DateTime? AnswerKeyAppliedUtc { get; set; }
 
         public string SourcePdfName { get; set; } = "";
         public string Subject { get; set; } = "";

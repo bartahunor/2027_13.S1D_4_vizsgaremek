@@ -15,7 +15,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("TudasterAdmin")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+cd9a0ea6dc2fa2020bd5a0d9692b663970d1ca51")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+3388156bda41dffc9ab55c0d47407b06774cd4ea")]
 [assembly: System.Reflection.AssemblyProductAttribute("TudasterAdmin")]
 [assembly: System.Reflection.AssemblyTitleAttribute("TudasterAdmin")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
