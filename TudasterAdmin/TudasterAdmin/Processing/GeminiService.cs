@@ -1,5 +1,7 @@
-﻿using System;
+﻿using Microsoft.Extensions.Configuration;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Text;
@@ -8,7 +10,6 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
 
 namespace TudasterAdmin.Processing
 {
@@ -77,7 +78,7 @@ namespace TudasterAdmin.Processing
     // ---------- Gemini hívás ----------
     internal class GeminiService
     {
-        private static readonly HttpClient Http = new() { Timeout = TimeSpan.FromMinutes(5) };
+        private static readonly HttpClient Http = new() { Timeout = Timeout.InfiniteTimeSpan };
 
         private static readonly JsonSerializerOptions ReadOpts = new() { PropertyNameCaseInsensitive = true };
         private static readonly JsonSerializerOptions WriteOpts = new()
@@ -148,29 +149,31 @@ namespace TudasterAdmin.Processing
         }
 
         public async Task<AiExamDto> ParseExamAsync(
-            byte[] pdfBytes, IReadOnlyList<TopicInfo> topics, CancellationToken ct = default)
+    byte[] pdfBytes, IReadOnlyList<TopicInfo> topics, CancellationToken ct = default)
         {
-            string url = $"https://generativelanguage.googleapis.com/v1beta/models/{_model}:generateContent";
+            string url = $"https://generativelanguage.googleapis.com/v1beta/models/{_model}:streamGenerateContent?alt=sse";
 
             var body = new
             {
                 contents = new[]
                 {
-                    new
-                    {
-                        parts = new object[]
-                        {
-                            new { text = BuildPrompt(topics) },
-                            new { inlineData = new { mimeType = "application/pdf", data = Convert.ToBase64String(pdfBytes) } }
-                        }
-                    }
-                },
+            new
+            {
+                parts = new object[]
+                {
+                    new { text = BuildPrompt(topics) },
+                    new { inlineData = new { mimeType = "application/pdf", data = Convert.ToBase64String(pdfBytes) } }
+                }
+            }
+        },
                 generationConfig = new
                 {
-                    temperature = 0,
+                    // temperature szándékosan kimarad (alapérték 1.0), a 0 ciklusba ragadást okozhat
                     responseMimeType = "application/json",
                     responseSchema = BuildSchema(),
-                    maxOutputTokens = 30000
+                    maxOutputTokens = 30000,
+                    // Gemini 3: thinkingLevel. Gemini 2.5-nél ehelyett: new { thinkingBudget = 0 }
+                    thinkingConfig = new { thinkingLevel = "low" }
                 }
             };
 
@@ -178,58 +181,102 @@ namespace TudasterAdmin.Processing
 
             for (int attempt = 0; ; attempt++)
             {
-                using var req = new HttpRequestMessage(HttpMethod.Post, url)
+                using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+                cts.CancelAfter(TimeSpan.FromMinutes(10));   // teljes határidő egy próbára
+                var sw = System.Diagnostics.Stopwatch.StartNew();
+
+                try
                 {
-                    Content = new StringContent(json, Encoding.UTF8, "application/json")
-                };
-                req.Headers.Add("x-goog-api-key", _apiKey);
+                    using var req = new HttpRequestMessage(HttpMethod.Post, url)
+                    {
+                        Content = new StringContent(json, Encoding.UTF8, "application/json")
+                    };
+                    req.Headers.Add("x-goog-api-key", _apiKey);
 
-                using var resp = await Http.SendAsync(req, ct);
-                string payload = await resp.Content.ReadAsStringAsync(ct);
+                    using var resp = await Http.SendAsync(req, HttpCompletionOption.ResponseHeadersRead, cts.Token);
 
-                if (resp.IsSuccessStatusCode)
-                    return ParseResponse(payload);
+                    if (resp.IsSuccessStatusCode)
+                        return await ReadStreamAsync(resp, sw, cts.Token);
 
-                bool retryable = resp.StatusCode == (HttpStatusCode)429 || (int)resp.StatusCode >= 500;
-                if (!retryable || attempt >= 3)
+                    string payload = await resp.Content.ReadAsStringAsync(cts.Token);
+                    bool retryable = resp.StatusCode == (HttpStatusCode)429 || (int)resp.StatusCode >= 500;
+                    Console.WriteLine($"Gemini HTTP {(int)resp.StatusCode} ({sw.Elapsed.TotalSeconds:F0} mp), próba: {attempt + 1}");
+
+                    if (!retryable || attempt >= 3)
+                    {
+                        string shortPayload = payload.Length > 600 ? payload.Substring(0, 600) : payload;
+                        throw new InvalidOperationException($"Gemini hiba ({(int)resp.StatusCode}): {shortPayload}");
+                    }
+                }
+                catch (OperationCanceledException) when (!ct.IsCancellationRequested)
                 {
-                    string shortPayload = payload.Length > 600 ? payload.Substring(0, 600) : payload;
-                    throw new InvalidOperationException($"Gemini hiba ({(int)resp.StatusCode}): {shortPayload}");
+                    // saját 10 perces határidő járt le
+                    if (attempt >= 1)
+                        throw new TimeoutException("A Gemini 10 percen belül sem fejezte be a választ.");
+                    Console.WriteLine("Időtúllépés, újrapróbálom...");
+                    continue;
                 }
 
                 await Task.Delay(TimeSpan.FromSeconds(5 * Math.Pow(3, attempt)), ct);
             }
         }
 
-        private static AiExamDto ParseResponse(string payload)
+        private static async Task<AiExamDto> ReadStreamAsync(
+    HttpResponseMessage resp, System.Diagnostics.Stopwatch sw, CancellationToken ct)
         {
-            var root = JsonNode.Parse(payload);
-            var cand = root?["candidates"]?[0];
-            string? finish = cand?["finishReason"]?.GetValue<string>();
+            using var stream = await resp.Content.ReadAsStreamAsync(ct);
+            using var reader = new StreamReader(stream, Encoding.UTF8);
 
-            var sb = new StringBuilder();
-            var parts = cand?["content"]?["parts"]?.AsArray();
-            if (parts != null)
+            var text = new StringBuilder();
+            string? finish = null;
+            string? block = null;
+            int lastReport = 0;
+
+            string? line;
+            while ((line = await reader.ReadLineAsync(ct)) != null)
             {
+                if (!line.StartsWith("data:")) continue;
+
+                var chunk = JsonNode.Parse(line.Substring(5).Trim());
+                block ??= chunk?["promptFeedback"]?["blockReason"]?.GetValue<string>();
+
+                var cand = chunk?["candidates"]?[0];
+                finish = cand?["finishReason"]?.GetValue<string>() ?? finish;
+
+                var parts = cand?["content"]?["parts"]?.AsArray();
+                if (parts == null) continue;
+
                 foreach (var part in parts)
                 {
+                    if (part?["thought"]?.GetValue<bool>() == true) continue;
                     string? t = part?["text"]?.GetValue<string>();
-                    if (t != null) sb.Append(t);
+                    if (t != null) text.Append(t);
+                }
+
+                // haladás: kb. minden 2000 karakternél kiír egy sort
+                if (text.Length - lastReport >= 2000)
+                {
+                    lastReport = text.Length;
+                    Console.WriteLine($"  ... {text.Length} karakter, {sw.Elapsed.TotalSeconds:F0} mp");
                 }
             }
 
-            if (sb.Length == 0)
-            {
-                string? block = root?["promptFeedback"]?["blockReason"]?.GetValue<string>();
-                throw new InvalidOperationException(
-                    "A modell nem adott vissza szöveget." + (block != null ? $" Tiltás oka: {block}." : $" finishReason: {finish}."));
-            }
+            Console.WriteLine($"Kész: {text.Length} karakter, {sw.Elapsed.TotalSeconds:F0} mp, finishReason: {finish}");
+            return ParseResult(text.ToString(), finish, block);
+        }
 
+        private static AiExamDto ParseResult(string text, string? finish, string? block)
+        {
+            // A MAX_TOKENS ellenőrzés van elöl, mert a levágott JSON úgysem értelmezhető
             if (finish == "MAX_TOKENS")
                 throw new InvalidOperationException(
                     "A válasz levágódott (túl hosszú a feladatlap egy kéréshez). Küldd két részletben.");
 
-            var dto = JsonSerializer.Deserialize<AiExamDto>(sb.ToString(), ReadOpts);
+            if (text.Length == 0)
+                throw new InvalidOperationException(
+                    "A modell nem adott vissza szöveget." + (block != null ? $" Tiltás oka: {block}." : $" finishReason: {finish}."));
+
+            var dto = JsonSerializer.Deserialize<AiExamDto>(text, ReadOpts);
             return dto ?? throw new InvalidOperationException("A válasz nem értelmezhető JSON.");
         }
 
