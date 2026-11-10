@@ -80,7 +80,14 @@ namespace TudasterAdmin.Processing
         public int? Points { get; set; }             // pont
         public List<string> CorrectAnswers { get; set; } = new(); // helyes_valaszok
         public string TypeName { get; set; } = "";   // tipus_id -> feladat_tipusok.nev
-        public string Solution { get; set; } = "";   // megoldás menete (az adatbázisban még nincs)
+        public string Solution { get; set; } = "";   
+        public string? PartLabel { get; set; }
+        public static readonly string[] TaskTypes =
+            {
+                "tobb_opcio", "rovid_valasz", "tablazatos_feladat", "tobb_valasz", "sorba_rendezos"
+            };
+        [JsonIgnore]
+        public string DisplayNumber => string.IsNullOrEmpty(PartLabel) ? $"{Number}." : $"{Number}.{PartLabel}";
 
         // --- táblázatos feladat ---
         public List<string> TableColumns { get; set; } = new();
