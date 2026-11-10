@@ -25,6 +25,26 @@ namespace TudasterAdmin.Processing
         public List<AiSourceDto> Sources { get; set; } = new();
         public List<AiTaskDto> Tasks { get; set; } = new();
     }
+    internal class AiSolutionExamDto
+    {
+        public string Subject { get; set; } = "";
+        public string Level { get; set; } = "";
+        public int? Year { get; set; }
+        public string? Period { get; set; }
+        public List<AiSolutionDto> Solutions { get; set; } = new();
+    }
+
+    internal class AiSolutionDto
+    {
+        public int Number { get; set; }
+        public string? Part { get; set; }
+        public List<string> CorrectAnswers { get; set; } = new();
+        public string Solution { get; set; } = "";
+        public int? Points { get; set; }
+        public string KeyHint { get; set; } = "";
+        public bool Matches { get; set; } = true;
+        public string? Note { get; set; }
+    }
 
     internal class AiSourceDto
     {
@@ -154,8 +174,67 @@ namespace TudasterAdmin.Processing
             return sb.ToString();
         }
 
-        public async Task<AiExamDto> ParseExamAsync(
-    byte[] pdfBytes, IReadOnlyList<TopicInfo> topics, CancellationToken ct = default)
+        private static string BuildSolutionPrompt(DraftExam exam, IReadOnlyList<DraftTask> tasks)
+        {
+            var sb = new StringBuilder("""
+        Ez egy magyar érettségi javítási-értékelési útmutató PDF-je. Add vissza a megoldásokat a megadott JSON-szerkezetben.
+
+        Szabályok:
+        - A címoldalról töltsd ki a subject, level ("közép" vagy "emelt"), year, period ("május" vagy "október") mezőket.
+        - Csak az alább felsorolt feladatokhoz adj megoldást, a felsorolás sorszámai (number, part) szerint. Mást ne adj vissza.
+        - Ne találj ki semmit. Ha egy feladat megoldása nincs az útmutatóban, hagyd ki.
+        - correctAnswers: feleletválasztós (tobb_opcio, tobb_valasz) és sorba_rendezos típusnál a válaszlehetőségek 1-től számozott sorszámai szövegként (pl. A→"1", B→"2", C→"3"; sorba rendezésnél a helyes sorrendben). rovid_valasz típusnál az elfogadott válasz; ha több változat is elfogadott, ugyanabban az elemben, "/" jellel elválasztva. tablazatos_feladat típusnál üres tömb.
+        - solution: a megoldás menete / a javítási útmutató szövege az adott feladatra szó szerint, tömören. Ha nincs külön magyarázat, üres.
+        - points: az útmutatóban a feladatra adható pontszám egész számként, ha látszik.
+        - keyHint: az útmutatóban a feladatot azonosító szöveg szó szerint, legfeljebb 80 karakter (pl. a feladat címe vagy a kérdés eleje).
+        - matches: false, ha nem vagy nem biztos, hogy az útmutatóbeli feladat az alábbi feladatnak felel meg; a note mezőben indokold.
+
+        Feladatok (sorszám | rész | típus | pont | válaszlehetőségek száma | a kérdés eleje):
+        """);
+            sb.AppendLine().AppendLine();
+
+            foreach (var t in tasks)
+            {
+                string q = t.Question.Replace("\n", " ").Trim();
+                if (q.Length > 150) q = q.Substring(0, 150);
+                sb.AppendLine($"{t.Number} | {t.PartLabel ?? "-"} | {t.TypeName} | {(t.Points?.ToString() ?? "?")} | {t.Options.Count} | {q}");
+            }
+            return sb.ToString();
+        }
+
+        private static object BuildSolutionSchema()
+        {
+            var sol = Obj(new Dictionary<string, object>
+            {
+                ["number"] = Int(),
+                ["part"] = Str(true),
+                ["correctAnswers"] = Arr(Str()),
+                ["solution"] = Str(),
+                ["points"] = Int(true),
+                ["keyHint"] = Str(),
+                ["matches"] = Bool(),
+                ["note"] = Str(true)
+            }, "number", "correctAnswers", "solution", "keyHint", "matches");
+
+            return Obj(new Dictionary<string, object>
+            {
+                ["subject"] = Str(),
+                ["level"] = Str(),
+                ["year"] = Int(true),
+                ["period"] = Str(true),
+                ["solutions"] = Arr(sol)
+            }, "subject", "level", "solutions");
+        }
+
+        public Task<AiExamDto> ParseExamAsync(
+     byte[] pdfBytes, IReadOnlyList<TopicInfo> topics, CancellationToken ct = default)
+     => SendAsync<AiExamDto>(BuildPrompt(topics), pdfBytes, BuildSchema(), ct);
+
+        public Task<AiSolutionExamDto> ParseSolutionsAsync(
+            byte[] keyPdf, DraftExam exam, IReadOnlyList<DraftTask> tasks, CancellationToken ct = default)
+            => SendAsync<AiSolutionExamDto>(BuildSolutionPrompt(exam, tasks), keyPdf, BuildSolutionSchema(), ct);
+
+        private async Task<T> SendAsync<T>(string prompt, byte[] pdfBytes, object schema, CancellationToken ct)
         {
             string url = $"https://generativelanguage.googleapis.com/v1beta/models/{_model}:streamGenerateContent?alt=sse";
 
@@ -167,18 +246,16 @@ namespace TudasterAdmin.Processing
             {
                 parts = new object[]
                 {
-                    new { text = BuildPrompt(topics) },
+                    new { text = prompt },
                     new { inlineData = new { mimeType = "application/pdf", data = Convert.ToBase64String(pdfBytes) } }
                 }
             }
         },
                 generationConfig = new
                 {
-                    // temperature szándékosan kimarad (alapérték 1.0), a 0 ciklusba ragadást okozhat
                     responseMimeType = "application/json",
-                    responseSchema = BuildSchema(),
+                    responseSchema = schema,
                     maxOutputTokens = 30000,
-                    // Gemini 3: thinkingLevel. Gemini 2.5-nél ehelyett: new { thinkingBudget = 0 }
                     thinkingConfig = new { thinkingLevel = "low" }
                 }
             };
@@ -188,7 +265,7 @@ namespace TudasterAdmin.Processing
             for (int attempt = 0; ; attempt++)
             {
                 using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
-                cts.CancelAfter(TimeSpan.FromMinutes(10));   // teljes határidő egy próbára
+                cts.CancelAfter(TimeSpan.FromMinutes(10));
                 var sw = System.Diagnostics.Stopwatch.StartNew();
 
                 try
@@ -202,7 +279,7 @@ namespace TudasterAdmin.Processing
                     using var resp = await Http.SendAsync(req, HttpCompletionOption.ResponseHeadersRead, cts.Token);
 
                     if (resp.IsSuccessStatusCode)
-                        return await ReadStreamAsync(resp, sw, cts.Token);
+                        return await ReadStreamAsync<T>(resp, sw, cts.Token);
 
                     string payload = await resp.Content.ReadAsStringAsync(cts.Token);
                     bool retryable = resp.StatusCode == (HttpStatusCode)429 || (int)resp.StatusCode >= 500;
@@ -216,10 +293,15 @@ namespace TudasterAdmin.Processing
                 }
                 catch (OperationCanceledException) when (!ct.IsCancellationRequested)
                 {
-                    // saját 10 perces határidő járt le
                     if (attempt >= 1)
                         throw new TimeoutException("A Gemini 10 percen belül sem fejezte be a választ.");
                     Console.WriteLine("Időtúllépés, újrapróbálom...");
+                    continue;
+                }
+                catch (RetryableAiException ex)
+                {
+                    Console.WriteLine($"{ex.Message} Újrapróbálom... (próba: {attempt + 1})");
+                    if (attempt >= 2) throw new InvalidOperationException(ex.Message);
                     continue;
                 }
 
@@ -227,8 +309,8 @@ namespace TudasterAdmin.Processing
             }
         }
 
-        private static async Task<AiExamDto> ReadStreamAsync(
-    HttpResponseMessage resp, System.Diagnostics.Stopwatch sw, CancellationToken ct)
+        private static async Task<T> ReadStreamAsync<T>(
+            HttpResponseMessage resp, System.Diagnostics.Stopwatch sw, CancellationToken ct)
         {
             using var stream = await resp.Content.ReadAsStreamAsync(ct);
             using var reader = new StreamReader(stream, Encoding.UTF8);
@@ -259,7 +341,6 @@ namespace TudasterAdmin.Processing
                     if (t != null) text.Append(t);
                 }
 
-                // haladás: kb. minden 2000 karakternél kiír egy sort
                 if (text.Length - lastReport >= 2000)
                 {
                     lastReport = text.Length;
@@ -268,12 +349,11 @@ namespace TudasterAdmin.Processing
             }
 
             Console.WriteLine($"Kész: {text.Length} karakter, {sw.Elapsed.TotalSeconds:F0} mp, finishReason: {finish}");
-            return ParseResult(text.ToString(), finish, block);
+            return ParseResult<T>(text.ToString(), finish, block);
         }
 
-        private static AiExamDto ParseResult(string text, string? finish, string? block)
+        private static T ParseResult<T>(string text, string? finish, string? block)
         {
-            // A MAX_TOKENS ellenőrzés van elöl, mert a levágott JSON úgysem értelmezhető
             if (finish == "MAX_TOKENS")
                 throw new InvalidOperationException(
                     "A válasz levágódott (túl hosszú a feladatlap egy kéréshez). Küldd két részletben.");
@@ -282,8 +362,29 @@ namespace TudasterAdmin.Processing
                 throw new InvalidOperationException(
                     "A modell nem adott vissza szöveget." + (block != null ? $" Tiltás oka: {block}." : $" finishReason: {finish}."));
 
-            var dto = JsonSerializer.Deserialize<AiExamDto>(text, ReadOpts);
-            return dto ?? throw new InvalidOperationException("A válasz nem értelmezhető JSON.");
+            try { File.WriteAllText(Path.Combine(Path.GetTempPath(), "gemini_last.json"), text); } catch { }
+
+            if (finish == "RECITATION" || finish == "SAFETY")
+                throw new InvalidOperationException(
+                    $"A modell leállt ({finish}). Valószínűleg a szó szerint másolt szöveg miatt.");
+
+            if (finish != "STOP")
+                throw new RetryableAiException($"A válasz félbeszakadt (finishReason: {finish ?? "nincs"}).");
+
+            try
+            {
+                var dto = JsonSerializer.Deserialize<T>(text, ReadOpts);
+                return dto ?? throw new RetryableAiException("A válasz nem értelmezhető JSON.");
+            }
+            catch (JsonException ex)
+            {
+                string tail = text.Length > 200 ? text.Substring(text.Length - 200) : text;
+                throw new RetryableAiException($"Hibás JSON: {ex.Message} | A válasz vége: {tail}");
+            }
+        }
+        internal class RetryableAiException : Exception
+        {
+            public RetryableAiException(string message) : base(message) { }
         }
 
         // ---------- A kért JSON-séma ----------

@@ -11,10 +11,9 @@ namespace TudasterAdmin.Processing
     internal static class DraftDefaults
     {
         public static readonly string[] TaskTypes =
-        {
-            "feleletvalasztos", "igaz_hamis", "parositas", "tablazatos",
-            "esszé", "szamitas", "tobbReszes", "rovid_valasz"
-        };
+{
+    "tobb_opcio", "rovid_valasz", "tablazatos_feladat", "tobb_valasz", "sorba_rendezos"
+};
 
         public static readonly string[] Levels = { "Középszint", "Emelt szint" };
         public static readonly string[] Periods = { "május", "október" };
@@ -88,6 +87,7 @@ namespace TudasterAdmin.Processing
             };
         [JsonIgnore]
         public string DisplayNumber => string.IsNullOrEmpty(PartLabel) ? $"{Number}." : $"{Number}.{PartLabel}";
+        public string SolutionHint { get; set; } = "";
 
         // --- táblázatos feladat ---
         public List<string> TableColumns { get; set; } = new();
@@ -108,13 +108,21 @@ namespace TudasterAdmin.Processing
     {
         public static List<string> Missing(DraftExam exam, DraftTask t)
         {
+
+
             var list = new List<string>();
             if (string.IsNullOrWhiteSpace(t.Question)) list.Add("kérdés");
             if (!t.Points.HasValue) list.Add("pont");
             if (string.IsNullOrWhiteSpace(t.TypeName)) list.Add("típus");
             if (!t.TopicId.HasValue) list.Add("témakör");
+            if (!HasSolution(t)) list.Add("megoldás");
             return list;
         }
+        public static bool HasSolution(DraftTask t) =>
+    t.CorrectAnswers.Count > 0
+    || !string.IsNullOrWhiteSpace(t.Solution)
+    || (t.TypeName == "tablazatos_feladat"
+        && t.TableCells.Any(c => !c.Visible && !string.IsNullOrWhiteSpace(c.Value)));
 
         public static List<string> MissingForExam(DraftExam exam)
         {

@@ -1163,6 +1163,41 @@ namespace TudasterAdmin
                 });
                 Grid.SetColumn(info, 0);
                 row.Children.Add(info);
+                var full = DraftStore.Load(d.Id);
+                int total = full?.Tasks.Count ?? d.TaskCount;
+                var without = full?.Tasks.Where(t => !DraftValidator.HasSolution(t)).ToList()
+                              ?? new List<DraftTask>();
+                int withKey = total - without.Count;
+
+                string keyText;
+                Brush keyBrush;
+                if (without.Count == 0)
+                {
+                    keyText = $"✓ Megoldókulcs: mind a {total} feladathoz van";
+                    keyBrush = Brushes.Green;
+                }
+                else if (withKey == 0)
+                {
+                    keyText = "⚠ Megoldókulcs: még nincs importálva";
+                    keyBrush = Brushes.DarkOrange;
+                }
+                else
+                {
+                    string list = string.Join(", ", without.Take(10).Select(t => t.DisplayNumber.TrimEnd('.')));
+                    if (without.Count > 10) list += $" … (+{without.Count - 10})";
+                    keyText = $"⚠ Megoldókulcs: {withKey}/{total} feladathoz van. Hiányzik: {list}";
+                    keyBrush = Brushes.DarkOrange;
+                }
+
+                info.Children.Add(new TextBlock
+                {
+                    Text = keyText,
+                    FontSize = 13,
+                    FontWeight = FontWeights.SemiBold,
+                    TextWrapping = TextWrapping.Wrap,
+                    Foreground = keyBrush,
+                    Margin = new Thickness(0, 4, 0, 0)
+                });
 
                 var openBtn = new Button { Content = "MEGNYITÁS", Width = 120, Height = 38 };
                 var deleteBtn = new Button { Content = "TÖRLÉS", Width = 100, Height = 38, Margin = new Thickness(8, 0, 0, 0) };

@@ -9,6 +9,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using TudasterAdmin.Processing;
+using System.Threading.Tasks;
 
 namespace TudasterAdmin
 {
@@ -30,6 +31,17 @@ namespace TudasterAdmin
         private DraftTask? _current;
         private int _index = -1;
         private bool _loading;
+        private GeminiService? _gemini;      // csak az első használatkor jön létre (hiányzó API-kulcsnál itt kapsz hibát, nem az ablak nyitásakor)
+        private byte[]? _keyPdf;             // az útmutató PDF-je, egy-egy feladatnál nem kérdezzük újra
+
+        private readonly TextBlock _solutionHint = new()
+        {
+            FontSize = 12,
+            FontStyle = FontStyles.Italic,
+            TextWrapping = TextWrapping.Wrap,
+            Margin = new Thickness(0, 0, 0, 12),
+            Visibility = Visibility.Collapsed
+        };
 
         // Feladatsor adatai
         private readonly ComboBox _subjectBox = NewCombo();
@@ -263,6 +275,7 @@ namespace TudasterAdmin
             _infoText.Foreground = Res("MutedTextBrush");
             _approvedBox.Foreground = Res("TextBrush");
             _statusText.Foreground = Res("MutedTextBrush");
+            _solutionHint.Foreground = Res("MutedTextBrush");
             _imageFrame.BorderBrush = Res("BorderBrush");
             _imageFrame.Child = _imagePreview;
             _tableBox.FontFamily = new FontFamily("Consolas");
@@ -318,7 +331,11 @@ namespace TudasterAdmin
             _draftWarnings.Text = string.Join("\n", draft.Warnings.Select(w => "⚠ " + w));
             _draftWarnings.Visibility = draft.Warnings.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
 
-            head.Children.Add(Card("Feladatsor adatai", examFields, _draftWarnings));
+            var importAllButton = MakeButton("MEGOLDÁSOK IMPORTÁLÁSA PDF-BŐL…", BtnKind.Secondary);
+            importAllButton.HorizontalAlignment = HorizontalAlignment.Left;
+            importAllButton.Click += async (s, e) => await ImportSolutionsAsync(null);
+
+            head.Children.Add(Card("Feladatsor adatai", examFields, _draftWarnings, importAllButton));
             Grid.SetRow(head, 0);
             root.Children.Add(head);
 
@@ -372,11 +389,20 @@ namespace TudasterAdmin
             basics.Children.Add(Field("Témakör", BoxedLine(_topicBox, 360)));
             form.Children.Add(Card("Feladat", _infoText, _issuesText, new Border { Height = 14 }, basics));
 
+            var importOneButton = MakeButton("MEGOLDÁS BEOLVASÁSA AZ ÚTMUTATÓBÓL", BtnKind.Secondary);
+            importOneButton.HorizontalAlignment = HorizontalAlignment.Left;
+            importOneButton.Click += async (s, e) =>
+            {
+                if (_current != null) await ImportSolutionsAsync(_current);
+            };
+
             form.Children.Add(Card("Kérdés és válaszok",
                 Field("Kérdés (az a), b) részekkel együtt)", BoxedArea(_questionBox), 0),
                 Field("Válaszlehetőségek (soronként egy)", BoxedArea(_optionsBox), 0),
                 Field("Helyes válaszok (soronként egy)", BoxedArea(_correctBox), 0),
-                Field("Megoldás menete", BoxedArea(_solutionBox), 0)));
+                Field("Megoldás menete", BoxedArea(_solutionBox), 0),
+                _solutionHint,
+                importOneButton));
 
             var addImageButton = MakeButton("KÉP HOZZÁRENDELÉSE…", BtnKind.Secondary);
             addImageButton.Click += (s, e) => AddImage();
@@ -541,7 +567,7 @@ namespace TudasterAdmin
                 r.Row.Background = selected ? Res("PrimaryBrush") : Brushes.Transparent;
                 r.Status.Text = glyph;
                 r.Status.Foreground = selected ? Res("WhiteBrush") : glyphBrush;
-                r.Name.Text = $"{t.Number}. feladat";
+                r.Name.Text = $"{t.DisplayNumber} feladat";
                 r.Name.Foreground = selected ? Res("WhiteBrush") : Res("TextBrush");
                 r.Points.Text = t.Points.HasValue ? $"{t.Points} p" : "";
                 r.Points.Foreground = selected ? Res("WhiteBrush") : Res("MutedTextBrush");
@@ -597,13 +623,15 @@ namespace TudasterAdmin
             _current = t;
 
             string pages = t.PageFrom == t.PageTo ? $"{t.PageFrom}. oldal" : $"{t.PageFrom}–{t.PageTo}. oldal";
-            _infoText.Text = $"{t.Number}. feladat • {pages}"
+            _infoText.Text = $"{t.DisplayNumber} feladat • {pages}"
                 + (t.HasFigure ? " • ábra tartozik hozzá" : "")
                 + (t.AnswerLines > 0 ? $" • {t.AnswerLines} válaszsor" : "");
 
             var issues = new List<string>();
             var missing = DraftValidator.Missing(_draft, t);
             if (missing.Count > 0) issues.Add("Hiányzik: " + string.Join(", ", missing));
+            if (!DraftValidator.HasSolution(t) && t.HasFigure)
+                issues.Add("⚠ Nincs megoldás: ábrás feladat, az útmutatóból valószínűleg nem olvasható ki. Add meg kézzel.");
             issues.AddRange(t.Warnings.Select(w => "⚠ " + w));
             _issuesText.Text = string.Join("\n", issues);
             _issuesText.Visibility = issues.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
@@ -614,7 +642,12 @@ namespace TudasterAdmin
             _questionBox.Text = t.Question;
             _optionsBox.Text = string.Join("\n", t.Options);
             _correctBox.Text = string.Join("\n", t.CorrectAnswers);
-            _solutionBox.Text = t.Solution;
+            _solutionHint.Text = string.IsNullOrWhiteSpace(t.SolutionHint)
+    ? ""
+    : "Az útmutatóban: " + t.SolutionHint;
+            _solutionHint.Visibility = string.IsNullOrWhiteSpace(t.SolutionHint)
+                ? Visibility.Collapsed
+                : Visibility.Visible;
             _tableBox.Text = RenderTable(t);
             _approvedBox.IsChecked = t.Approved;
 
@@ -775,5 +808,73 @@ namespace TudasterAdmin
             _imageFrame.Visibility = Visibility.Visible;
             _removeImageButton.IsEnabled = true;
         }
+        private byte[]? GetKeyPdf(bool askAgain)
+        {
+            if (_keyPdf != null && !askAgain) return _keyPdf;
+
+            var dialog = new Microsoft.Win32.OpenFileDialog
+            {
+                Title = "Javítási-értékelési útmutató kiválasztása",
+                Filter = "PDF dokumentumok (*.pdf)|*.pdf",
+                CheckFileExists = true
+            };
+            if (dialog.ShowDialog(this) != true) return null;
+
+            _keyPdf = File.ReadAllBytes(dialog.FileName);
+            return _keyPdf;
+        }
+
+        // only == null: az egész feladatlap; különben csak az adott feladat
+        private async Task ImportSolutionsAsync(DraftTask? only)
+        {
+            var pdf = GetKeyPdf(askAgain: only == null);
+            if (pdf == null) return;
+
+            ApplyForm();                         // a kézi szerkesztések ne vesszenek el
+            DraftStore.Save(_draft);
+
+            IsEnabled = false;
+            Mouse.OverrideCursor = Cursors.Wait;
+            _statusText.Text = "Megoldások beolvasása…";
+
+            try
+            {
+                _gemini ??= new GeminiService();
+
+                var result = await SolutionImporter.ImportAsync(
+                    _gemini, _draft, pdf,
+                    only: only,
+                    overwrite: only != null);    // egy feladatnál felülírja, az egésznél a már kitöltöttet kihagyja
+
+                DraftStore.Save(_draft);
+                if (_current != null) LoadForm(_current);   // az űrlap frissítése az új adatokkal
+                UpdateRows();
+
+                var sb = new System.Text.StringBuilder();
+                sb.AppendLine($"Beolvasva: {result.Applied} feladat.");
+                if (result.WithWarnings > 0)
+                    sb.AppendLine($"Ellenőrzést kér: {result.WithWarnings} feladat (a feladat adatainál látod, miért).");
+                if (result.Unmatched.Count > 0)
+                    sb.AppendLine("Nem párosítható az útmutatóban: " + string.Join(", ", result.Unmatched));
+
+                _statusText.Text = $"Megoldások: {result.Applied} beolvasva";
+                MessageBox.Show(this, sb.ToString().Trim(), "Megoldások importálása",
+                    MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                // ide kerül az is, ha az útmutató nem ehhez a feladatlaphoz tartozik
+                _statusText.Text = "";
+                _keyPdf = null;                  // hibás PDF-nél legközelebb újra kérdezzen
+                MessageBox.Show(this, ex.Message, "Megoldások importálása",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+            finally
+            {
+                Mouse.OverrideCursor = null;
+                IsEnabled = true;
+            }
+        }
+
     }
 }
