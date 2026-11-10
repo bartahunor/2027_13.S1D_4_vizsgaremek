@@ -27,8 +27,10 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Szerverhiba történt' })
 })
 
-const server = app.listen(3000, () => {
-  console.log('Server fut: http://localhost:3000')
+const PORT = process.env.PORT || 3000
+
+const server = app.listen(PORT, () => {
+  console.log(`Server fut a ${PORT} porton`)
 })
 
 applyServerTimeouts(server)
