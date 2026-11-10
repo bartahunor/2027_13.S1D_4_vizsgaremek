@@ -1,7 +1,26 @@
 
 import { Link } from 'react-router-dom'
+import { useAuth } from '../../../context/AuthContext' // igazítsd a saját útvonalhoz
+
+const buttonClasses = `
+  bg-white
+  text-primary
+  px-10
+  py-4
+  rounded-xl
+  font-bold
+  text-xl
+  hover:scale-105
+  transition-transform
+  inline-block
+  text-center
+  shadow-lg
+  shadow-black/10
+`
 
 function CTASection() {
+  const { user, loading } = useAuth()
+  const isLoggedIn = Boolean(user)
   return (
     <section className="py-20 px-6 relative overflow-hidden">
       <div className="max-w-5xl mx-auto bg-secondary rounded-[3rem] p-12 lg:p-20 text-center text-white relative overflow-hidden shadow-2xl z-10">
@@ -112,35 +131,30 @@ function CTASection() {
         <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/5 to-white/10 pointer-events-none" />
 
         <h2 className="text-4xl lg:text-5xl font-black mb-6 relative z-10">
-          Kezdd el a felkészülést még ma!
+          {isLoggedIn
+            ? 'Folytasd a felkészülést!'
+            : 'Kezdd el a felkészülést még ma!'}
         </h2>
 
-        <p className="text-primary/20 text-lg opacity-80 mb-10 max-w-2xl mx-auto relative z-10 text-white/80">
-          Csatlakozz több ezer sikeres érettségizőhöz és érd el az álmaid.
+        <p className="text-lg mb-10 max-w-2xl mx-auto relative z-10 text-white/80">
+          {isLoggedIn
+            ? 'Minden nap egy lépéssel közelebb az érettségihez. Gyakorolj most, és haladj tovább a céljaid felé.'
+            : 'Csatlakozz több ezer sikeres érettségizőhöz és érd el az álmaid.'}
         </p>
 
-        <div className="flex flex-col sm:flex-row gap-4 justify-center relative z-10">
-          <Link
-            id="regisztracio"
-            to="/register"
-            className="
-                            bg-white
-                            text-primary
-                            px-10
-                            py-4
-                            rounded-xl
-                            font-bold
-                            text-xl
-                            hover:scale-105
-                            transition-transform
-                            inline-block
-                            text-center
-                            shadow-lg
-                            shadow-black/10
-                        "
-          >
-            Regisztráció
-          </Link>
+        {/* min-h: így nem ugrál az elrendezés, amíg a session betölt */}
+        <div className="flex flex-col sm:flex-row gap-4 justify-center relative z-10 min-h-[64px]">
+          {!loading && (
+            isLoggedIn ? (
+              <Link id="tanulas" to="/tasktype" className={buttonClasses}>
+                Tanulás folytatása
+              </Link>
+            ) : (
+              <Link id="regisztracio" to="/register" className={buttonClasses}>
+                Regisztráció
+              </Link>
+            )
+          )}
         </div>
       </div>
     </section>

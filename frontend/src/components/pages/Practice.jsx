@@ -105,7 +105,7 @@ function PracticePage() {
 
                 // A teszt neve: témakörnél "<témakör> gyakorlás", évszámnál "<év> érettségi feladatsor gyakorlás"
                 const testName = topicName
-                    ? `${topicName} témakör gyakorlás`
+                    ? `"${topicName}" témakör gyakorlás`
                     : year
                         ? `${year} érettségi feladatsor gyakorlás`
                         : undefined;
