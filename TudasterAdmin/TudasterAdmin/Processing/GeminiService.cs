@@ -37,12 +37,21 @@ namespace TudasterAdmin.Processing
         public string Label { get; set; } = "";
         public string Text { get; set; } = "";
         public int? Points { get; set; }
+        public string? SourceKey { get; set; }
     }
 
     internal class AiCellDto
     {
+        public int Row { get; set; }
+        public int Column { get; set; }
         public string Value { get; set; } = "";
         public bool Visible { get; set; } = true;
+    }
+
+    internal class AiTableDto
+    {
+        public List<string> Columns { get; set; } = new();
+        public List<AiCellDto> Cells { get; set; } = new();
     }
 
     internal class AiRowDto
@@ -50,11 +59,7 @@ namespace TudasterAdmin.Processing
         public List<AiCellDto> Cells { get; set; } = new();
     }
 
-    internal class AiTableDto
-    {
-        public List<string> Columns { get; set; } = new();
-        public List<AiRowDto> Rows { get; set; } = new();
-    }
+    
 
     internal class AiTaskDto
     {
@@ -114,7 +119,8 @@ namespace TudasterAdmin.Processing
             - A forrásszövegeket a sources tömbbe tedd ("f1", "f2", ... kulccsal), a feladat sourceKey mezője hivatkozzon rá. Ha több feladat ugyanazt a forrást használja, ugyanazt a kulcsot kapják. Ha nincs forrás, sourceKey null.
             - A bevezető szöveg és az utasítás a stem. Az a), b), c) részkérdések a subQuestions tömbbe kerülnek (label: "a", "b", ...), részpontszámmal, ha az látszik.
             - A feleletválasztós (A, B, C, D) lehetőségek az options tömbbe kerülnek, a stem-be nem.
-            - Táblázat esetén töltsd ki a table.columns és table.rows mezőt. Minden cella {value, visible}. Az előre megadott cellák visible=true. Ha a táblázatot a diáknak kell kitöltenie, és a cella üres vagy pontozott, akkor visible=false és value üres. Ha nincs táblázat, mindkettő üres tömb.
+            - Ha egy feladat részkérdései különböző forrásra hivatkoznak (pl. a) az A) betűjelű, b) a B) betűjelű forrásra), minden részkérdés kapja a saját sourceKey-ét. Ha a részkérdésnek nincs saját forrása, a sourceKey null, és a feladat sourceKey-ét használjuk.
+            - Táblázat esetén töltsd ki a table.columns és table.cells mezőt. Minden cella {row, column, value, visible}, a row és column 1-től számoz. Az előre megadott cellák visible=true. Ha a táblázatot a diáknak kell kitöltenie, és a cella üres vagy pontozott, akkor visible=false és value üres. Ha nincs táblázat, mindkettő üres tömb.
             - A pontozott vagy üres válaszsorokat ne másold át, csak számold meg őket (answerLines).
             - A matematikai képleteket LaTeX formában írd, $...$ jelek között.
             - points: a feladat mellett szereplő pontszám egész számként; ha nincs megadva, null.
@@ -295,27 +301,29 @@ namespace TudasterAdmin.Processing
             {
                 ["label"] = Str(),
                 ["text"] = Str(),
-                ["points"] = Int(true)
+                ["points"] = Int(true),
+                ["sourceKey"] = Str(true)
             }, "label", "text");
 
             var cell = Obj(new Dictionary<string, object>
             {
+                ["row"] = Int(),
+                ["column"] = Int(),
                 ["value"] = Str(),
                 ["visible"] = Bool()
-            }, "value", "visible");
+            }, "row", "column", "value", "visible");
 
             var table = Obj(new Dictionary<string, object>
             {
                 ["columns"] = Arr(Str()),
-                ["rows"] = Arr(Obj(new Dictionary<string, object> { ["cells"] = Arr(cell) }, "cells"))
-            }, "columns", "rows");
+                ["cells"] = Arr(cell)
+            }, "columns", "cells");
 
             // A típusneveket igazítsd a feladat_tipusok tábla soraihoz.
             var task = Obj(new Dictionary<string, object>
             {
                 ["number"] = Int(),
-                ["type"] = EnumStr("feleletvalasztos", "igaz_hamis", "parositas", "tablazatos",
-                                   "esszé", "szamitas", "tobbReszes", "rovid_valasz"),
+                ["type"] = EnumStr("tobb_opcio", "rovid_valasz", "tablazatos_feladat", "tobb_valasz", "sorba_rendezos"),
                 ["points"] = Int(true),
                 ["topicId"] = Int(true),
                 ["stem"] = Str(),

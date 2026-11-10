@@ -32,8 +32,22 @@ namespace TudasterAdmin.Processing
                 ? Norm(Regex.Replace(pdfText, @"\[\[PDF_OLDAL_\d+\]\]", " "))
                 : "";
 
+            // Ha a modell ugyanarra a szövegre két kulcsot adna, összevonjuk őket.
+            var keyMap = new Dictionary<string, string>();      // eredeti kulcs -> végleges kulcs
+            var keyByText = new Dictionary<string, string>();   // normalizált szöveg -> végleges kulcs
+
             foreach (var s in exam.Sources.GroupBy(x => x.Key).Select(g => g.First()))
+            {
+                string n = Norm(s.Text);
+                if (n.Length > 0 && keyByText.TryGetValue(n, out var existing))
+                {
+                    keyMap[s.Key] = existing;
+                    continue;
+                }
+                keyMap[s.Key] = s.Key;
+                if (n.Length > 0) keyByText[n] = s.Key;
                 draft.Sources.Add(new DraftSource { Key = s.Key, Text = s.Text });
+            }
 
             var sourceByKey = draft.Sources.ToDictionary(s => s.Key, s => s.Text);
             var topicIds = topics.Select(t => t.Id).ToHashSet();
@@ -61,83 +75,108 @@ namespace TudasterAdmin.Processing
             foreach (var t in ordered)
             {
                 t.Table ??= new AiTableDto();
-                var warnings = new List<string>();
+                var taskWarnings = new List<string>();
 
-                // Forrás
-                string? sourceKey = string.IsNullOrWhiteSpace(t.SourceKey) ? null : t.SourceKey;
-                if (sourceKey != null)
+                // Forrás ellenőrzése: kulcs feloldása + szó szerintiség
+                // (a részkérdés saját forrása felülírja a feladatét)
+                string? ResolveSource(string? rawKey, List<string> warnings)
                 {
-                    if (!sourceByKey.TryGetValue(sourceKey, out var src))
+                    if (string.IsNullOrWhiteSpace(rawKey)) return null;
+                    if (!keyMap.TryGetValue(rawKey, out var key))
                     {
-                        warnings.Add($"Ismeretlen forráskulcs: {sourceKey}.");
-                        sourceKey = null;
+                        warnings.Add($"Ismeretlen forráskulcs: {rawKey}.");
+                        return null;
                     }
-                    else if (pdfNorm.Length > 0 && !LooksVerbatim(src, pdfNorm))
-                    {
+                    if (pdfNorm.Length > 0 && !LooksVerbatim(sourceByKey[key], pdfNorm))
                         warnings.Add("A forrásszöveg nem található meg szó szerint a PDF szövegében (a modell módosíthatta).");
-                    }
+                    return key;
                 }
 
-                // kerdes: bevezető + a), b) részek egy szövegben
-                var q = new StringBuilder(t.Stem.Trim());
-                foreach (var s in t.SubQuestions)
-                {
-                    string label = s.Label.Trim().TrimEnd(')', '.');
-                    q.Append("\n\n").Append(label).Append(") ").Append(s.Text.Trim());
-                }
+                string? taskSource = ResolveSource(t.SourceKey, taskWarnings);
 
                 if (t.Points.HasValue && t.SubQuestions.Count > 0 && t.SubQuestions.All(x => x.Points.HasValue))
                 {
                     int subSum = t.SubQuestions.Sum(x => x.Points!.Value);
                     if (subSum != t.Points.Value)
-                        warnings.Add($"A részpontok összege ({subSum}) nem egyezik a feladat pontjával ({t.Points}).");
+                        taskWarnings.Add($"A részpontok összege ({subSum}) nem egyezik a feladat pontjával ({t.Points}).");
                 }
 
-
-                if (t.Type == "feleletvalasztos" && t.Options.Count < 2)
-                    warnings.Add("Feleletválasztós, de kevesebb mint 2 válaszlehetőség van.");
+                if (t.Type == "tobb_opcio" && t.Options.Count < 2)
+                    taskWarnings.Add("Egy helyes válaszos (tobb_opcio), de kevesebb mint 2 válaszlehetőség van.");
 
                 // Témakör: csak létező azonosítót fogadunk el
                 int? topicId = t.TopicId.HasValue && topicIds.Contains(t.TopicId.Value) ? t.TopicId : null;
 
-                // Táblázat -> oszlopok + cellák (1-től számozva)
-                var cells = new List<DraftCell>();
-                for (int r = 0; r < t.Table.Rows.Count; r++)
+                // Táblázat -> cellák (1-től számozva)
+                var cells = t.Table.Cells
+    .Select(c => new DraftCell { Row = c.Row, Column = c.Column, Value = c.Value, Visible = c.Visible })
+    .ToList();
+                if (t.Uncertain)
+                    taskWarnings.Add("A modell bizonytalan: " + (t.Note ?? "nincs indoklás"));
+
+                string stem = t.Stem.Trim();
+
+                // --- Nincs részkérdés: egy feladat = egy sor ---
+                if (t.SubQuestions.Count == 0)
                 {
-                    var row = t.Table.Rows[r];
-                    for (int c = 0; c < row.Cells.Count; c++)
+                    draft.Tasks.Add(new DraftTask
                     {
-                        cells.Add(new DraftCell
-                        {
-                            Row = r + 1,
-                            Column = c + 1,
-                            Value = row.Cells[c].Value,
-                            Visible = row.Cells[c].Visible
-                        });
-                    }
+                        Number = t.Number,
+                        TopicId = topicId,
+                        SourceKey = taskSource,
+                        Question = stem,
+                        Options = t.Options.ToList(),
+                        Points = t.Points,
+                        TypeName = t.Type,
+                        TableColumns = t.Table.Columns.ToList(),
+                        TableCells = cells,
+                        AnswerLines = t.AnswerLines,
+                        HasFigure = t.HasFigure,
+                        PageFrom = t.PageFrom,
+                        PageTo = t.PageTo,
+                        Warnings = taskWarnings,
+                        NeedsReview = taskWarnings.Count > 0 || t.HasFigure || cells.Count > 0
+                    });
+                    continue;
                 }
 
-                if (t.Uncertain)
-                    warnings.Add("A modell bizonytalan: " + (t.Note ?? "nincs indoklás"));
-
-                draft.Tasks.Add(new DraftTask
+                // --- Van részkérdés: minden részkérdés külön sor, saját vagy a feladat forrásával ---
+                bool first = true;
+                foreach (var s in t.SubQuestions)
                 {
-                    Number = t.Number,
-                    TopicId = topicId,
-                    SourceKey = sourceKey,
-                    Question = q.ToString().Trim(),
-                    Options = t.Options,
-                    Points = t.Points,
-                    TypeName = t.Type,
-                    TableColumns = t.Table.Columns.ToList(),
-                    TableCells = cells,
-                    AnswerLines = t.AnswerLines,
-                    HasFigure = t.HasFigure,
-                    PageFrom = t.PageFrom,
-                    PageTo = t.PageTo,
-                    Warnings = warnings,
-                    NeedsReview = warnings.Count > 0 || t.HasFigure || cells.Count > 0
-                });
+                    var warnings = new List<string>(taskWarnings);
+
+                    string? subSource = string.IsNullOrWhiteSpace(s.SourceKey)
+                        ? taskSource
+                        : ResolveSource(s.SourceKey, warnings);
+
+                    string label = s.Label.Trim().TrimEnd(')', '.');
+                    string question = stem.Length == 0
+                        ? s.Text.Trim()
+                        : $"{stem}\n\n{label}) {s.Text.Trim()}";
+
+                    draft.Tasks.Add(new DraftTask
+                    {
+                        Number = t.Number,
+                        PartLabel = label,
+                        TopicId = topicId,
+                        SourceKey = subSource,
+                        Question = question,
+                        Options = t.Options.ToList(),
+                        Points = s.Points,
+                        TypeName = t.Type,
+                        // a táblázat csak az első részhez kerül, hogy ne duplázódjon
+                        TableColumns = first ? t.Table.Columns.ToList() : new List<string>(),
+                        TableCells = first ? cells : new List<DraftCell>(),
+                        AnswerLines = t.AnswerLines,
+                        HasFigure = t.HasFigure,
+                        PageFrom = t.PageFrom,
+                        PageTo = t.PageTo,
+                        Warnings = warnings,
+                        NeedsReview = warnings.Count > 0 || t.HasFigure || (first && cells.Count > 0)
+                    });
+                    first = false;
+                }
             }
 
             return draft;
