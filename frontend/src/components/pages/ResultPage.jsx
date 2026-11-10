@@ -4,17 +4,7 @@ import { useLocation, Navigate } from "react-router-dom";
 import { apiFetch } from "../../lib/apiClient";
 import TaskCard from "../ui/CorrectedTaskCard";
 
-const mockResult = {
-    subject: "Matematika",
-    level: "Emelt szint",
-    year: "2025",
-    totalPoints: 82,
-    maxPoints: 100,
-    duration:  "01:24:36",
-    accuracy: 82,
-    placement:  "12. hely",
-    participants: 156,
-};
+
 
 const topicResults = [
     { name: "Algebra", earned: 22, max: 25 },
@@ -26,11 +16,34 @@ const topicResults = [
 
 
 const getStatus = (question) => {
-    if (question.earned === question.max) return "correct";
-    if (question.earned === 0) return "incorrect";
+    if (question.elert_pont === question.max_pont) return "correct";
+    if (question.elert_pont === 0) return "incorrect";
     return "partial";
 };
 
+function formatIdotartam(totalSeconds) {
+  const sec = Math.max(0, Math.floor(Number(totalSeconds) || 0))
+
+  const hours = Math.floor(sec / 3600)
+  const minutes = Math.floor((sec % 3600) / 60)
+  const seconds = sec % 60
+
+  return [hours, minutes, seconds]
+    .map((n) => String(n).padStart(2, '0'))
+    .join(':')
+}
+
+
+export const calcTestXp = (test) => {
+    const XP_BAND_SIZE = 10;
+    const XP_PER_BAND = 10;
+
+    if (!test.max_pont) return 0;
+
+    const percent = Math.round((test.elert_pont / test.max_pont) * 100);
+    const band = Math.max(1, Math.ceil(percent / XP_BAND_SIZE)); // a 0% is az 1. sáv
+    return band * XP_PER_BAND;
+};
 
 
 function ResultPage() {
@@ -95,9 +108,7 @@ function ResultPage() {
     if (error) return <p>{error}</p>;
     if (!osszesito) return null;
 
-    const percentage = Math.round(
-        (mockResult.totalPoints / mockResult.maxPoints) * 100
-    );
+
 
     /*
     const filteredQuestions = questions.filter((question) => {
@@ -118,27 +129,27 @@ function ResultPage() {
     const stats = [
         {
             label: "Összpontszám",
-            value: `${mockResult.totalPoints} / ${mockResult.maxPoints}`,
+            value: `${osszesito.elert_pont} / ${osszesito.max_pont}`,
             icon: "military_tech",
-            description: `${percentage}% teljesítmény`,
+            description: `${osszesito.szazalek}% teljesítmény`,
         },
         {
             label: "Időtartam",
-            value: mockResult.duration,
+            value: formatIdotartam(osszesito.idotartam_masodperc),
             icon: "timer",
             description: "A feladatsor kitöltési ideje",
         },
         {
             label: "Pontosság",
-            value: `${mockResult.accuracy}%`,
+            value: `${osszesito.szazalek}%`,
             icon: "target",
             description: "Elért pontosság",
         },
         {
             label: "XP",
-            value: mockResult.placement,
+            value: calcTestXp(osszesito),
             icon: "leaderboard",
-            description: `${mockResult.participants} résztvevő közül`,
+            description: `A megszerezhető 100 XP-ből`,
         },
     ];
 
@@ -164,7 +175,7 @@ function ResultPage() {
                             </h1>
 
                             <p className="text-[#756B83] mt-2">
-                                {mockResult.year}. évi {mockResult.subject.toLowerCase()} érettségi · {mockResult.level} Teszt név
+                                {osszesito.teszt.tantargy}  •  {osszesito.teszt.nev}
                             </p>
                         </div>
 
@@ -179,7 +190,7 @@ function ResultPage() {
                                     Elért eredmény
                                 </p>
                                 <p className="font-bold text-[#351F5B]">
-                                    {mockResult.totalPoints} pont
+                                    {osszesito.elert_pont} pont
                                 </p>
                             </div>
                         </div>
@@ -234,19 +245,19 @@ function ResultPage() {
 
                     <div className="bg-white rounded-2xl border border-[#351F5B]/10 p-5 sm:p-7 shadow-sm">
                         <div className="space-y-7">
-                            {topicResults.map((topic) => {
+                            {osszesito.temakorok.map((topic) => {
                                 const percent = Math.round(
-                                    (topic.earned / topic.max) * 100
+                                    (topic.elert_pont / topic.max_pont) * 100
                                 );
 
                                 return (
-                                    <div key={topic.name}>
+                                    <div key={topic.nev}>
                                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-2">
                                             <span className="font-semibold text-[#35284B]">
-                                                {topic.name}
+                                                {topic.nev}
                                             </span>
                                             <span className="text-sm font-medium text-[#756B83]">
-                                                {topic.earned}/{topic.max} pont · {percent}%
+                                                {topic.elert_pont}/{topic.max_pont} pont · {percent}%
                                             </span>
                                         </div>
 
@@ -302,9 +313,16 @@ function ResultPage() {
                         </div>
                     </div>
 
-                    <TaskCard />
-
                     
+                    {feladatok.map( (question) => (
+                        <TaskCard
+                            key={question.feladat_id}
+                            question={question}
+                            status={getStatus(question)}
+                            expanded={expandedQuestions.includes(question.feladat_id)}
+                            onToggleExplanation={() => toggleExplanation(question.feladat_id)}
+                        />
+                    ))}
                 </section>
 
                 {/* ALSÓ SEGÍTSÉG BLOKK */}

@@ -58,8 +58,8 @@ const defaultLabels = {
  * Alapértelmezett státuszmeghatározás a pontszám alapján.
  */
 const defaultGetStatus = (question) => {
-    if (question.earned >= question.max) return "correct";
-    if (question.earned > 0) return "partial";
+    if (question.elert_pont >= question.max_pont) return "correct";
+    if (question.elert_pont > 0) return "partial";
     return "incorrect";
 };
  
@@ -96,26 +96,26 @@ function TaskCard({
                                 {config.label}
                             </span>
  
-                            {question.topic && (
+                            {question.temakor && (
                                 <span className="text-xs text-[#8A8196]">
-                                    {question.topic}
+                                    {question.temakor}
                                 </span>
                             )}
                         </div>
  
                         <h3 className="text-lg font-bold text-[#351F5B]">
-                            {question.id}
+                            {question.feladat_id}
                             {mergedLabels.taskSuffix} {question.title}
                         </h3>
                     </div>
  
                     <span className="font-bold text-[#351F5B] whitespace-nowrap">
-                        {question.earned}/{question.max} {mergedLabels.points}
+                        {question.elert_pont}/{question.max_pont} {mergedLabels.points}
                     </span>
                 </div>
  
                 <p className="text-sm sm:text-base text-[#514760] leading-relaxed mb-5">
-                    {question.question}
+                    {question.kerdes}
                 </p>
  
                 <div className="space-y-3">
@@ -124,7 +124,7 @@ function TaskCard({
                             {mergedLabels.yourAnswer}
                         </p>
                         <p className="text-sm font-medium text-[#35284B]">
-                            {question.userAnswer || mergedLabels.noAnswer}
+                            {question.adott_valasz || mergedLabels.noAnswer}
                         </p>
                     </div>
  
@@ -134,7 +134,7 @@ function TaskCard({
                                 {mergedLabels.correctAnswer}
                             </p>
                             <p className="text-sm font-medium text-emerald-800">
-                                {question.correctAnswer}
+                                {question.helyes_valaszok}
                             </p>
                         </div>
                     )}
@@ -144,7 +144,7 @@ function TaskCard({
                     <>
                         <button
                             type="button"
-                            onClick={() => onToggleExplanation(question.id)}
+                            onClick={() => onToggleExplanation(question.feladat_id)}
                             className="mt-5 flex items-center gap-2 text-sm font-bold text-[#4B2A7F] hover:text-[#24123D] transition-colors"
                         >
                             <span className="material-symbols-outlined text-lg">
