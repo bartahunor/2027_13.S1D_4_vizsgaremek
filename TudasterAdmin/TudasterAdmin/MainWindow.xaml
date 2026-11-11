@@ -70,25 +70,32 @@
                         Style="{StaticResource SidebarButtonStyle}"
                         Click="DashboardButton_Click"/>
 
-
-                    <!-- Feladatok -->
-                    <Button Content="Feladatok"
-                        Height="45"
-                        Margin="0,3"
-                        Style="{StaticResource SidebarButtonStyle}"
-                        Click="TasksButton_Click"/>
-
+                    <!-- Érettségi feladatsorok -->
                     <Button Content="Érettségi feladatsorok"
                         Height="45"
                         Margin="0,3"
                         Style="{StaticResource SidebarButtonStyle}"
                         Click="ExamSetsButton_Click"/>
 
+                    <Button Content="Importálás"
+                        Height="45"
+                        Margin="0,3"
+                        Style="{StaticResource SidebarButtonStyle}"
+                        Click="ImportButton_Click"/>            
+
                     <Button Content="Tantárgyak"
                         Height="45"
                         Margin="0,3"
                         Style="{StaticResource SidebarButtonStyle}"
-                        Click="SubjectsButton_Click"/>
+                        Click="SubjectsButton_Click"/>          
+
+
+                    <Button Content="Feladat típusok"
+                        Height="45"
+                        Margin="0,3"
+                        Style="{StaticResource SidebarButtonStyle}"
+                        Click="TasksButton_Click"/>
+
 
                     <Button Content="Témakörök"
                         Height="45"
@@ -96,11 +103,6 @@
                         Style="{StaticResource SidebarButtonStyle}"
                         Click="TopicsButton_Click"/>
 
-                    <Button Content="Importálás"
-                        Height="45"
-                        Margin="0,3"
-                        Style="{StaticResource SidebarButtonStyle}"
-                        Click="ImportButton_Click"/>
 
                      <Button Content="Felhasználók"
                         Height="45"
