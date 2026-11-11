@@ -1567,7 +1567,7 @@ namespace TudasterAdmin
                 var dialog = new Microsoft.Win32.OpenFileDialog
                 {
                     Title = "Érettségi PDF kiválasztása",
-                    Filter = "PDF dokumentumok (*.pdf)|*.pdf",
+                    Filter = "PDF dokumentumok (*.pdf)|*.pdf|Minden fájl (*.*)|*.*",
                     CheckFileExists = true,
                     Multiselect = false
                 };

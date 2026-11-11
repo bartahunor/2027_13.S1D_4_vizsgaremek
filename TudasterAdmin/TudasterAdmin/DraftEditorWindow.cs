@@ -815,10 +815,23 @@ namespace TudasterAdmin
             var dialog = new Microsoft.Win32.OpenFileDialog
             {
                 Title = "Javítási-értékelési útmutató kiválasztása",
-                Filter = "PDF dokumentumok (*.pdf)|*.pdf",
+                Filter = "PDF dokumentumok (*.pdf)|*.pdf|Minden fájl (*.*)|*.*",
                 CheckFileExists = true
             };
+
             if (dialog.ShowDialog(this) != true) return null;
+
+            // A fájl tényleges tartalmának ellenőrzése
+            if (!PdfTextExtractor.IsPdfFile(dialog.FileName))
+            {
+                MessageBox.Show(
+                    "A kiválasztott fájl tartalma nem érvényes PDF-formátumra utal.",
+                    "Érvénytelen fájl",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+
+                return null;
+            }
 
             _keyPdf = File.ReadAllBytes(dialog.FileName);
             return _keyPdf;

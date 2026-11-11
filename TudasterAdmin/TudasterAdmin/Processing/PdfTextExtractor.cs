@@ -1,4 +1,5 @@
-﻿using System;
+﻿
+using System;
 using System.Collections.Generic;
 using System.IO;
 using UglyToad.PdfPig;
@@ -19,17 +20,15 @@ namespace TudasterAdmin.Processing
             if (!File.Exists(filePath))
             {
                 throw new FileNotFoundException(
-                    "A kiválasztott PDF-fájl nem található.",
+                    "A kiválasztott fájl nem található.",
                     filePath);
             }
 
-            if (!string.Equals(
-                    Path.GetExtension(filePath),
-                    ".pdf",
-                    StringComparison.OrdinalIgnoreCase))
+            // A fájl tényleges tartalmának ellenőrzése
+            if (!IsPdfFile(filePath))
             {
                 throw new ArgumentException(
-                    "A kiválasztott fájl nem PDF.",
+                    "A kiválasztott fájl tartalma nem érvényes PDF-formátumra utal.",
                     nameof(filePath));
             }
 
@@ -48,6 +47,38 @@ namespace TudasterAdmin.Processing
             }
 
             return pages;
+        }
+
+        internal static bool IsPdfFile(string filePath)
+        {
+            byte[] buffer = new byte[1024];
+            byte[] signature = { 0x25, 0x50, 0x44, 0x46, 0x2D }; // %PDF-
+
+            using (var stream = File.OpenRead(filePath))
+            {
+                int bytesRead = stream.Read(buffer, 0, buffer.Length);
+
+                for (int i = 0; i <= bytesRead - signature.Length; i++)
+                {
+                    bool match = true;
+
+                    for (int j = 0; j < signature.Length; j++)
+                    {
+                        if (buffer[i + j] != signature[j])
+                        {
+                            match = false;
+                            break;
+                        }
+                    }
+
+                    if (match)
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
     }
 }
