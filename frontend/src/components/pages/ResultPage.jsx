@@ -4,17 +4,6 @@ import { useLocation, Navigate } from "react-router-dom";
 import { apiFetch } from "../../lib/apiClient";
 import TaskCard from "../ui/CorrectedTaskCard";
 
-
-
-const topicResults = [
-    { name: "Algebra", earned: 22, max: 25 },
-    { name: "Geometria", earned: 18, max: 25 },
-    { name: "Valószínűségszámítás", earned: 24, max: 25 },
-    { name: "Függvénytan", earned: 18, max: 25 },
-];
-
-
-
 const getStatus = (question) => {
     if (question.elert_pont === question.max_pont) return "correct";
     if (question.elert_pont === 0) return "incorrect";
@@ -48,7 +37,7 @@ export const calcTestXp = (test) => {
 
 function ResultPage() {
     const [filter, setFilter] = useState("all");
-    const [expandedQuestions, setExpandedQuestions] = useState([2]);
+    const [expandedQuestions, setExpandedQuestions] = useState([]);
 
     const [osszesito, setOsszesito] = useState(null);
     const [feladatok, setFeladatok] = useState([]);
@@ -56,6 +45,8 @@ function ResultPage() {
     const [error, setError] = useState(null);
 
     const { state } = useLocation();
+
+    
 
     // ha valaki közvetlenül, állapot nélkül nyitja meg az oldalt
     if (!state?.result) {
@@ -313,16 +304,22 @@ function ResultPage() {
                         </div>
                     </div>
 
-                    
-                    {feladatok.map( (question) => (
-                        <TaskCard
-                            key={question.feladat_id}
-                            question={question}
-                            status={getStatus(question)}
-                            expanded={expandedQuestions.includes(question.feladat_id)}
-                            onToggleExplanation={() => toggleExplanation(question.feladat_id)}
-                        />
-                    ))}
+
+                    {feladatok.map((question, index) => {
+                        const status = getStatus(question);
+
+                        return (
+                            <TaskCard
+                                key={question.feladat_id}
+                                question={question}
+                                number={index + 1}
+                                status={status}
+                                expandable={status !== "correct"}
+                                expanded={expandedQuestions.includes(question.feladat_id)}
+                                onToggleExplanation={() => toggleExplanation(question.feladat_id)}
+                            />
+                        );
+                    })}
                 </section>
 
                 {/* ALSÓ SEGÍTSÉG BLOKK */}
