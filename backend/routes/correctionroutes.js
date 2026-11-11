@@ -2,6 +2,7 @@ import express from 'express'
 import sql from '../db.js'
 import { requireAuth } from '../middleware/auth.js'
 import { receiveSubmission, TestServiceError } from '../services/testCorrector.js'
+import { formatTask } from '../services/formatters/index.js'
 
 const router = express.Router()
 
@@ -342,6 +343,7 @@ router.get('/correctedtasks/:testId', async (req, res, next) => {
       select
         f.id as feladat_id,
         f.kerdes,
+        f.valaszok,                       
         f.helyes_valaszok,
         f.tipus_id,
         ft.nev as tipus,
@@ -349,11 +351,14 @@ router.get('/correctedtasks/:testId', async (req, res, next) => {
         tm.id as temakor_id,
         tm.nev as temakor,
         coalesce(tf.elert_pont, 0)::float as elert_pont,
-        f.pont as max_pont
+        f.pont as max_pont,
+        fo.szoveg as forras_szoveg,
+        fo.kep as forras_kep
       from teszt_feladatok tf
       join feladatok f on f.id = tf.feladat_id
       join temakorok tm on tm.id = f.temakor_id
       left join feladat_tipusok ft on ft.id = f.tipus_id
+      left join forrasok fo on fo.id = f.forras_id
       where tf.teszt_id = ${testId}
       order by tf.id
     `
@@ -405,8 +410,8 @@ router.get('/correctedtasks/:testId', async (req, res, next) => {
     const eredmeny = feladatok.map(f => {
       const feladatCellak = cellakByFeladat.get(f.feladat_id)
 
-      // Nem táblázatos feladat: változatlan marad
-      if (!feladatCellak) return f
+      // Nem táblázatos feladat: típus szerinti formázás
+      if (!feladatCellak) return formatTask(f)
 
       // Táblázatos feladat: a lathato = false cellák a megoldások
       // (ide írt a felhasználó, az ertek a helyes megoldás)
