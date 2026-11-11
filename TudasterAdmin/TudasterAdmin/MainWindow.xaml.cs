@@ -1,4 +1,6 @@
-﻿using System.Collections.ObjectModel;
+﻿using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
@@ -7,6 +9,7 @@ using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
@@ -14,10 +17,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using static TudasterAdmin.MainWindow;
-using System.Linq;
 using TudasterAdmin.Processing;
-using System.Collections.Generic;
+using static TudasterAdmin.MainWindow;
 
 
 
@@ -41,6 +42,16 @@ namespace TudasterAdmin
         private readonly List<LocalTopic> _localTopics = new();
         private readonly List<int> _hiddenTopicIds = new();
 
+        private readonly List<string> _localSubjects = new();
+        private readonly List<int> _hiddenSubjectIds = new();
+
+        private static string LocalSubjectsPath => System.IO.Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "TudasterAdmin", "tantargyak_local.json");
+
+        private static string HiddenSubjectsPath => System.IO.Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "TudasterAdmin", "tantargyak_hidden_local.json");
         private static string LocalTopicsPath => System.IO.Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
             "TudasterAdmin", "temakorok_local.json");
@@ -73,6 +84,7 @@ namespace TudasterAdmin
             _ = LoadUsersAsync();
             LoadLocalTaskTypes();
             LoadLocalTopics();
+            LoadLocalSubjects();
         }
 
         private async Task<T> GetFromBackendAsync<T>(string path)
@@ -95,6 +107,36 @@ namespace TudasterAdmin
             return JsonSerializer.Deserialize<T>(responseBody, options)
                 ?? throw new Exception("A backend üres választ adott vissza.");
         }
+        private int GetPendingDraftCount()
+        {
+            var drafts = DraftStore.List();
+
+            int pendingCount = 0;
+
+            foreach (var draftInfo in drafts)
+            {
+                var draft = DraftStore.Load(draftInfo.Id);
+
+                if (draft == null)
+                    continue;
+
+                // Van még jóvá nem hagyott feladat?
+                bool hasUnapprovedTasks =
+                    draftInfo.ApprovedCount < draftInfo.TaskCount;
+
+                // Van még hiányzó megoldókulcs?
+                bool hasMissingSolutions =
+                    draft.Tasks.Any(t => !DraftValidator.HasSolution(t));
+
+                // Egy piszkozatot csak egyszer számolunk.
+                if (hasUnapprovedTasks || hasMissingSolutions)
+                {
+                    pendingCount++;
+                }
+            }
+
+            return pendingCount;
+        }
 
         private async Task LoadDashboardDataAsync()
         {
@@ -108,7 +150,7 @@ namespace TudasterAdmin
 
                 // Az "ellenőrzésre váró" számhoz még nincs backend végpont,
                 // ezt egyelőre meghagyjuk placeholdernek.
-                ReviewCountText.Text = "-";
+                ReviewCountText.Text = GetPendingDraftCount().ToString();
 
                 DbStatusText.Text = "Csatlakoztatva";
                 DbStatusText.Foreground = Brushes.Green;
@@ -233,6 +275,56 @@ namespace TudasterAdmin
                 MessageBox.Show(
                     "Nem sikerült betölteni a tantárgyakat: " + ex.Message,
                     "Hiba",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+            }
+        }
+
+        private void LoadLocalSubjects()
+        {
+            try
+            {
+                _localSubjects.Clear();
+                if (System.IO.File.Exists(LocalSubjectsPath))
+                {
+                    var list = JsonSerializer.Deserialize<List<string>>(System.IO.File.ReadAllText(LocalSubjectsPath));
+                    if (list != null) _localSubjects.AddRange(list);
+                }
+
+                _hiddenSubjectIds.Clear();
+                if (System.IO.File.Exists(HiddenSubjectsPath))
+                {
+                    var hidden = JsonSerializer.Deserialize<List<int>>(System.IO.File.ReadAllText(HiddenSubjectsPath));
+                    if (hidden != null) _hiddenSubjectIds.AddRange(hidden);
+                }
+            }
+            catch
+            {
+                // sérült fájl esetén üres lista
+            }
+        }
+
+        private void SaveLocalSubjects()
+        {
+            try
+            {
+                string? dir = System.IO.Path.GetDirectoryName(LocalSubjectsPath);
+                if (dir != null) System.IO.Directory.CreateDirectory(dir);
+
+                var options = new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                    Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+                };
+
+                System.IO.File.WriteAllText(LocalSubjectsPath, JsonSerializer.Serialize(_localSubjects, options));
+                System.IO.File.WriteAllText(HiddenSubjectsPath, JsonSerializer.Serialize(_hiddenSubjectIds, options));
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    "Nem sikerült elmenteni a tantárgyakat: " + ex.Message,
+                    "Mentési hiba",
                     MessageBoxButton.OK,
                     MessageBoxImage.Warning);
             }
@@ -443,6 +535,8 @@ namespace TudasterAdmin
         private void DashboardButton_Click(object sender, RoutedEventArgs e)
         {
             ContentArea.Content = DashboardContent;
+
+            ReviewCountText.Text = GetPendingDraftCount().ToString();
         }
 
         private void TasksButton_Click(object sender, RoutedEventArgs e)
@@ -485,6 +579,7 @@ namespace TudasterAdmin
             ShowSettingsPage();
         }
 
+
         
 
         private void ShowTaskTypesPage()
@@ -510,6 +605,9 @@ namespace TudasterAdmin
                 VerticalContentAlignment = VerticalAlignment.Center
             };
 
+            // A lista létrehozása – kerüljön ide!
+            var listPanel = new StackPanel();
+
             var searchPlaceholder = new TextBlock
             {
                 Text = "Keresés...",
@@ -522,9 +620,12 @@ namespace TudasterAdmin
 
             searchBox.TextChanged += (s, e) =>
             {
-                searchPlaceholder.Visibility = string.IsNullOrEmpty(searchBox.Text)
-                    ? Visibility.Visible
-                    : Visibility.Collapsed;
+                searchPlaceholder.Visibility =
+                    string.IsNullOrEmpty(searchBox.Text)
+                        ? Visibility.Visible
+                        : Visibility.Collapsed;
+
+                RefreshList();
             };
 
             var searchHost = new Grid();
@@ -622,8 +723,6 @@ namespace TudasterAdmin
             Grid.SetColumn(addBorder, 1);
             toolbar.Children.Add(addBorder);
 
-            // --- Lista ---
-            var listPanel = new StackPanel();
 
             void RefreshList()
             {
@@ -743,11 +842,15 @@ namespace TudasterAdmin
         private void ShowSubjectsPage()
         {
             PageTitleText.Text = "Tantárgyak";
-            PageSubtitleText.Text = "A Tudástér tantárgyainak áttekintése.";
+            PageSubtitleText.Text = "A Tudástér tantárgyainak kezelése: keresés, hozzáadás és törlés.";
 
-            var mainPanel = new StackPanel();
+            var mainPanel = new StackPanel { Margin = new Thickness(0, 0, 20, 0) };
 
+            var toolbar = new Grid { Margin = new Thickness(0, 0, 0, 20) };
+            toolbar.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            toolbar.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 
+            // --- Kereső (bal) ---
             var searchBox = new TextBox
             {
                 Height = 42,
@@ -758,6 +861,27 @@ namespace TudasterAdmin
                 VerticalContentAlignment = VerticalAlignment.Center
             };
 
+            var searchPlaceholder = new TextBlock
+            {
+                Text = "Keresés...",
+                FontSize = 14,
+                Foreground = (Brush)FindResource("MutedTextBrush"),
+                Margin = new Thickness(14, 0, 0, 0),
+                VerticalAlignment = VerticalAlignment.Center,
+                IsHitTestVisible = false
+            };
+
+            searchBox.TextChanged += (s, e) =>
+            {
+                searchPlaceholder.Visibility = string.IsNullOrEmpty(searchBox.Text)
+                    ? Visibility.Visible
+                    : Visibility.Collapsed;
+            };
+
+            var searchHost = new Grid();
+            searchHost.Children.Add(searchBox);
+            searchHost.Children.Add(searchPlaceholder);
+
             var searchBorder = new Border
             {
                 Height = 42,
@@ -766,25 +890,84 @@ namespace TudasterAdmin
                 BorderBrush = (Brush)FindResource("BorderBrush"),
                 BorderThickness = new Thickness(1),
                 CornerRadius = new CornerRadius(10),
-                Margin = new Thickness(0, 0, 0, 20),
-                Child = searchBox
+                HorizontalAlignment = HorizontalAlignment.Left,
+                Child = searchHost
+            };
+            Grid.SetColumn(searchBorder, 0);
+            toolbar.Children.Add(searchBorder);
+
+            // --- Új tantárgy felvitele (jobb) ---
+            var input = new TextBox
+            {
+                Width = 230,
+                FontSize = 14,
+                Padding = new Thickness(10, 0, 10, 0),
+                Background = Brushes.Transparent,
+                BorderThickness = new Thickness(0),
+                VerticalContentAlignment = VerticalAlignment.Center
             };
 
-            searchBox.TextChanged += (sender, e) =>
+            var placeholder = new TextBlock
             {
-                string searchText = searchBox.Text.Trim();
+                Text = "Új tantárgy neve...",
+                FontSize = 14,
+                Foreground = (Brush)FindResource("MutedTextBrush"),
+                Margin = new Thickness(12, 0, 0, 0),
+                VerticalAlignment = VerticalAlignment.Center,
+                IsHitTestVisible = false
+            };
 
-                var filteredSubjects = _subjects
-                    .Where(subject =>
-                        subject.Name.Contains(
-                            searchText,
-                            StringComparison.OrdinalIgnoreCase))
-                    .ToList();
+            var inputHost = new Grid();
+            inputHost.Children.Add(input);
+            inputHost.Children.Add(placeholder);
 
-                mainPanel.Children.Clear();
-                mainPanel.Children.Add(searchBorder);
+            input.TextChanged += (s, e) =>
+            {
+                placeholder.Visibility = string.IsNullOrEmpty(input.Text)
+                    ? Visibility.Visible
+                    : Visibility.Collapsed;
+            };
 
-                foreach (var subject in filteredSubjects)
+            var addButton = new Button
+            {
+                Content = "+  HOZZÁADÁS",
+                Width = 132,
+                Template = CreateRoundedButtonTemplate(),
+                Background = (Brush)FindResource("PrimaryBrush"),
+                Foreground = (Brush)FindResource("WhiteBrush"),
+                FontWeight = FontWeights.SemiBold,
+                FontSize = 13,
+                Cursor = Cursors.Hand
+            };
+
+            var addInner = new StackPanel { Orientation = Orientation.Horizontal };
+            addInner.Children.Add(inputHost);
+            addInner.Children.Add(addButton);
+
+            var addBorder = new Border
+            {
+                Height = 42,
+                Background = Brushes.White,
+                BorderBrush = (Brush)FindResource("PrimaryBrush"),
+                BorderThickness = new Thickness(1.5),
+                CornerRadius = new CornerRadius(10),
+                HorizontalAlignment = HorizontalAlignment.Right,
+                Child = addInner
+            };
+            Grid.SetColumn(addBorder, 1);
+            toolbar.Children.Add(addBorder);
+
+            // --- Lista ---
+            var listPanel = new StackPanel();
+
+            void RefreshList()
+            {
+                listPanel.Children.Clear();
+
+                string filter = searchBox.Text.Trim();
+                int shown = 0;
+
+                void AddCard(string name, string detail, Brush detailBrush, Action onDelete, string confirmText)
                 {
                     var card = new Border
                     {
@@ -794,74 +977,154 @@ namespace TudasterAdmin
                         Margin = new Thickness(0, 0, 0, 12)
                     };
 
-                    var panel = new StackPanel();
+                    var row = new Grid();
+                    row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+                    row.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 
-                    var nameText = new TextBlock
+                    var info = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
+                    info.Children.Add(new TextBlock
                     {
-                        Text = subject.Name,
+                        Text = name,
                         FontSize = 18,
                         FontWeight = FontWeights.SemiBold,
                         Foreground = (Brush)FindResource("TextBrush")
-                    };
-
-                    var countText = new TextBlock
+                    });
+                    info.Children.Add(new TextBlock
                     {
-                        Text = $"{subject.TaskCount} feladat",
+                        Text = detail,
                         FontSize = 14,
-                        Foreground = (Brush)FindResource("MutedTextBrush"),
+                        Foreground = detailBrush,
                         Margin = new Thickness(0, 5, 0, 0)
+                    });
+                    Grid.SetColumn(info, 0);
+                    row.Children.Add(info);
+
+                    var deleteBtn = new Button
+                    {
+                        Content = "TÖRLÉS",
+                        Width = 100,
+                        Height = 36,
+                        VerticalAlignment = VerticalAlignment.Center
                     };
+                    deleteBtn.Click += (s, e) =>
+                    {
+                        var answer = MessageBox.Show(
+                            confirmText,
+                            "Tantárgy törlése",
+                            MessageBoxButton.YesNo,
+                            MessageBoxImage.Question);
 
-                    panel.Children.Add(nameText);
-                    panel.Children.Add(countText);
+                        if (answer == MessageBoxResult.Yes)
+                        {
+                            onDelete();
+                            SaveLocalSubjects();
+                            RefreshList();
+                        }
+                    };
+                    Grid.SetColumn(deleteBtn, 1);
+                    row.Children.Add(deleteBtn);
 
-                    card.Child = panel;
-                    mainPanel.Children.Add(card);
+                    card.Child = row;
+                    listPanel.Children.Add(card);
+                    shown++;
+                }
+
+                // Helyben felvett tantárgyak
+                foreach (string local in _localSubjects.ToList())
+                {
+                    if (filter.Length > 0 && !local.Contains(filter, StringComparison.OrdinalIgnoreCase))
+                        continue;
+
+                    string captured = local;
+                    AddCard(
+                        local,
+                        "⚠ Helyi, még nincs feltöltve",
+                        Brushes.DarkOrange,
+                        () => _localSubjects.Remove(captured),
+                        $"Biztosan törölni szeretnéd ezt a tantárgyat?\n\n{local}");
+                }
+
+                // Adatbázisból érkező tantárgyak (a törlés csak elrejti őket helyben)
+                foreach (var subject in _subjects.ToList())
+                {
+                    if (_hiddenSubjectIds.Contains(subject.Id)) continue;
+                    if (filter.Length > 0 && !subject.Name.Contains(filter, StringComparison.OrdinalIgnoreCase))
+                        continue;
+
+                    int id = subject.Id;
+                    AddCard(
+                        subject.Name,
+                        $"{subject.TaskCount} feladat",
+                        (Brush)FindResource("MutedTextBrush"),
+                        () => _hiddenSubjectIds.Add(id),
+                        $"Biztosan törölni szeretnéd ezt a tantárgyat?\n\n{subject.Name}\n\n" +
+                        "Az adatbázisból egyelőre nem törlődik, csak eltűnik a listából ebben az alkalmazásban.");
+                }
+
+                if (shown == 0)
+                {
+                    listPanel.Children.Add(new TextBlock
+                    {
+                        Text = filter.Length == 0
+                            ? "Még nincs tantárgy."
+                            : "Nincs találat a keresésre.",
+                        Foreground = (Brush)FindResource("MutedTextBrush")
+                    });
+                }
+            }
+
+            void AddSubject()
+            {
+                string name = input.Text.Trim();
+                if (string.IsNullOrWhiteSpace(name))
+                    return;
+
+                bool exists =
+                    _localSubjects.Any(s => s.Equals(name, StringComparison.OrdinalIgnoreCase)) ||
+                    _subjects.Any(s => !_hiddenSubjectIds.Contains(s.Id) &&
+                                       s.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+
+                if (exists)
+                {
+                    MessageBox.Show("Ilyen nevű tantárgy már létezik.", "Már létezik",
+                        MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                _localSubjects.Add(name);
+                SaveLocalSubjects();
+                input.Clear();
+                searchBox.Clear();   // hogy az új elem biztosan látszódjon
+                RefreshList();
+            }
+
+            searchBox.TextChanged += (s, e) => RefreshList();
+            addButton.Click += (s, e) => AddSubject();
+            input.KeyDown += (s, e) =>
+            {
+                if (e.Key == Key.Enter)
+                {
+                    AddSubject();
+                    e.Handled = true;
                 }
             };
 
-            mainPanel.Children.Add(searchBorder);
+            // Ha az adatbázisos tantárgyak az oldal megnyitása után érkeznek meg, frissítünk
+            System.Collections.Specialized.NotifyCollectionChangedEventHandler subjectsChanged =
+                (s, e) => RefreshList();
+            _subjects.CollectionChanged += subjectsChanged;
 
-            foreach (var subject in _subjects)
-            {
-                var card = new Border
-                {
-                    Background = Brushes.White,
-                    CornerRadius = new CornerRadius(12),
-                    Padding = new Thickness(20),
-                    Margin = new Thickness(0, 0, 0, 12)
-                };
+            mainPanel.Children.Add(toolbar);
+            mainPanel.Children.Add(listPanel);
 
-                var panel = new StackPanel();
-
-                var nameText = new TextBlock
-                {
-                    Text = subject.Name,
-                    FontSize = 18,
-                    FontWeight = FontWeights.SemiBold,
-                    Foreground = (Brush)FindResource("TextBrush")
-                };
-
-                var countText = new TextBlock
-                {
-                    Text = $"{subject.TaskCount} feladat",
-                    FontSize = 14,
-                    Foreground = (Brush)FindResource("MutedTextBrush"),
-                    Margin = new Thickness(0, 5, 0, 0)
-                };
-
-                panel.Children.Add(nameText);
-                panel.Children.Add(countText);
-
-                card.Child = panel;
-                mainPanel.Children.Add(card);
-            }
+            RefreshList();
 
             var scrollViewer = new ScrollViewer
             {
                 VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
                 Content = mainPanel
             };
+            scrollViewer.Unloaded += (s, e) => _subjects.CollectionChanged -= subjectsChanged;
 
             ContentArea.Content = scrollViewer;
         }
@@ -1801,13 +2064,14 @@ namespace TudasterAdmin
 
             List<string> GetSubjectNames()
             {
-                var names = _subjects.Select(s => s.Name)
-                    .Concat(_topics.Select(t => t.Subject))
-                    .Concat(_localTopics.Select(t => t.Subject))
-                    .Where(n => !string.IsNullOrWhiteSpace(n) && n != "Nincs tantárgy")
-                    .Distinct(StringComparer.OrdinalIgnoreCase)
-                    .OrderBy(n => n)
-                    .ToList();
+                var names = _subjects.Where(s => !_hiddenSubjectIds.Contains(s.Id)).Select(s => s.Name)
+                            .Concat(_localSubjects)
+                            .Concat(_topics.Select(t => t.Subject))
+                            .Concat(_localTopics.Select(t => t.Subject))
+                            .Where(n => !string.IsNullOrWhiteSpace(n) && n != "Nincs tantárgy")
+                            .Distinct(StringComparer.OrdinalIgnoreCase)
+                            .OrderBy(n => n)
+                            .ToList();
 
                 if (names.Count == 0)
                     names = new List<string> { "Irodalom", "Magyar nyelv", "Matematika", "Történelem" };
@@ -2114,6 +2378,8 @@ namespace TudasterAdmin
             ContentArea.Content = scrollViewer;
         }
 
+
+
         private void ShowExamSetsPage()
         {
             PageTitleText.Text = "Érettségi feladatsorok";
@@ -2133,136 +2399,7 @@ namespace TudasterAdmin
             toolbar.ColumnDefinitions.Add(
                 new ColumnDefinition { Width = GridLength.Auto });
 
-            // Kereső
-            Border searchBorder = new Border
-            {
-                Width = 320,
-                Height = 44,
-                Background = (Brush)FindResource("WhiteBrush"),
-                BorderBrush = (Brush)FindResource("BorderBrush"),
-                BorderThickness = new Thickness(1),
-                CornerRadius = new CornerRadius(10),
-                Padding = new Thickness(12, 0, 12, 0)
-            };
-
-            _examSetSearchBox = new TextBox
-            {
-                BorderThickness = new Thickness(0),
-                Background = Brushes.Transparent,
-                VerticalContentAlignment = VerticalAlignment.Center,
-                FontSize = 14
-            };
-
-            _examSetSearchBox.TextChanged += ExamSetSearchBox_TextChanged;
-
-            searchBorder.Child = _examSetSearchBox;
-
-            Grid.SetColumn(searchBorder, 0);
-            toolbar.Children.Add(searchBorder);
-
-            // Új feladatsor
-
-
-
-
-            // Táblázat
-            _examSetGrid = new DataGrid
-            {
-                AutoGenerateColumns = false,
-                IsReadOnly = true,
-                HeadersVisibility = DataGridHeadersVisibility.Column,
-                RowHeight = 52,
-                FontSize = 13,
-                Background = (Brush)FindResource("WhiteBrush"),
-                BorderBrush = (Brush)FindResource("BorderBrush"),
-                BorderThickness = new Thickness(1),
-                GridLinesVisibility = DataGridGridLinesVisibility.Horizontal,
-                HorizontalGridLinesBrush = (Brush)FindResource("BorderBrush"),
-                VerticalGridLinesBrush = Brushes.Transparent,
-                SelectionMode = DataGridSelectionMode.Single,
-                SelectionUnit = DataGridSelectionUnit.FullRow,
-                CanUserAddRows = false,
-                CanUserResizeRows = false,
-                CanUserReorderColumns = false
-            };
-
-            _examSetGrid.Columns.Add(new DataGridTextColumn
-            {
-                Header = "ID",
-                Binding = new Binding("Id"),
-                Width = 60
-            });
-
-            _examSetGrid.Columns.Add(new DataGridTextColumn
-            {
-                Header = "Év",
-                Binding = new Binding("Year"),
-                Width = 70
-            });
-
-            _examSetGrid.Columns.Add(new DataGridTextColumn
-            {
-                Header = "Tantárgy",
-                Binding = new Binding("Subject"),
-                Width = 130
-            });
-
-            _examSetGrid.Columns.Add(new DataGridTextColumn
-            {
-                Header = "Szint",
-                Binding = new Binding("Level"),
-                Width = 120
-            });
-
-            _examSetGrid.Columns.Add(new DataGridTextColumn
-            {
-                Header = "Típus",
-                Binding = new Binding("Type"),
-                Width = 110
-            });
-
-            _examSetGrid.Columns.Add(new DataGridTextColumn
-            {
-                Header = "Feladatsor",
-                Binding = new Binding("Title"),
-                Width = new DataGridLength(1, DataGridLengthUnitType.Star)
-            });
-
-            _examSetGrid.Columns.Add(new DataGridTextColumn
-            {
-                Header = "Feladatok",
-                Binding = new Binding("TaskCount"),
-                Width = 100
-            });
-
-            _examSetGrid.Columns.Add(new DataGridTextColumn
-            {
-                Header = "Állapot",
-                Binding = new Binding("Status"),
-                Width = 140
-            });
-
-            _examSetGrid.ItemsSource = _examSets;
-
-            // Törlés gomb
-
-
-
-
-            mainPanel.Children.Add(toolbar);
-            mainPanel.Children.Add(_examSetGrid);
-
-
-            ContentArea.Content = mainPanel;
-        }
-
-        private void ShowUsersPage()
-        {
-            PageTitleText.Text = "Felhasználók";
-            PageSubtitleText.Text = "A Tudástér felhasználóinak áttekintése.";
-
-            var mainPanel = new StackPanel();
-
+            // Keresőmező
             var searchBox = new TextBox
             {
                 Height = 42,
@@ -2273,6 +2410,32 @@ namespace TudasterAdmin
                 VerticalContentAlignment = VerticalAlignment.Center
             };
 
+            var searchPlaceholder = new TextBlock
+            {
+                Text = "Keresés...",
+                FontSize = 14,
+                Foreground = (Brush)FindResource("MutedTextBrush"),
+                Margin = new Thickness(14, 0, 0, 0),
+                VerticalAlignment = VerticalAlignment.Center,
+                IsHitTestVisible = false
+            };
+
+            searchBox.TextChanged += (s, e) =>
+            {
+                searchPlaceholder.Visibility =
+                    string.IsNullOrEmpty(searchBox.Text)
+                        ? Visibility.Visible
+                        : Visibility.Collapsed;
+            };
+
+            searchBox.TextChanged += ExamSetSearchBox_TextChanged;
+
+            _examSetSearchBox = searchBox;
+
+            var searchHost = new Grid();
+            searchHost.Children.Add(searchBox);
+            searchHost.Children.Add(searchPlaceholder);
+
             var searchBorder = new Border
             {
                 Height = 42,
@@ -2281,16 +2444,334 @@ namespace TudasterAdmin
                 BorderBrush = (Brush)FindResource("BorderBrush"),
                 BorderThickness = new Thickness(1),
                 CornerRadius = new CornerRadius(10),
-                Margin = new Thickness(0, 0, 0, 20),
-                Child = searchBox
+                HorizontalAlignment = HorizontalAlignment.Left,
+                VerticalAlignment = VerticalAlignment.Top,
+                Child = searchHost
             };
 
-            void DisplayUsers(IEnumerable<UserItem> users)
-            {
-                mainPanel.Children.Clear();
-                mainPanel.Children.Add(searchBorder);
+            Grid.SetColumn(searchBorder, 0);
+            toolbar.Children.Add(searchBorder);
 
-                foreach (var user in users)
+            // Táblázat
+            _examSetGrid = new DataGrid
+            {
+                AutoGenerateColumns = false,
+                IsReadOnly = true,
+                HeadersVisibility = DataGridHeadersVisibility.Column,
+
+                RowHeight = 58,
+                FontSize = 13,
+
+                Background = Brushes.White,
+                BorderBrush = (Brush)FindResource("BorderBrush"),
+                BorderThickness = new Thickness(1),
+
+                GridLinesVisibility = DataGridGridLinesVisibility.Horizontal,
+                HorizontalGridLinesBrush = (Brush)FindResource("BorderBrush"),
+                VerticalGridLinesBrush = Brushes.Transparent,
+
+                SelectionMode = DataGridSelectionMode.Single,
+                SelectionUnit = DataGridSelectionUnit.FullRow,
+
+                CanUserAddRows = false,
+                CanUserResizeRows = false,
+                CanUserReorderColumns = false,
+
+                AlternationCount = 2,
+
+                RowBackground = Brushes.White,
+                AlternatingRowBackground =
+                    new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FAF9FC"))
+            };
+
+            // Fejléc stílusa
+            _examSetGrid.ColumnHeaderStyle = new Style(typeof(DataGridColumnHeader))
+            {
+                Setters =
+        {
+            new Setter(Control.BackgroundProperty,
+                new SolidColorBrush((Color)ColorConverter.ConvertFromString("#F4F2F8"))),
+
+            new Setter(Control.ForegroundProperty,
+                (Brush)FindResource("TextBrush")),
+
+            new Setter(Control.FontWeightProperty, FontWeights.SemiBold),
+            new Setter(Control.FontSizeProperty, 12.5),
+            new Setter(Control.PaddingProperty, new Thickness(14, 14, 14, 14)),
+            new Setter(Control.VerticalContentAlignmentProperty, VerticalAlignment.Center),
+            new Setter(Control.HorizontalContentAlignmentProperty, HorizontalAlignment.Left),
+            new Setter(Control.BorderThicknessProperty, new Thickness(0, 0, 0, 1)),
+            new Setter(Control.BorderBrushProperty,
+                (Brush)FindResource("BorderBrush"))
+        }
+            };
+
+            // Cellák stílusa
+            _examSetGrid.CellStyle = new Style(typeof(DataGridCell))
+            {
+                Setters =
+        {
+            new Setter(Control.PaddingProperty, new Thickness(14, 0, 14, 0)),
+            new Setter(Control.BorderThicknessProperty, new Thickness(0)),
+            new Setter(Control.VerticalContentAlignmentProperty, VerticalAlignment.Center),
+            new Setter(Control.HorizontalContentAlignmentProperty, HorizontalAlignment.Stretch),
+            new Setter(Control.ForegroundProperty, (Brush)FindResource("TextBrush"))
+        }
+            };
+
+            // Egységes szövegstílus
+            var textStyle = new Style(typeof(TextBlock));
+
+            textStyle.Setters.Add(
+                new Setter(FrameworkElement.VerticalAlignmentProperty, VerticalAlignment.Center));
+
+            textStyle.Setters.Add(
+                new Setter(FrameworkElement.MarginProperty, new Thickness(0)));
+
+            textStyle.Setters.Add(
+                new Setter(TextBlock.TextTrimmingProperty, TextTrimming.CharacterEllipsis));
+
+            // Középre igazított számok stílusa
+            var centeredNumberStyle = new Style(typeof(TextBlock));
+
+            centeredNumberStyle.Setters.Add(
+                new Setter(TextBlock.VerticalAlignmentProperty, VerticalAlignment.Center));
+
+            centeredNumberStyle.Setters.Add(
+                new Setter(TextBlock.HorizontalAlignmentProperty, HorizontalAlignment.Stretch));
+
+            centeredNumberStyle.Setters.Add(
+                new Setter(TextBlock.TextAlignmentProperty, TextAlignment.Center));
+
+            centeredNumberStyle.Setters.Add(
+                new Setter(FrameworkElement.MarginProperty, new Thickness(0)));
+
+            // Sorok stílusa
+            var rowStyle = new Style(typeof(DataGridRow));
+
+            rowStyle.Setters.Add(
+                new Setter(Control.BorderThicknessProperty, new Thickness(0)));
+
+            rowStyle.Setters.Add(
+                new Setter(Control.CursorProperty, Cursors.Hand));
+
+            rowStyle.Triggers.Add(new Trigger
+            {
+                Property = DataGridRow.IsMouseOverProperty,
+                Value = true,
+                Setters =
+        {
+            new Setter(Control.BackgroundProperty,
+                new SolidColorBrush(
+                    (Color)ColorConverter.ConvertFromString("#F1ECF8")))
+        }
+            });
+
+            rowStyle.Triggers.Add(new Trigger
+            {
+                Property = DataGridRow.IsSelectedProperty,
+                Value = true,
+                Setters =
+        {
+            new Setter(Control.BackgroundProperty,
+                new SolidColorBrush(
+                    (Color)ColorConverter.ConvertFromString("#EAE2F5"))),
+
+            new Setter(Control.ForegroundProperty,
+                (Brush)FindResource("PrimaryBrush"))
+        }
+            });
+
+            _examSetGrid.RowStyle = rowStyle;
+
+            // ID - középre igazítva
+            _examSetGrid.Columns.Add(new DataGridTextColumn
+            {
+                Header = "ID",
+                Binding = new Binding("Id"),
+                Width = 60,
+                ElementStyle = centeredNumberStyle
+            });
+
+            // Év
+            _examSetGrid.Columns.Add(new DataGridTextColumn
+            {
+                Header = "Év",
+                Binding = new Binding("Year"),
+                Width = 70,
+                ElementStyle = textStyle
+            });
+
+            // Tantárgy
+            _examSetGrid.Columns.Add(new DataGridTextColumn
+            {
+                Header = "Tantárgy",
+                Binding = new Binding("Subject"),
+                Width = 130,
+                ElementStyle = textStyle
+            });
+
+            // Szint
+            _examSetGrid.Columns.Add(new DataGridTextColumn
+            {
+                Header = "Szint",
+                Binding = new Binding("Level"),
+                Width = 120,
+                ElementStyle = textStyle
+            });
+
+            // Típus
+            _examSetGrid.Columns.Add(new DataGridTextColumn
+            {
+                Header = "Típus",
+                Binding = new Binding("Type"),
+                Width = 110,
+                ElementStyle = textStyle
+            });
+
+            // Feladatsor
+            _examSetGrid.Columns.Add(new DataGridTextColumn
+            {
+                Header = "Feladatsor",
+                Binding = new Binding("Title"),
+                Width = new DataGridLength(1, DataGridLengthUnitType.Star),
+                ElementStyle = textStyle
+            });
+
+            // Feladatok száma - középre igazítva
+            _examSetGrid.Columns.Add(new DataGridTextColumn
+            {
+                Header = "Feladatok",
+                Binding = new Binding("TaskCount"),
+                Width = 110,
+                ElementStyle = centeredNumberStyle
+            });
+
+            // Állapot
+            _examSetGrid.Columns.Add(new DataGridTextColumn
+            {
+                Header = "Állapot",
+                Binding = new Binding("Status"),
+                Width = 140,
+                ElementStyle = textStyle
+            });
+
+            _examSetGrid.ItemsSource = _examSets;
+
+            // Megjelenítés
+            mainPanel.Children.Add(toolbar);
+            mainPanel.Children.Add(_examSetGrid);
+
+            ContentArea.Content = mainPanel;
+        }
+
+
+
+
+        private void ShowUsersPage()
+        {
+            PageTitleText.Text = "Felhasználók";
+            PageSubtitleText.Text = "A Tudástér felhasználóinak kezelése: keresés, szerkesztés és törlés.";
+
+            var mainPanel = new StackPanel
+            {
+                Margin = new Thickness(0, 0, 20, 0)
+            };
+
+            // Felső sáv
+            var toolbar = new Grid
+            {
+                Margin = new Thickness(0, 0, 0, 20)
+            };
+
+            toolbar.ColumnDefinitions.Add(
+                new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+
+            // Kereső
+            var searchBox = new TextBox
+            {
+                Height = 42,
+                FontSize = 14,
+                Padding = new Thickness(12, 0, 12, 0),
+                Background = Brushes.Transparent,
+                BorderThickness = new Thickness(0),
+                VerticalContentAlignment = VerticalAlignment.Center
+            };
+            var listPanel = new StackPanel();
+
+            var searchPlaceholder = new TextBlock
+            {
+                Text = "Keresés...",
+                FontSize = 14,
+                Foreground = (Brush)FindResource("MutedTextBrush"),
+                Margin = new Thickness(14, 0, 0, 0),
+                VerticalAlignment = VerticalAlignment.Center,
+                IsHitTestVisible = false
+            };
+
+            var searchHost = new Grid();
+            searchHost.Children.Add(searchBox);
+            searchHost.Children.Add(searchPlaceholder);
+
+            searchBox.TextChanged += (s, e) =>
+            {
+                searchPlaceholder.Visibility =
+                    string.IsNullOrEmpty(searchBox.Text)
+                        ? Visibility.Visible
+                        : Visibility.Collapsed;
+
+                RefreshUsers();
+            };
+
+            var searchBorder = new Border
+            {
+                Height = 42,
+                Width = 320,
+                Background = Brushes.White,
+                BorderBrush = (Brush)FindResource("BorderBrush"),
+                BorderThickness = new Thickness(1),
+                CornerRadius = new CornerRadius(10),
+                HorizontalAlignment = HorizontalAlignment.Left,
+                Child = searchHost
+            };
+
+            toolbar.Children.Add(searchBorder);
+
+
+            // Gombstílus
+            Button CreateActionButton(string text, Brush background)
+            {
+                return new Button
+                {
+                    Content = text,
+                    Width = 105,
+                    Height = 36,
+                    Margin = new Thickness(5, 0, 0, 0),
+                    Background = background,
+                    Foreground = Brushes.White,
+                    FontWeight = FontWeights.SemiBold,
+                    FontSize = 12,
+                    Cursor = Cursors.Hand,
+                    Template = CreateRoundedButtonTemplate()
+                };
+            }
+
+
+            void RefreshUsers()
+            {
+                listPanel.Children.Clear();
+
+                string filter = searchBox.Text.Trim();
+
+                var visibleUsers = _users
+                    .Where(user =>
+                        user.Name.Contains(filter, StringComparison.OrdinalIgnoreCase) ||
+                        user.Email.Contains(filter, StringComparison.OrdinalIgnoreCase) ||
+                        user.Role.Contains(filter, StringComparison.OrdinalIgnoreCase) ||
+                        user.Status.Contains(filter, StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+
+                foreach (var user in visibleUsers)
                 {
                     var card = new Border
                     {
@@ -2300,9 +2781,21 @@ namespace TudasterAdmin
                         Margin = new Thickness(0, 0, 0, 12)
                     };
 
-                    var panel = new StackPanel();
+                    var row = new Grid();
 
-                    panel.Children.Add(new TextBlock
+                    row.ColumnDefinitions.Add(
+                        new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+
+                    row.ColumnDefinitions.Add(
+                        new ColumnDefinition { Width = GridLength.Auto });
+
+                    // Felhasználói adatok
+                    var info = new StackPanel
+                    {
+                        VerticalAlignment = VerticalAlignment.Center
+                    };
+
+                    info.Children.Add(new TextBlock
                     {
                         Text = user.Name,
                         FontSize = 18,
@@ -2310,7 +2803,7 @@ namespace TudasterAdmin
                         Foreground = (Brush)FindResource("TextBrush")
                     });
 
-                    panel.Children.Add(new TextBlock
+                    info.Children.Add(new TextBlock
                     {
                         Text = user.Email,
                         FontSize = 14,
@@ -2318,7 +2811,7 @@ namespace TudasterAdmin
                         Margin = new Thickness(0, 5, 0, 0)
                     });
 
-                    panel.Children.Add(new TextBlock
+                    info.Children.Add(new TextBlock
                     {
                         Text = $"{user.Role} • {user.Status}",
                         FontSize = 14,
@@ -2326,35 +2819,76 @@ namespace TudasterAdmin
                         Margin = new Thickness(0, 5, 0, 0)
                     });
 
-                    card.Child = panel;
-                    mainPanel.Children.Add(card);
+                    Grid.SetColumn(info, 0);
+                    row.Children.Add(info);
+
+                    // Műveletek
+                    var actions = new StackPanel
+                    {
+                        Orientation = Orientation.Horizontal,
+                        VerticalAlignment = VerticalAlignment.Center
+                    };
+
+                    // Szerkesztés
+                    var editButton = CreateActionButton(
+                        "SZERKESZTÉS",
+                        (Brush)FindResource("PrimaryBrush"));
+
+                    editButton.Click += async (s, e) =>
+                    {
+                        await EditUserAsync(user);
+                        RefreshUsers();
+                    };
+
+                    // Törlés
+                    var deleteButton = CreateActionButton(
+                        "TÖRLÉS",
+                        Brushes.Firebrick);
+
+                    deleteButton.Click += async (s, e) =>
+                    {
+                        var answer = MessageBox.Show(
+                            $"Biztosan törölni szeretnéd ezt a felhasználót?\n\n" +
+                            $"{user.Name}\n{user.Email}",
+                            "Felhasználó törlése",
+                            MessageBoxButton.YesNo,
+                            MessageBoxImage.Warning);
+
+                        if (answer == MessageBoxResult.Yes)
+                        {
+                            await DeleteUserAsync(user);
+                            RefreshUsers();
+                        }
+                    };
+
+                    actions.Children.Add(editButton);
+                    actions.Children.Add(deleteButton);
+
+                    Grid.SetColumn(actions, 1);
+                    row.Children.Add(actions);
+
+                    card.Child = row;
+                    listPanel.Children.Add(card);
+                }
+
+                if (visibleUsers.Count == 0)
+                {
+                    listPanel.Children.Add(new TextBlock
+                    {
+                        Text = filter.Length == 0
+                            ? "Még nincs felhasználó."
+                            : "Nincs találat a keresésre.",
+                        Foreground = (Brush)FindResource("MutedTextBrush"),
+                        FontSize = 14,
+                        Margin = new Thickness(5, 5, 0, 0)
+                    });
                 }
             }
 
-            searchBox.TextChanged += (sender, e) =>
-            {
-                string searchText = searchBox.Text.Trim();
+            mainPanel.Children.Add(toolbar);
+            mainPanel.Children.Add(listPanel);
 
-                var filteredUsers = _users
-                    .Where(user =>
-                        user.Name.Contains(
-                            searchText,
-                            StringComparison.OrdinalIgnoreCase) ||
-                        user.Email.Contains(
-                            searchText,
-                            StringComparison.OrdinalIgnoreCase) ||
-                        user.Role.Contains(
-                            searchText,
-                            StringComparison.OrdinalIgnoreCase) ||
-                        user.Status.Contains(
-                            searchText,
-                            StringComparison.OrdinalIgnoreCase))
-                    .ToList();
-
-                DisplayUsers(filteredUsers);
-            };
-
-            DisplayUsers(_users);
+            RefreshUsers();
 
             var scrollViewer = new ScrollViewer
             {
@@ -2364,6 +2898,153 @@ namespace TudasterAdmin
 
             ContentArea.Content = scrollViewer;
         }
+
+
+        private Task EditUserAsync(UserItem user)
+        {
+            var editWindow = new Window
+            {
+                Title = "Felhasználó szerkesztése",
+                Width = 420,
+                Height = 350,
+                WindowStartupLocation = WindowStartupLocation.CenterOwner,
+                Owner = this,
+                ResizeMode = ResizeMode.NoResize,
+                Background = (Brush)FindResource("BackgroundBrush")
+            };
+
+            var panel = new StackPanel
+            {
+                Margin = new Thickness(25)
+            };
+
+            panel.Children.Add(new TextBlock
+            {
+                Text = "Felhasználó szerkesztése",
+                FontSize = 21,
+                FontWeight = FontWeights.Bold,
+                Foreground = (Brush)FindResource("PrimaryBrush"),
+                Margin = new Thickness(0, 0, 0, 20)
+            });
+
+            panel.Children.Add(new TextBlock
+            {
+                Text = "Felhasználónév",
+                Margin = new Thickness(0, 0, 0, 7)
+            });
+
+            var nameBox = new TextBox
+            {
+                Text = user.Name,
+                Height = 38,
+                FontSize = 14,
+                Padding = new Thickness(10),
+                Margin = new Thickness(0, 0, 0, 18)
+            };
+
+            panel.Children.Add(nameBox);
+
+            panel.Children.Add(new TextBlock
+            {
+                Text = "Szerepkör",
+                Margin = new Thickness(0, 0, 0, 7)
+            });
+
+            var roleBox = new ComboBox
+            {
+                Height = 38,
+                FontSize = 14,
+                Margin = new Thickness(0, 0, 0, 25)
+            };
+
+            roleBox.Items.Add("Diák");
+            roleBox.Items.Add("Tanár");
+            roleBox.Items.Add("Admin");
+
+            roleBox.SelectedItem = user.Role;
+
+            panel.Children.Add(roleBox);
+
+            var buttons = new StackPanel
+            {
+                Orientation = Orientation.Horizontal,
+                HorizontalAlignment = HorizontalAlignment.Right
+            };
+
+            var cancelButton = new Button
+            {
+                Content = "MÉGSE",
+                Width = 100,
+                Height = 38,
+                Margin = new Thickness(0, 0, 10, 0)
+            };
+
+            cancelButton.Click += (s, e) =>
+            {
+                editWindow.DialogResult = false;
+            };
+
+            var saveButton = new Button
+            {
+                Content = "MENTÉS",
+                Width = 110,
+                Height = 38,
+                Background = (Brush)FindResource("PrimaryBrush"),
+                Foreground = Brushes.White,
+                Template = CreateRoundedButtonTemplate()
+            };
+
+            saveButton.Click += (s, e) =>
+            {
+                if (string.IsNullOrWhiteSpace(nameBox.Text) ||
+                    roleBox.SelectedItem == null)
+                {
+                    MessageBox.Show("Minden mezőt tölts ki!");
+                    return;
+                }
+
+                editWindow.DialogResult = true;
+            };
+
+            buttons.Children.Add(cancelButton);
+            buttons.Children.Add(saveButton);
+
+            panel.Children.Add(buttons);
+
+            editWindow.Content = panel;
+
+            if (editWindow.ShowDialog() != true)
+                return Task.CompletedTask;
+
+            // Csak helyi módosítás, nincs adatbázis-hívás!
+            user.Name = nameBox.Text.Trim();
+            user.Role = roleBox.SelectedItem.ToString()!;
+
+            MessageBox.Show(
+                "A felhasználó adatai helyben módosultak.",
+                "Sikeres módosítás",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
+
+            return Task.CompletedTask;
+        }
+
+
+        private Task DeleteUserAsync(UserItem user)
+        {
+            // Csak a helyi listából törlünk!
+            _users.Remove(user);
+
+            MessageBox.Show(
+                "A felhasználó eltávolítva a helyi listából.",
+                "Sikeres törlés",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
+
+            return Task.CompletedTask;
+        }
+
+
 
         private void ShowTasksPage()
         {
