@@ -399,6 +399,25 @@ namespace TudasterAdmin
             return template;
         }
 
+        private Button CreateDeleteButton(
+            string text = "TÖRLÉS",
+            double width = 100,
+            double height = 36)
+        {
+            return new Button
+            {
+                Content = text,
+                Width = width,
+                Height = height,
+                Background = Brushes.Firebrick,
+                Foreground = Brushes.White,
+                FontWeight = FontWeights.SemiBold,
+                FontSize = 12,
+                Cursor = Cursors.Hand,
+                Template = CreateRoundedButtonTemplate()
+            };
+        }
+
         private async Task LoadTopicsAsync()
         {
             try
@@ -760,7 +779,7 @@ namespace TudasterAdmin
                     Grid.SetColumn(nameText, 0);
                     row.Children.Add(nameText);
 
-                    var deleteBtn = new Button { Content = "TÖRLÉS", Width = 100, Height = 36 };
+                    var deleteBtn = CreateDeleteButton();
                     string captured = typeName;
                     deleteBtn.Click += (s, e) =>
                     {
@@ -999,13 +1018,8 @@ namespace TudasterAdmin
                     Grid.SetColumn(info, 0);
                     row.Children.Add(info);
 
-                    var deleteBtn = new Button
-                    {
-                        Content = "TÖRLÉS",
-                        Width = 100,
-                        Height = 36,
-                        VerticalAlignment = VerticalAlignment.Center
-                    };
+                    var deleteBtn = CreateDeleteButton();
+                    deleteBtn.VerticalAlignment = VerticalAlignment.Center;
                     deleteBtn.Click += (s, e) =>
                     {
                         var answer = MessageBox.Show(
@@ -1823,7 +1837,8 @@ namespace TudasterAdmin
                 });
 
                 var openBtn = new Button { Content = "MEGNYITÁS", Width = 120, Height = 38 };
-                var deleteBtn = new Button { Content = "TÖRLÉS", Width = 100, Height = 38, Margin = new Thickness(8, 0, 0, 0) };
+                var deleteBtn = CreateDeleteButton();
+                deleteBtn.VerticalAlignment = VerticalAlignment.Center;
 
                 openBtn.Click += (s, e) =>
                 {
@@ -2235,13 +2250,8 @@ namespace TudasterAdmin
                     Grid.SetColumn(info, 0);
                     row.Children.Add(info);
 
-                    var deleteBtn = new Button
-                    {
-                        Content = "TÖRLÉS",
-                        Width = 100,
-                        Height = 36,
-                        VerticalAlignment = VerticalAlignment.Center
-                    };
+                    var deleteBtn = CreateDeleteButton();
+                    deleteBtn.VerticalAlignment = VerticalAlignment.Center;
                     deleteBtn.Click += (s, e) =>
                     {
                         var answer = MessageBox.Show(
