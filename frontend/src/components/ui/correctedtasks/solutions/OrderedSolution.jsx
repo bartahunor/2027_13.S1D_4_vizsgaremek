@@ -19,7 +19,7 @@ export default function OrderedSolution({ question, status, labels }) {
                     <ol className="space-y-1">
                         {given.map((a, i) => (
                             <li key={i} className="flex gap-2 items-start text-sm font-medium text-[#35284B]">
-                                <span className="w-5 text-[#756B83]">{i + 1}.</span>
+                                <span className="w-5 text-[#756B83]">{i + 2}.</span>
                                 <span className="flex-1">{a}</span>
                                 <span
                                     className={`material-symbols-outlined text-base ${
@@ -44,7 +44,7 @@ export default function OrderedSolution({ question, status, labels }) {
                     <ol className="space-y-1 text-sm font-medium text-emerald-800">
                         {correct.map((a, i) => (
                             <li key={i} className="flex gap-2">
-                                <span className="w-5">{i + 1}.</span>
+                                <span className="w-5">{i + 2}.</span>
                                 {a}
                             </li>
                         ))}

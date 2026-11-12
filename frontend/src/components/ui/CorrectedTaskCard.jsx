@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { taskTypes, fallbackType } from "./correctedtasks/correctedtasks.js";
 import { getForrasKepUrl } from "../../lib/supabaseStorage";
 
@@ -73,7 +73,26 @@ function TaskCard({
 
     // A feladat típusa dönti el, melyik komponensek jelennek meg
     const { Solution, Explanation } = taskTypes[question.tipus] ?? fallbackType;
-    const forrasKepUrl = question.forras_kep ? getForrasKepUrl(question.forras_kep) : null;
+    const [forrasKepUrl, setForrasKepUrl] = useState(null);
+
+    useEffect(() => {
+        let cancelled = false;
+
+        if (!question.forras.kep) {
+            setForrasKepUrl(null);
+            return;
+        }
+
+        getForrasKepUrl(question.forras.kep).then((url) => {
+            if (!cancelled) setForrasKepUrl(url);
+        });
+
+        return () => {
+            cancelled = true;
+        };
+    }, [question.forras.kep]);
+
+
 
     return (
         <article className="bg-white rounded-2xl border border-[#351F5B]/10 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
@@ -114,7 +133,7 @@ function TaskCard({
                         onClick={onToggleExplanation}
                         className="mt-4 flex items-center gap-1 text-sm font-semibold text-[#351F5B]"
                     >
-                        {expanded ? "Magyarázat elrejtése" : "Magyarázat megtekintése"}
+                        {expanded ? "Kiegészítés elrejtése" : "Kiegészítés megtekintése"}
                         <span className="material-symbols-outlined text-base">
                             {expanded ? "expand_less" : "expand_more"}
                         </span>
@@ -127,7 +146,7 @@ function TaskCard({
                             <Explanation
                                 question={question}
                                 forrasKep={forrasKepUrl}
-                                forrasSzoveg={question.forras_szoveg}
+                                forrasSzoveg={question.forras.szoveg}
                                 magyarazat={question.magyarazat}
                                 labels={mergedLabels}
                             />
