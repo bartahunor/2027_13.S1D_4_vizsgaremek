@@ -116,7 +116,7 @@
                         Style="{StaticResource SidebarButtonStyle}"
                         Click="StatisticsButton_Click"/>
 
-                    <Button Content="Beállítások"
+                    <Button Content="Alkalmazás névjegye"
                         Height="45"
                         Margin="0,3"
                         Style="{StaticResource SidebarButtonStyle}"

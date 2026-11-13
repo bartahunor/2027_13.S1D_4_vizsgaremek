@@ -10,12 +10,12 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using TudasterAdmin.Processing;
 using System.Threading.Tasks;
+using static TudasterAdmin.UiKit;
 
 namespace TudasterAdmin
 {
     internal class DraftEditorWindow : Window
     {
-        private enum BtnKind { Primary, Secondary, Outline }
 
         private class RowRefs
         {
@@ -44,10 +44,10 @@ namespace TudasterAdmin
         };
 
         // Feladatsor adatai
-        private readonly ComboBox _subjectBox = NewCombo();
-        private readonly TextBox _yearBox = NewTextBox();
-        private readonly ComboBox _levelBox = NewCombo();
-        private readonly ComboBox _periodBox = NewCombo();
+        private readonly ComboBox _subjectBox = Combo(boxed: false);
+        private readonly TextBox _yearBox = Text();
+        private readonly ComboBox _levelBox = Combo(boxed: false);
+        private readonly ComboBox _periodBox = Combo(boxed: false);
         private readonly TextBlock _draftWarnings = new()
         {
             TextWrapping = TextWrapping.Wrap,
@@ -69,15 +69,15 @@ namespace TudasterAdmin
             Foreground = Brushes.DarkOrange,
             Margin = new Thickness(0, 6, 0, 0)
         };
-        private readonly ComboBox _typeBox = NewCombo();
-        private readonly TextBox _pointsBox = NewTextBox();
-        private readonly ComboBox _topicBox = NewCombo();
-        private readonly TextBox _questionBox = NewMultiLine(140);
-        private readonly TextBox _optionsBox = NewMultiLine(80);
-        private readonly TextBox _correctBox = NewMultiLine(80);
-        private readonly TextBox _solutionBox = NewMultiLine(80);
-        private readonly TextBox _sourceBox = NewMultiLine(110);
-        private readonly TextBox _tableBox = NewMultiLine(100);
+        private readonly ComboBox _typeBox = Combo(boxed: false);
+        private readonly TextBox _pointsBox = Text();
+        private readonly ComboBox _topicBox = Combo(boxed: false);
+        private readonly TextBox _questionBox = MultiLine(140);
+        private readonly TextBox _optionsBox = MultiLine(80);
+        private readonly TextBox _correctBox = MultiLine(80);
+        private readonly TextBox _solutionBox = MultiLine(80);
+        private readonly TextBox _sourceBox = MultiLine(110);
+        private readonly TextBox _tableBox = MultiLine(100);
         private readonly Image _imagePreview = new()
         {
             MaxHeight = 260,
@@ -93,7 +93,7 @@ namespace TudasterAdmin
             HorizontalAlignment = HorizontalAlignment.Left,
             Visibility = Visibility.Collapsed
         };
-        private readonly Button _removeImageButton = MakeButton("KÉP TÖRLÉSE", BtnKind.Outline);
+        private readonly Button _removeImageButton = UiKit.Button("KÉP TÖRLÉSE", BtnKind.Outline, height: 40);
         private readonly CheckBox _approvedBox = new()
         {
             Content = "Jóváhagyva (ellenőriztem a feladatot)",
@@ -105,138 +105,20 @@ namespace TudasterAdmin
             VerticalAlignment = VerticalAlignment.Center,
             Margin = new Thickness(0, 0, 14, 0)
         };
+        private bool _isImportingSolutions;
 
-        // ---------- Stílus-segédek (a MainWindow megjelenéséhez igazítva) ----------
-        private static Brush Res(string key) => (Brush)Application.Current.FindResource(key);
-
-        private static ComboBox NewCombo() => new ComboBox
+        private readonly ProgressBar _solutionProgress = new()
         {
-            BorderThickness = new Thickness(0),
-            Background = Brushes.Transparent,
-            FontSize = 13,
-            VerticalContentAlignment = VerticalAlignment.Center
+            Width = 140,
+            Height = 8,
+            IsIndeterminate = true,
+            Visibility = Visibility.Collapsed,
+            Foreground = Res("PrimaryBrush"),
+            Background = new SolidColorBrush(
+                (Color)ColorConverter.ConvertFromString("#EAE2F5")),
+            VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(0, 0, 12, 0)
         };
-
-        private static TextBox NewTextBox() => new TextBox
-        {
-            BorderThickness = new Thickness(0),
-            Background = Brushes.Transparent,
-            FontSize = 13,
-            VerticalContentAlignment = VerticalAlignment.Center
-        };
-
-        private static TextBox NewMultiLine(double minHeight) => new TextBox
-        {
-            BorderThickness = new Thickness(0),
-            Background = Brushes.Transparent,
-            FontSize = 13,
-            AcceptsReturn = true,
-            TextWrapping = TextWrapping.Wrap,
-            VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
-            MinHeight = minHeight
-        };
-
-        // Egysoros mező: lekerekített, keretes doboz (mint a keresőmezők)
-        private static Border BoxedLine(FrameworkElement inner, double width) => new Border
-        {
-            Width = width,
-            Height = 44,
-            Background = Res("WhiteBrush"),
-            BorderBrush = Res("BorderBrush"),
-            BorderThickness = new Thickness(1),
-            CornerRadius = new CornerRadius(10),
-            Padding = new Thickness(12, 0, 12, 0),
-            Child = inner
-        };
-
-        // Többsoros mező
-        private static Border BoxedArea(FrameworkElement inner) => new Border
-        {
-            Background = Res("WhiteBrush"),
-            BorderBrush = Res("BorderBrush"),
-            BorderThickness = new Thickness(1),
-            CornerRadius = new CornerRadius(10),
-            Padding = new Thickness(12, 8, 12, 8),
-            Child = inner
-        };
-
-        private static StackPanel Field(string label, FrameworkElement box, double right = 14)
-        {
-            var p = new StackPanel { Margin = new Thickness(0, 0, right, 14) };
-            p.Children.Add(new TextBlock
-            {
-                Text = label,
-                FontSize = 12,
-                FontWeight = FontWeights.SemiBold,
-                Foreground = Res("MutedTextBrush"),
-                Margin = new Thickness(0, 0, 0, 6)
-            });
-            p.Children.Add(box);
-            return p;
-        }
-
-        private static Border Card(string? title, params UIElement[] children)
-        {
-            var panel = new StackPanel();
-            if (title != null)
-            {
-                panel.Children.Add(new TextBlock
-                {
-                    Text = title,
-                    FontSize = 16,
-                    FontWeight = FontWeights.SemiBold,
-                    Foreground = Res("TextBrush"),
-                    Margin = new Thickness(0, 0, 0, 14)
-                });
-            }
-            foreach (var c in children) panel.Children.Add(c);
-
-            return new Border
-            {
-                Background = Res("WhiteBrush"),
-                BorderBrush = Res("BorderBrush"),
-                BorderThickness = new Thickness(1),
-                CornerRadius = new CornerRadius(14),
-                Padding = new Thickness(22),
-                Margin = new Thickness(0, 0, 0, 16),
-                Child = panel
-            };
-        }
-
-        private static Button MakeButton(string text, BtnKind kind, double width = double.NaN)
-        {
-            var b = new Button
-            {
-                Content = text,
-                Height = 40,
-                FontSize = 13,
-                FontWeight = FontWeights.SemiBold,
-                Cursor = Cursors.Hand,
-                Padding = new Thickness(18, 0, 18, 0)
-            };
-            if (!double.IsNaN(width)) b.Width = width;
-
-            switch (kind)
-            {
-                case BtnKind.Primary:
-                    b.Background = Res("PrimaryBrush");
-                    b.Foreground = Res("WhiteBrush");
-                    b.BorderThickness = new Thickness(0);
-                    break;
-                case BtnKind.Secondary:
-                    b.Background = Res("PrimaryLightBrush");
-                    b.Foreground = Res("WhiteBrush");
-                    b.BorderThickness = new Thickness(0);
-                    break;
-                default:
-                    b.Background = Brushes.Transparent;
-                    b.Foreground = Res("TextBrush");
-                    b.BorderBrush = Res("BorderBrush");
-                    b.BorderThickness = new Thickness(1);
-                    break;
-            }
-            return b;
-        }
 
         private static void SelectOrAdd(ComboBox box, string? value)
         {
@@ -331,7 +213,7 @@ namespace TudasterAdmin
             _draftWarnings.Text = string.Join("\n", draft.Warnings.Select(w => "⚠ " + w));
             _draftWarnings.Visibility = draft.Warnings.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
 
-            var importAllButton = MakeButton("MEGOLDÁSOK IMPORTÁLÁSA PDF-BŐL…", BtnKind.Secondary);
+            var importAllButton = UiKit.Button("MEGOLDÁSOK IMPORTÁLÁSA PDF-BŐL…", BtnKind.Secondary, height: 40);
             importAllButton.HorizontalAlignment = HorizontalAlignment.Left;
             importAllButton.Click += async (s, e) => await ImportSolutionsAsync(null);
 
@@ -389,7 +271,7 @@ namespace TudasterAdmin
             basics.Children.Add(Field("Témakör", BoxedLine(_topicBox, 360)));
             form.Children.Add(Card("Feladat", _infoText, _issuesText, new Border { Height = 14 }, basics));
 
-            var importOneButton = MakeButton("MEGOLDÁS BEOLVASÁSA AZ ÚTMUTATÓBÓL", BtnKind.Secondary);
+            var importOneButton = UiKit.Button("MEGOLDÁS BEOLVASÁSA AZ ÚTMUTATÓBÓL", BtnKind.Secondary, height: 40);
             importOneButton.HorizontalAlignment = HorizontalAlignment.Left;
             importOneButton.Click += async (s, e) =>
             {
@@ -404,7 +286,7 @@ namespace TudasterAdmin
                 _solutionHint,
                 importOneButton));
 
-            var addImageButton = MakeButton("KÉP HOZZÁRENDELÉSE…", BtnKind.Secondary);
+            var addImageButton = UiKit.Button("KÉP HOZZÁRENDELÉSE…", BtnKind.Secondary, height: 40);
             addImageButton.Click += (s, e) => AddImage();
             _removeImageButton.Margin = new Thickness(8, 0, 0, 0);
             _removeImageButton.Click += (s, e) => RemoveImage();
@@ -453,10 +335,10 @@ namespace TudasterAdmin
             root.Children.Add(body);
 
             // Alsó sáv
-            var prevButton = MakeButton("←  ELŐZŐ", BtnKind.Outline, 120);
-            var nextButton = MakeButton("KÖVETKEZŐ  →", BtnKind.Outline, 150);
+            var prevButton = UiKit.Button("←  ELŐZŐ", BtnKind.Outline, 120, 40);
+            var nextButton = UiKit.Button("KÖVETKEZŐ  →", BtnKind.Outline, 150, 40);
             nextButton.Margin = new Thickness(8, 0, 0, 0);
-            var saveButton = MakeButton("MENTÉS", BtnKind.Primary, 130);
+            var saveButton = UiKit.Button("MENTÉS", BtnKind.Primary, 130, 40);
 
             prevButton.Click += (s, e) => SelectIndex(_index - 1);
             nextButton.Click += (s, e) => SelectIndex(_index + 1);
@@ -466,7 +348,13 @@ namespace TudasterAdmin
             navButtons.Children.Add(prevButton);
             navButtons.Children.Add(nextButton);
 
-            var saveSide = new StackPanel { Orientation = Orientation.Horizontal };
+            var saveSide = new StackPanel
+            {
+                Orientation = Orientation.Horizontal,
+                VerticalAlignment = VerticalAlignment.Center
+            };
+
+            saveSide.Children.Add(_solutionProgress);
             saveSide.Children.Add(_statusText);
             saveSide.Children.Add(saveButton);
 
@@ -840,15 +728,25 @@ namespace TudasterAdmin
         // only == null: az egész feladatlap; különben csak az adott feladat
         private async Task ImportSolutionsAsync(DraftTask? only)
         {
+            if (_isImportingSolutions)
+                return;
+
             var pdf = GetKeyPdf(askAgain: only == null);
             if (pdf == null) return;
 
-            ApplyForm();                         // a kézi szerkesztések ne vesszenek el
+            ApplyForm();
             DraftStore.Save(_draft);
 
+            _isImportingSolutions = true;
+
+            // Az egész ablak letiltása az importálás idejére
             IsEnabled = false;
+
+            // A folyamatjelző és az egérkurzor kezelése
+            _solutionProgress.Visibility = Visibility.Visible;
+            _statusText.Text = "Megoldások beolvasása folyamatban…";
+
             Mouse.OverrideCursor = Cursors.Wait;
-            _statusText.Text = "Megoldások beolvasása…";
 
             try
             {
@@ -857,34 +755,57 @@ namespace TudasterAdmin
                 var result = await SolutionImporter.ImportAsync(
                     _gemini, _draft, pdf,
                     only: only,
-                    overwrite: only != null);    // egy feladatnál felülírja, az egésznél a már kitöltöttet kihagyja
+                    overwrite: only != null);
 
                 DraftStore.Save(_draft);
-                if (_current != null) LoadForm(_current);   // az űrlap frissítése az új adatokkal
+
+                if (_current != null)
+                    LoadForm(_current);
+
                 UpdateRows();
 
                 var sb = new System.Text.StringBuilder();
+
                 sb.AppendLine($"Beolvasva: {result.Applied} feladat.");
+
                 if (result.WithWarnings > 0)
-                    sb.AppendLine($"Ellenőrzést kér: {result.WithWarnings} feladat (a feladat adatainál látod, miért).");
+                    sb.AppendLine(
+                        $"Ellenőrzést kér: {result.WithWarnings} feladat (a feladat adatainál látod, miért).");
+
                 if (result.Unmatched.Count > 0)
-                    sb.AppendLine("Nem párosítható az útmutatóban: " + string.Join(", ", result.Unmatched));
+                    sb.AppendLine(
+                        "Nem párosítható az útmutatóban: " +
+                        string.Join(", ", result.Unmatched));
 
                 _statusText.Text = $"Megoldások: {result.Applied} beolvasva";
-                MessageBox.Show(this, sb.ToString().Trim(), "Megoldások importálása",
-                    MessageBoxButton.OK, MessageBoxImage.Information);
+
+                MessageBox.Show(
+                    this,
+                    sb.ToString().Trim(),
+                    "Megoldások importálása",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
             }
             catch (Exception ex)
             {
-                // ide kerül az is, ha az útmutató nem ehhez a feladatlaphoz tartozik
                 _statusText.Text = "";
-                _keyPdf = null;                  // hibás PDF-nél legközelebb újra kérdezzen
-                MessageBox.Show(this, ex.Message, "Megoldások importálása",
-                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                _keyPdf = null;
+
+                MessageBox.Show(
+                    this,
+                    ex.Message,
+                    "Megoldások importálása",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
             }
             finally
             {
                 Mouse.OverrideCursor = null;
+
+                _solutionProgress.Visibility = Visibility.Collapsed;
+                _isImportingSolutions = false;
+
+                // Ablak újbóli engedélyezése
                 IsEnabled = true;
             }
         }

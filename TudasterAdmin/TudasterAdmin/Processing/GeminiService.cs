@@ -133,7 +133,7 @@ namespace TudasterAdmin.Processing
             Ez egy magyar érettségi írásbeli feladatlap PDF-je. Add vissza a feladatait a megadott JSON-szerkezetben.
 
             Szabályok:
-            - Hagyd ki a címoldalt, a tudnivalók oldalait, az üres oldalakat, a fejléceket és lábléceket, az oldalszámokat, valamint az értékelő tanár által kitöltendő pontozó táblázatot.
+            - Hagyd ki a címoldalt, a tudnivalók oldalait, az üres oldalakat, a fejléceket és lábléceket, az oldalszámokat, az értékelő tanár által kitöltendő pontozó táblázatot, valamint a hosszú kifejtős feladatokat és a hozzájuk tartozó sok csikos írásvonalakat.
             - A feladatok és a forrásszövegek szövegét SZÓ SZERINT másold át. Ne javítsd, ne rövidítsd, ne fordítsd, ne foglald össze.
             - Minden feladat a saját sorszámát kapja (number). A forrásszövegben, idézetben vagy felsorolásban szereplő számok NEM új feladatok.
             - A forrásszövegeket a sources tömbbe tedd ("f1", "f2", ... kulccsal), a feladat sourceKey mezője hivatkozzon rá. Ha több feladat ugyanazt a forrást használja, ugyanazt a kulcsot kapják. Ha nincs forrás, sourceKey null.

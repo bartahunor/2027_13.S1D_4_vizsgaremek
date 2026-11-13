@@ -380,44 +380,6 @@ namespace TudasterAdmin
             }
         }
 
-        private static ControlTemplate CreateRoundedButtonTemplate()
-        {
-            var template = new ControlTemplate(typeof(Button));
-            var border = new FrameworkElementFactory(typeof(Border));
-            border.SetValue(Border.CornerRadiusProperty, new CornerRadius(8));
-            border.SetValue(Border.BackgroundProperty, new TemplateBindingExtension(Button.BackgroundProperty));
-            var content = new FrameworkElementFactory(typeof(ContentPresenter));
-            content.SetValue(FrameworkElement.HorizontalAlignmentProperty, HorizontalAlignment.Center);
-            content.SetValue(FrameworkElement.VerticalAlignmentProperty, VerticalAlignment.Center);
-            border.AppendChild(content);
-            template.VisualTree = border;
-
-            var hover = new Trigger { Property = UIElement.IsMouseOverProperty, Value = true };
-            hover.Setters.Add(new Setter(UIElement.OpacityProperty, 0.88));
-            template.Triggers.Add(hover);
-
-            return template;
-        }
-
-        private Button CreateDeleteButton(
-            string text = "TÖRLÉS",
-            double width = 100,
-            double height = 36)
-        {
-            return new Button
-            {
-                Content = text,
-                Width = width,
-                Height = height,
-                Background = Brushes.Firebrick,
-                Foreground = Brushes.White,
-                FontWeight = FontWeights.SemiBold,
-                FontSize = 12,
-                Cursor = Cursors.Hand,
-                Template = CreateRoundedButtonTemplate()
-            };
-        }
-
         private async Task LoadTopicsAsync()
         {
             try
@@ -476,7 +438,7 @@ namespace TudasterAdmin
                     MessageBoxImage.Warning);
             }
         }
-        
+
 
         // Az adatbázisban tárolt szerep (pl. "diak") megjelenítési formája (pl. "Diák")
         private static string FormatRole(string? role)
@@ -553,6 +515,9 @@ namespace TudasterAdmin
 
         private void DashboardButton_Click(object sender, RoutedEventArgs e)
         {
+            PageTitleText.Text = "Áttekintés";
+            PageSubtitleText.Text = "A Tudástér adminisztrációs rendszerének áttekintése.";
+
             ContentArea.Content = DashboardContent;
 
             ReviewCountText.Text = GetPendingDraftCount().ToString();
@@ -599,7 +564,7 @@ namespace TudasterAdmin
         }
 
 
-        
+
 
         private void ShowTaskTypesPage()
         {
@@ -697,28 +662,14 @@ namespace TudasterAdmin
                     : Visibility.Collapsed;
             };
 
-            // Lekerekített gomb saját sablonnal
-            var buttonTemplate = new ControlTemplate(typeof(Button));
-            var buttonBorder = new FrameworkElementFactory(typeof(Border));
-            buttonBorder.SetValue(Border.CornerRadiusProperty, new CornerRadius(8));
-            buttonBorder.SetValue(Border.BackgroundProperty, new TemplateBindingExtension(Button.BackgroundProperty));
-            var buttonContent = new FrameworkElementFactory(typeof(ContentPresenter));
-            buttonContent.SetValue(FrameworkElement.HorizontalAlignmentProperty, HorizontalAlignment.Center);
-            buttonContent.SetValue(FrameworkElement.VerticalAlignmentProperty, VerticalAlignment.Center);
-            buttonBorder.AppendChild(buttonContent);
-            buttonTemplate.VisualTree = buttonBorder;
-
-            var hoverTrigger = new Trigger { Property = UIElement.IsMouseOverProperty, Value = true };
-            hoverTrigger.Setters.Add(new Setter(UIElement.OpacityProperty, 0.88));
-            buttonTemplate.Triggers.Add(hoverTrigger);
-
             var addButton = new Button
             {
                 Content = "+  HOZZÁADÁS",
                 Width = 132,
-                Template = buttonTemplate,
+                Template = UiStyles.Button,
                 Background = (Brush)FindResource("PrimaryBrush"),
                 Foreground = (Brush)FindResource("WhiteBrush"),
+                BorderThickness = new Thickness(0),
                 FontWeight = FontWeights.SemiBold,
                 FontSize = 13,
                 Cursor = Cursors.Hand
@@ -779,7 +730,7 @@ namespace TudasterAdmin
                     Grid.SetColumn(nameText, 0);
                     row.Children.Add(nameText);
 
-                    var deleteBtn = CreateDeleteButton();
+                    var deleteBtn = UiKit.DeleteButton();
                     string captured = typeName;
                     deleteBtn.Click += (s, e) =>
                     {
@@ -951,9 +902,10 @@ namespace TudasterAdmin
             {
                 Content = "+  HOZZÁADÁS",
                 Width = 132,
-                Template = CreateRoundedButtonTemplate(),
+                Template = UiStyles.Button,
                 Background = (Brush)FindResource("PrimaryBrush"),
                 Foreground = (Brush)FindResource("WhiteBrush"),
+                BorderThickness = new Thickness(0),
                 FontWeight = FontWeights.SemiBold,
                 FontSize = 13,
                 Cursor = Cursors.Hand
@@ -1018,7 +970,7 @@ namespace TudasterAdmin
                     Grid.SetColumn(info, 0);
                     row.Children.Add(info);
 
-                    var deleteBtn = CreateDeleteButton();
+                    var deleteBtn = UiKit.DeleteButton();
                     deleteBtn.VerticalAlignment = VerticalAlignment.Center;
                     deleteBtn.Click += (s, e) =>
                     {
@@ -1145,116 +1097,11 @@ namespace TudasterAdmin
 
         private void ShowSettingsPage()
         {
-            PageTitleText.Text = "Beállítások";
-            PageSubtitleText.Text = "A Tudástér adminisztrációs alkalmazás beállításai.";
+            PageTitleText.Text = "Alkalmazás névjegye";
+            PageSubtitleText.Text = "A Tudástér adminisztrációs alkalmazás szoftverének névjegye.";
 
             var mainPanel = new StackPanel();
-
-            // Értesítések
-            var notificationCard = new Border
-            {
-                Background = Brushes.White,
-                CornerRadius = new CornerRadius(12),
-                Padding = new Thickness(20),
-                Margin = new Thickness(0, 0, 0, 15)
-            };
-
-            var notificationPanel = new StackPanel();
-
-            notificationPanel.Children.Add(new TextBlock
-            {
-                Text = "Értesítések",
-                FontSize = 18,
-                FontWeight = FontWeights.SemiBold,
-                Foreground = (Brush)FindResource("TextBrush")
-            });
-
-            notificationPanel.Children.Add(new TextBlock
-            {
-                Text = "Rendszerértesítések megjelenítése.",
-                FontSize = 14,
-                Foreground = (Brush)FindResource("MutedTextBrush"),
-                Margin = new Thickness(0, 5, 0, 15)
-            });
-
-            var notificationCheckBox = new CheckBox
-            {
-                Content = "Értesítések engedélyezése",
-                IsChecked = true,
-                FontSize = 14,
-                Foreground = (Brush)FindResource("TextBrush")
-            };
-
-            notificationPanel.Children.Add(notificationCheckBox);
-
-            notificationCard.Child = notificationPanel;
-            mainPanel.Children.Add(notificationCard);
-
-
-            // Automatikus mentés
-            var backupCard = new Border
-            {
-                Background = Brushes.White,
-                CornerRadius = new CornerRadius(12),
-                Padding = new Thickness(20),
-                Margin = new Thickness(0, 0, 0, 15)
-            };
-
-            var backupPanel = new StackPanel();
-
-            backupPanel.Children.Add(new TextBlock
-            {
-                Text = "Automatikus mentés",
-                FontSize = 18,
-                FontWeight = FontWeights.SemiBold,
-                Foreground = (Brush)FindResource("TextBrush")
-            });
-
-            backupPanel.Children.Add(new TextBlock
-            {
-                Text = "Az alkalmazás adatainak automatikus mentése.",
-                FontSize = 14,
-                Foreground = (Brush)FindResource("MutedTextBrush"),
-                Margin = new Thickness(0, 5, 0, 15)
-            });
-
-            var backupCheckBox = new CheckBox
-            {
-                Content = "Automatikus mentés engedélyezése",
-                IsChecked = true,
-                FontSize = 14,
-                Foreground = (Brush)FindResource("TextBrush")
-            };
-
-            backupPanel.Children.Add(backupCheckBox);
-
-            backupPanel.Children.Add(new TextBlock
-            {
-                Text = "Mentés gyakorisága",
-                FontSize = 14,
-                Foreground = (Brush)FindResource("TextBrush"),
-                Margin = new Thickness(0, 20, 0, 8)
-            });
-
-            var backupComboBox = new ComboBox
-            {
-                Width = 180,
-                Height = 38,
-                FontSize = 14
-            };
-
-            backupComboBox.Items.Add("5 perc");
-            backupComboBox.Items.Add("15 perc");
-            backupComboBox.Items.Add("30 perc");
-            backupComboBox.Items.Add("60 perc");
-
-            backupComboBox.SelectedIndex = 1;
-
-            backupPanel.Children.Add(backupComboBox);
-
-            backupCard.Child = backupPanel;
-            mainPanel.Children.Add(backupCard);
-
+            
 
             // Alkalmazás információ
             var infoCard = new Border
@@ -1303,14 +1150,9 @@ namespace TudasterAdmin
 
 
             // Mentés gomb
-            var saveButton = new Button
-            {
-                Content = "BEÁLLÍTÁSOK MENTÉSE",
-                Width = 220,
-                Height = 42,
-                HorizontalAlignment = HorizontalAlignment.Left,
-                Margin = new Thickness(0, 5, 0, 20)
-            };
+            var saveButton = UiKit.Button("BEÁLLÍTÁSOK MENTÉSE", BtnKind.Primary, 220);
+            saveButton.HorizontalAlignment = HorizontalAlignment.Left;
+            saveButton.Margin = new Thickness(0, 5, 0, 20);
 
             saveButton.Click += (sender, e) =>
             {
@@ -1543,24 +1385,14 @@ namespace TudasterAdmin
                 Margin = new Thickness(0, 0, 0, 15)
             };
 
-            var selectButton = new Button
-            {
-                Content = "PDF KIVÁLASZTÁSA",
-                Width = 190,
-                Height = 42,
-                HorizontalAlignment = HorizontalAlignment.Left,
-                Margin = new Thickness(0, 0, 0, 12)
-            };
+            var selectButton = UiKit.Button("PDF KIVÁLASZTÁSA", BtnKind.Primary, 190);
+            selectButton.HorizontalAlignment = HorizontalAlignment.Left;
+            selectButton.Margin = new Thickness(0, 0, 0, 12);
 
-            var processButton = new Button
-            {
-                Content = "PDF FELDOLGOZÁSA",
-                Width = 210,
-                Height = 42,
-                IsEnabled = false,
-                HorizontalAlignment = HorizontalAlignment.Left,
-                Margin = new Thickness(0, 0, 0, 20)
-            };
+            var processButton = UiKit.Button("PDF FELDOLGOZÁSA", BtnKind.Primary, 210);
+            processButton.IsEnabled = false;
+            processButton.HorizontalAlignment = HorizontalAlignment.Left;
+            processButton.Margin = new Thickness(0, 0, 0, 20);
 
             var resultTitle = new TextBlock
             {
@@ -1573,6 +1405,33 @@ namespace TudasterAdmin
 
             var resultPanel = new StackPanel();
             var draftPanel = new StackPanel();
+
+            // Betöltésjelző
+            var loadingPanel = new StackPanel
+            {
+                Visibility = Visibility.Collapsed,
+                Margin = new Thickness(0, 0, 0, 16)
+            };
+
+            loadingPanel.Children.Add(new TextBlock
+            {
+                Text = "A PDF feldolgozása folyamatban...",
+                FontSize = 14,
+                FontWeight = FontWeights.SemiBold,
+                Foreground = (Brush)FindResource("PrimaryBrush"),
+                Margin = new Thickness(0, 0, 0, 10)
+            });
+
+            loadingPanel.Children.Add(new ProgressBar
+            {
+                Width = 320,
+                Height = 8,
+                IsIndeterminate = true,
+                Foreground = (Brush)FindResource("PrimaryBrush"),
+                Background = new SolidColorBrush(
+                    (Color)ColorConverter.ConvertFromString("#EAE2F5")),
+                HorizontalAlignment = HorizontalAlignment.Left
+            });
 
             string? selectedFilePath = null;
 
@@ -1608,17 +1467,20 @@ namespace TudasterAdmin
                 selectButton.IsEnabled = false;
 
                 resultPanel.Children.Clear();
-                resultPanel.Children.Add(new TextBlock
-                {
-                    Text = "Feldolgozás folyamatban... ez akár 1-2 percig is eltarthat.",
-                    Foreground = (Brush)FindResource("MutedTextBrush")
-                });
+
+                loadingPanel.Visibility = Visibility.Visible;
+                resultPanel.Children.Add(loadingPanel);
 
                 try
                 {
                     // 1) A PDF szövege: már csak a forrásszövegek ellenőrzéséhez kell
                     var extractor = new PdfTextExtractor();
-                    List<PdfPageContent> pages = extractor.ExtractPages(selectedFilePath);
+
+                    string pdfPath = selectedFilePath;
+
+                    List<PdfPageContent> pages = await Task.Run(
+                        () => extractor.ExtractPages(pdfPath));
+                    
 
                     var textBuilder = new System.Text.StringBuilder();
                     foreach (var page in pages)
@@ -1634,7 +1496,7 @@ namespace TudasterAdmin
                     string extractedText = textBuilder.ToString();
 
                     // 2) Gemini
-                    byte[] pdfBytes = await System.IO.File.ReadAllBytesAsync(selectedFilePath);
+                    byte[] pdfBytes = await System.IO.File.ReadAllBytesAsync(pdfPath);
                     var topics = _topics.Select(t => new TopicInfo(t.Id, t.Name, t.Subject)).ToList();
 
                     var ai = new GeminiService();
@@ -1650,10 +1512,10 @@ namespace TudasterAdmin
                         }));
 
                     DraftExam draft = AiExamMapper.ToDraft(
-           exam, System.IO.Path.GetFileName(selectedFilePath), extractedText, topics);
+    exam, System.IO.Path.GetFileName(pdfPath), extractedText, topics);
 
                     // 4) Mentés HELYBEN (az adatbázishoz még nem nyúlunk)
-                    DraftStore.SavePdfCopy(draft, selectedFilePath);
+                    DraftStore.SavePdfCopy(draft, pdfPath);
                     DraftStore.Save(draft);
                     RefreshDraftList(draftPanel);
 
@@ -1688,14 +1550,9 @@ namespace TudasterAdmin
                         });
                     }
 
-                    var openButton = new Button
-                    {
-                        Content = "MEGNYITÁS A SZERKESZTŐBEN",
-                        Width = 250,
-                        Height = 42,
-                        HorizontalAlignment = HorizontalAlignment.Left,
-                        Margin = new Thickness(0, 8, 0, 0)
-                    };
+                    var openButton = UiKit.Button("MEGNYITÁS A SZERKESZTŐBEN", BtnKind.Primary, 250);
+                    openButton.HorizontalAlignment = HorizontalAlignment.Left;
+                    openButton.Margin = new Thickness(0, 8, 0, 0);
                     openButton.Click += (s2, e2) =>
                     {
                         OpenDraftEditor(draft.Id);
@@ -1714,6 +1571,8 @@ namespace TudasterAdmin
                 }
                 finally
                 {
+                    loadingPanel.Visibility = Visibility.Collapsed;
+
                     processButton.IsEnabled = true;
                     selectButton.IsEnabled = true;
                 }
@@ -1836,8 +1695,9 @@ namespace TudasterAdmin
                     Margin = new Thickness(0, 4, 0, 0)
                 });
 
-                var openBtn = new Button { Content = "MEGNYITÁS", Width = 120, Height = 38 };
-                var deleteBtn = CreateDeleteButton();
+                var openBtn = UiKit.Button("MEGNYITÁS", BtnKind.Primary, 120, 38);
+                openBtn.Margin = new Thickness(0, 0, 8, 0);
+                var deleteBtn = UiKit.DeleteButton();
                 deleteBtn.VerticalAlignment = VerticalAlignment.Center;
 
                 openBtn.Click += (s, e) =>
@@ -2031,9 +1891,10 @@ namespace TudasterAdmin
             {
                 Content = "+  HOZZÁADÁS",
                 Width = 132,
-                Template = CreateRoundedButtonTemplate(),
+                Template = UiStyles.Button,
                 Background = (Brush)FindResource("PrimaryBrush"),
                 Foreground = (Brush)FindResource("WhiteBrush"),
+                BorderThickness = new Thickness(0),
                 FontWeight = FontWeights.SemiBold,
                 FontSize = 13,
                 Cursor = Cursors.Hand
@@ -2250,7 +2111,7 @@ namespace TudasterAdmin
                     Grid.SetColumn(info, 0);
                     row.Children.Add(info);
 
-                    var deleteBtn = CreateDeleteButton();
+                    var deleteBtn = UiKit.DeleteButton();
                     deleteBtn.VerticalAlignment = VerticalAlignment.Center;
                     deleteBtn.Click += (s, e) =>
                     {
@@ -2517,17 +2378,40 @@ namespace TudasterAdmin
             };
 
             // Cellák stílusa
-            _examSetGrid.CellStyle = new Style(typeof(DataGridCell))
+            var cellStyle = new Style(typeof(DataGridCell));
+
+            cellStyle.Setters.Add(
+                new Setter(Control.PaddingProperty, new Thickness(14, 0, 14, 0)));
+
+            cellStyle.Setters.Add(
+                new Setter(Control.BorderThicknessProperty, new Thickness(0)));
+
+            cellStyle.Setters.Add(
+                new Setter(Control.VerticalContentAlignmentProperty, VerticalAlignment.Center));
+
+            cellStyle.Setters.Add(
+                new Setter(Control.HorizontalContentAlignmentProperty, HorizontalAlignment.Stretch));
+
+            cellStyle.Setters.Add(
+                new Setter(Control.ForegroundProperty, (Brush)FindResource("TextBrush")));
+
+            // Kijelölt cella lila háttérrel
+            cellStyle.Triggers.Add(new Trigger
             {
+                Property = DataGridCell.IsSelectedProperty,
+                Value = true,
                 Setters =
-        {
-            new Setter(Control.PaddingProperty, new Thickness(14, 0, 14, 0)),
-            new Setter(Control.BorderThicknessProperty, new Thickness(0)),
-            new Setter(Control.VerticalContentAlignmentProperty, VerticalAlignment.Center),
-            new Setter(Control.HorizontalContentAlignmentProperty, HorizontalAlignment.Stretch),
-            new Setter(Control.ForegroundProperty, (Brush)FindResource("TextBrush"))
-        }
-            };
+    {
+        new Setter(Control.BackgroundProperty,
+            new SolidColorBrush(
+                (Color)ColorConverter.ConvertFromString("#EAE2F5"))),
+
+        new Setter(Control.ForegroundProperty,
+            (Brush)FindResource("PrimaryBrush"))
+    }
+            });
+
+            _examSetGrid.CellStyle = cellStyle;
 
             // Egységes szövegstílus
             var textStyle = new Style(typeof(TextBlock));
@@ -2759,10 +2643,11 @@ namespace TudasterAdmin
                     Margin = new Thickness(5, 0, 0, 0),
                     Background = background,
                     Foreground = Brushes.White,
+                    BorderThickness = new Thickness(0),
                     FontWeight = FontWeights.SemiBold,
                     FontSize = 12,
                     Cursor = Cursors.Hand,
-                    Template = CreateRoundedButtonTemplate()
+                    Template = UiStyles.Button
                 };
             }
 
@@ -2960,12 +2845,8 @@ namespace TudasterAdmin
                 Margin = new Thickness(0, 0, 0, 7)
             });
 
-            var roleBox = new ComboBox
-            {
-                Height = 38,
-                FontSize = 14,
-                Margin = new Thickness(0, 0, 0, 25)
-            };
+            var roleBox = UiKit.Combo(height: 38, fontSize: 14);
+            roleBox.Margin = new Thickness(0, 0, 0, 25);
 
             roleBox.Items.Add("Diák");
             roleBox.Items.Add("Tanár");
@@ -2981,28 +2862,15 @@ namespace TudasterAdmin
                 HorizontalAlignment = HorizontalAlignment.Right
             };
 
-            var cancelButton = new Button
-            {
-                Content = "MÉGSE",
-                Width = 100,
-                Height = 38,
-                Margin = new Thickness(0, 0, 10, 0)
-            };
+            var cancelButton = UiKit.Button("MÉGSE", BtnKind.Outline, 100, 38);
+            cancelButton.Margin = new Thickness(0, 0, 10, 0);
 
             cancelButton.Click += (s, e) =>
             {
                 editWindow.DialogResult = false;
             };
 
-            var saveButton = new Button
-            {
-                Content = "MENTÉS",
-                Width = 110,
-                Height = 38,
-                Background = (Brush)FindResource("PrimaryBrush"),
-                Foreground = Brushes.White,
-                Template = CreateRoundedButtonTemplate()
-            };
+            var saveButton = UiKit.Button("MENTÉS", BtnKind.Primary, 110, 38);
 
             saveButton.Click += (s, e) =>
             {
@@ -3129,13 +2997,7 @@ namespace TudasterAdmin
                 CornerRadius = new CornerRadius(10)
             };
 
-            _taskStatusFilter = new ComboBox
-            {
-                BorderThickness = new Thickness(0),
-                Background = Brushes.Transparent,
-                FontSize = 13,
-                VerticalContentAlignment = VerticalAlignment.Center
-            };
+            _taskStatusFilter = UiKit.Combo(boxed: false);
 
             _taskStatusFilter.Items.Add("Összes állapot");
             _taskStatusFilter.Items.Add("Ellenőrzött");
@@ -3154,13 +3016,7 @@ namespace TudasterAdmin
                 CornerRadius = new CornerRadius(10)
             };
 
-            _taskSubjectFilter = new ComboBox
-            {
-                BorderThickness = new Thickness(0),
-                Background = Brushes.Transparent,
-                FontSize = 13,
-                VerticalContentAlignment = VerticalAlignment.Center
-            };
+            _taskSubjectFilter = UiKit.Combo(boxed: false);
 
             _taskSubjectFilter.Items.Add("Összes tantárgy");
             _taskSubjectFilter.Items.Add("Történelem");
@@ -3182,13 +3038,7 @@ namespace TudasterAdmin
                 CornerRadius = new CornerRadius(10)
             };
 
-            _taskLevelFilter = new ComboBox
-            {
-                BorderThickness = new Thickness(0),
-                Background = Brushes.Transparent,
-                FontSize = 13,
-                VerticalContentAlignment = VerticalAlignment.Center
-            };
+            _taskLevelFilter = UiKit.Combo(boxed: false);
 
             _taskLevelFilter.Items.Add("Összes szint");
             _taskLevelFilter.Items.Add("Középszint");
@@ -3219,36 +3069,14 @@ namespace TudasterAdmin
 
 
             // ÚJ FELADAT
-            Button addButton = new Button
-            {
-                Content = "+  ÚJ FELADAT",
-                Height = 44,
-                Width = 145,
-                Background = (Brush)FindResource("PrimaryBrush"),
-                Foreground = (Brush)FindResource("WhiteBrush"),
-                BorderThickness = new Thickness(0),
-                FontWeight = FontWeights.SemiBold,
-                FontSize = 13,
-                Cursor = Cursors.Hand
-            };
+            Button addButton = UiKit.Button("+  ÚJ FELADAT", BtnKind.Primary, 145, 44);
 
             addButton.Click += AddTaskButton_Click;
 
 
             // SZERKESZTÉS
-            Button editButton = new Button
-            {
-                Content = "SZERKESZTÉS",
-                Height = 44,
-                Width = 140,
-                Margin = new Thickness(10, 0, 0, 0),
-                Background = (Brush)FindResource("PrimaryLightBrush"),
-                Foreground = (Brush)FindResource("WhiteBrush"),
-                BorderThickness = new Thickness(0),
-                FontWeight = FontWeights.SemiBold,
-                FontSize = 13,
-                Cursor = Cursors.Hand
-            };
+            Button editButton = UiKit.Button("SZERKESZTÉS", BtnKind.Secondary, 140, 44);
+            editButton.Margin = new Thickness(10, 0, 0, 0);
 
             editButton.Click += EditTaskButton_Click;
 
@@ -3276,19 +3104,9 @@ namespace TudasterAdmin
             _taskGrid.ItemsSource = _tasks;
             _taskGrid.MouseDoubleClick += TaskGrid_MouseDoubleClick;
 
-            Button deleteButton = new Button
-            {
-                Content = "KIVÁLASZTOTT FELADAT TÖRLÉSE",
-                Height = 42,
-                Width = 230,
-                Margin = new Thickness(0, 15, 0, 0),
-                Background = Brushes.Transparent,
-                Foreground = (Brush)FindResource("TextBrush"),
-                BorderBrush = (Brush)FindResource("BorderBrush"),
-                BorderThickness = new Thickness(1),
-                FontWeight = FontWeights.SemiBold,
-                Cursor = Cursors.Hand
-            };
+            Button deleteButton = UiKit.Button("KIVÁLASZTOTT FELADAT TÖRLÉSE", BtnKind.Outline, 230, 42);
+            deleteButton.Margin = new Thickness(0, 15, 0, 0);
+            deleteButton.HorizontalAlignment = HorizontalAlignment.Left;
 
             deleteButton.Click += DeleteTaskButton_Click;
 
