@@ -9,7 +9,7 @@ const REGISTRY = {
     'tobb_valasz': formatterOne,
     'tobb_opcio': formatterOne,
     'sorba_rendezos': formatterTwo,
-    'tablazatos_feladat': formatterTwo,
+    'tablazatos_feladat': formatterTwo
 }
 
 function kulcs(tipus) {

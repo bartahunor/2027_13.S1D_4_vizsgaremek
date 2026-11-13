@@ -270,6 +270,7 @@ router.get('/result/:testId', async (req, res, next) => {
       left join feladatok f on f.id = tf.feladat_id
       where t.id = ${testId}
         and t.felhasznalo_id = ${felhasznaloId}
+        and t.statusz = 'befejezett'
       group by t.id, tt.nev
     `
 
@@ -333,6 +334,7 @@ router.get('/correctedtasks/:testId', async (req, res, next) => {
       from tesztek
       where id = ${testId}
         and felhasznalo_id = ${felhasznaloId}
+        and statusz = 'befejezett'
     `
 
     if (tesztRows.length === 0) {
@@ -410,11 +412,11 @@ router.get('/correctedtasks/:testId', async (req, res, next) => {
     const eredmeny = feladatok.map(f => {
       const feladatCellak = cellakByFeladat.get(f.feladat_id)
 
-      // Nem táblázatos feladat: típus szerinti formázás
-      if (!feladatCellak) return formatTask(f)
+      const formazott = formatTask(f)
 
-      // Táblázatos feladat: a lathato = false cellák a megoldások
-      // (ide írt a felhasználó, az ertek a helyes megoldás)
+      // Nem táblázatos feladat
+      if (!feladatCellak) return formazott
+
       const megoldasok = feladatCellak
         .filter(c => c.lathato === false)
         .map(c => ({
@@ -425,15 +427,14 @@ router.get('/correctedtasks/:testId', async (req, res, next) => {
         }))
 
       return {
-        ...f,
+        ...formazott,
         tablazat: {
           oszlopok: oszlopokByFeladat.get(f.feladat_id) ?? [],
-          // teljes rács a megjelenítéshez (látható + kitöltendő cellák)
           cellak: feladatCellak.map(c => ({
             cella_id: c.id,
             sor_sorszam: c.sor_sorszam,
             oszlop_sorszam: c.oszlop_sorszam,
-            ertek: c.lathato ? c.ertek : null, // a megoldást nem a rácsban küldjük
+            ertek: c.lathato ? c.ertek : null,
             lathato: c.lathato,
           })),
           megoldasok,
