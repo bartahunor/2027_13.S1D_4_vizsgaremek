@@ -24,6 +24,9 @@ function PracticePage() {
     const topic = searchParams.get("topic"); // null, ha nincs beállítva
     const topicName = searchParams.get("topic_name"); // null, ha nincs beállítva
 
+    const hasValidParams = Boolean(subject && level && (year || topic));
+
+
     const [tasks, setTasks] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -42,6 +45,12 @@ function PracticePage() {
     const [testId, setTestId] = useState(null);
 
     const navigate = useNavigate();
+
+    useEffect(() => {
+        if (!hasValidParams) {
+            navigate("/tasktype", { replace: true }); // <- írd át a valódi útvonalra
+        }
+    }, [hasValidParams, navigate]);
 
     useEffect(() => {
         if (startedAt === null) return;
@@ -147,6 +156,7 @@ function PracticePage() {
         };
     }, [subject, level, year, topic]);
 
+    if (!hasValidParams) return null;
     if (loading) return <div>Betöltés...</div>;
     if (error) return <div>Hiba történt: {error}</div>;
 
