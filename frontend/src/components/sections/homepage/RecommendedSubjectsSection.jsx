@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import SubjectCard from "../../ui/SubjectCard";
+import { apiFetch } from  '../../../lib/apiClient';
 
 const SUBJECT_STYLES = {
     "Angol nyelv": {
@@ -42,15 +43,7 @@ function RecommendedSubjectsSection() {
         async function fetchSubjects() {
             try {
                 setLoading(true);
-                const response = await fetch(
-                    "http://localhost:3000/api/publicroutes/szuro_tantargyossz",
-                );
-
-                if (!response.ok) {
-                    throw new Error(`Hiba történt: ${response.status}`);
-                }
-
-                const data = await response.json();
+                const data = await apiFetch('/publicroutes/szuro_tantargyossz');
                 setSubs(data);
             } catch (err) {
                 setError(err.message);
@@ -62,15 +55,7 @@ function RecommendedSubjectsSection() {
         async function fetchTasks() {
             try {
                 setLoading2(true);
-                const response = await fetch(
-                    "http://localhost:3000/api/publicroutes/szuro_tanfel",
-                );
-
-                if (!response.ok) {
-                    throw new Error(`Hiba történt: ${response.status}`);
-                }
-
-                const data = await response.json();
+                const data = await apiFetch('/publicroutes/szuro_tanfel');
                 setTasks(data);
             } catch (err) {
                 setError2(err.message);
