@@ -164,7 +164,7 @@ function PracticePage() {
         return (
             <div className="min-h-screen bg-background-light flex items-center justify-center">
                 <div className="text-center">
-                    <span className="material-icons text-primary text-4xl">
+                    <span className="material-symbols-outlined text-primary text-4xl">
                         assignment
                     </span>
 

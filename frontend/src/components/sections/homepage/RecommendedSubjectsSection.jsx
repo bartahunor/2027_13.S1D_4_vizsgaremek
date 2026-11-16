@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import SubjectCard from "../../ui/SubjectCard";
 import { apiFetch } from  '../../../lib/apiClient';
+import { publicFetch } from  '../../../lib/publicFetch';
 
 const SUBJECT_STYLES = {
     "Angol nyelv": {
@@ -43,7 +44,7 @@ function RecommendedSubjectsSection() {
         async function fetchSubjects() {
             try {
                 setLoading(true);
-                const data = await apiFetch('/publicroutes/szuro_tantargyossz');
+                const data = await publicFetch('/publicroutes/szuro_tantargyossz');
                 setSubs(data);
             } catch (err) {
                 setError(err.message);
@@ -55,7 +56,7 @@ function RecommendedSubjectsSection() {
         async function fetchTasks() {
             try {
                 setLoading2(true);
-                const data = await apiFetch('/publicroutes/szuro_tanfel');
+                const data = await publicFetch('/publicroutes/szuro_tanfel');
                 setTasks(data);
             } catch (err) {
                 setError2(err.message);

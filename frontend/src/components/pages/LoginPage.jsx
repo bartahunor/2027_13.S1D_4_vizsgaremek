@@ -85,9 +85,7 @@ function LoginPage() {
         <div className="w-full lg:w-1/2 flex flex-col justify-center px-8 sm:px-16 md:px-24 py-12 bg-white dark:bg-backgroundDark">
           <div className="max-w-md w-full mx-auto">
             <div className="lg:hidden flex items-center gap-2 mb-8 justify-center">
-              <span className="material-symbols-outlined text-3xl text-primary">
-                school
-              </span>
+              
               <span className="text-2xl font-bold text-primary">
                 Tudástér
               </span>

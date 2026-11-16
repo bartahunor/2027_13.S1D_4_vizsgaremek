@@ -132,42 +132,7 @@ function Hero() {
 
                         </div>
 
-                        {/* ======================================== */}
-                        {/* AKTÍV DIÁKOK */}
-                        {/* ======================================== */}
-
-                        <div className="flex w-full items-center justify-between gap-3 rounded-xl border border-slate-200/80 bg-white/90 px-4 py-2.5 text-xs text-slate-600 shadow-2xs">
-
-                            {/* Avatarok */}
-                            <div className="flex -space-x-2">
-
-                                <span className="inline-flex h-7 w-7 items-center justify-center rounded-full border-2 border-white bg-purple-100 text-[11px] font-bold text-[#200646] ring-1 ring-slate-100">
-                                    ÁB
-                                </span>
-
-                                <span className="inline-flex h-7 w-7 items-center justify-center rounded-full border-2 border-white bg-emerald-100 text-[11px] font-bold text-emerald-700 ring-1 ring-slate-100">
-                                    KN
-                                </span>
-
-                                <span className="inline-flex h-7 w-7 items-center justify-center rounded-full border-2 border-white bg-blue-100 text-[11px] font-bold text-secondary ring-1 ring-slate-100">
-                                    PT
-                                </span>
-
-                            </div>
-
-
-                            {/* Aktív felhasználók */}
-                            <div className="flex items-center gap-2">
-
-                                <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500"></span>
-
-                                <span className="font-medium text-slate-700">
-                                    1 420 diák gyakorol épp most országosan
-                                </span>
-
-                            </div>
-
-                        </div>
+                        
 
                     </div>
 

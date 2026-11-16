@@ -170,7 +170,7 @@ function RegisterPage() {
                     <div className="max-w-md w-full mx-auto">
 
                         <div className="lg:hidden flex items-center gap-2 mb-8 justify-center">
-                            <span className="material-icons text-3xl text-primary">school</span>
+                            
                             <span className="text-2xl font-bold text-primary">
                                 Tudástér
                             </span>
