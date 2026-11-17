@@ -3,12 +3,24 @@
   "WorkspaceRootPath": "C:\\Users\\KeseruFruzsina\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{DD9A3328-765F-04F2-300C-E5A4C4528F11}|TudasterAdmin\\TudasterAdmin.csproj|c:\\users\\keserufruzsina\\documents\\github\\2027_13.s1d_4_vizsgaremek\\tudasteradmin\\tudasteradmin\\drafteditorwindow.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{DD9A3328-765F-04F2-300C-E5A4C4528F11}|TudasterAdmin\\TudasterAdmin.csproj|solutionrelative:tudasteradmin\\drafteditorwindow.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{DD9A3328-765F-04F2-300C-E5A4C4528F11}|TudasterAdmin\\TudasterAdmin.csproj|c:\\users\\keserufruzsina\\documents\\github\\2027_13.s1d_4_vizsgaremek\\tudasteradmin\\tudasteradmin\\processing\\draftmodels.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{DD9A3328-765F-04F2-300C-E5A4C4528F11}|TudasterAdmin\\TudasterAdmin.csproj|solutionrelative:tudasteradmin\\processing\\draftmodels.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{DD9A3328-765F-04F2-300C-E5A4C4528F11}|TudasterAdmin\\TudasterAdmin.csproj|c:\\users\\keserufruzsina\\documents\\github\\2027_13.s1d_4_vizsgaremek\\tudasteradmin\\tudasteradmin\\mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{DD9A3328-765F-04F2-300C-E5A4C4528F11}|TudasterAdmin\\TudasterAdmin.csproj|solutionrelative:tudasteradmin\\mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{DD9A3328-765F-04F2-300C-E5A4C4528F11}|TudasterAdmin\\TudasterAdmin.csproj|c:\\users\\keserufruzsina\\documents\\github\\2027_13.s1d_4_vizsgaremek\\tudasteradmin\\tudasteradmin\\processing\\aiexammapper.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{DD9A3328-765F-04F2-300C-E5A4C4528F11}|TudasterAdmin\\TudasterAdmin.csproj|solutionrelative:tudasteradmin\\processing\\aiexammapper.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{DD9A3328-765F-04F2-300C-E5A4C4528F11}|TudasterAdmin\\TudasterAdmin.csproj|c:\\users\\keserufruzsina\\documents\\github\\2027_13.s1d_4_vizsgaremek\\tudasteradmin\\tudasteradmin\\processing\\geminiservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{DD9A3328-765F-04F2-300C-E5A4C4528F11}|TudasterAdmin\\TudasterAdmin.csproj|solutionrelative:tudasteradmin\\processing\\geminiservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{DD9A3328-765F-04F2-300C-E5A4C4528F11}|TudasterAdmin\\TudasterAdmin.csproj|c:\\users\\keserufruzsina\\documents\\github\\2027_13.s1d_4_vizsgaremek\\tudasteradmin\\tudasteradmin\\drafteditorwindow.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{DD9A3328-765F-04F2-300C-E5A4C4528F11}|TudasterAdmin\\TudasterAdmin.csproj|solutionrelative:tudasteradmin\\drafteditorwindow.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{DD9A3328-765F-04F2-300C-E5A4C4528F11}|TudasterAdmin\\TudasterAdmin.csproj|c:\\users\\keserufruzsina\\documents\\github\\2027_13.s1d_4_vizsgaremek\\tudasteradmin\\tudasteradmin\\mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
@@ -27,24 +39,12 @@
       "RelativeMoniker": "D:0:0:{DD9A3328-765F-04F2-300C-E5A4C4528F11}|TudasterAdmin\\TudasterAdmin.csproj|solutionrelative:tudasteradmin\\taskdetailswindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{DD9A3328-765F-04F2-300C-E5A4C4528F11}|TudasterAdmin\\TudasterAdmin.csproj|c:\\users\\keserufruzsina\\documents\\github\\2027_13.s1d_4_vizsgaremek\\tudasteradmin\\tudasteradmin\\processing\\geminiservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{DD9A3328-765F-04F2-300C-E5A4C4528F11}|TudasterAdmin\\TudasterAdmin.csproj|solutionrelative:tudasteradmin\\processing\\geminiservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{DD9A3328-765F-04F2-300C-E5A4C4528F11}|TudasterAdmin\\TudasterAdmin.csproj|c:\\users\\keserufruzsina\\documents\\github\\2027_13.s1d_4_vizsgaremek\\tudasteradmin\\tudasteradmin\\processing\\aiexammapper.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{DD9A3328-765F-04F2-300C-E5A4C4528F11}|TudasterAdmin\\TudasterAdmin.csproj|solutionrelative:tudasteradmin\\processing\\aiexammapper.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{DD9A3328-765F-04F2-300C-E5A4C4528F11}|TudasterAdmin\\TudasterAdmin.csproj|c:\\users\\keserufruzsina\\documents\\github\\2027_13.s1d_4_vizsgaremek\\tudasteradmin\\tudasteradmin\\processing\\pdftextextractor.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{DD9A3328-765F-04F2-300C-E5A4C4528F11}|TudasterAdmin\\TudasterAdmin.csproj|solutionrelative:tudasteradmin\\processing\\pdftextextractor.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{DD9A3328-765F-04F2-300C-E5A4C4528F11}|TudasterAdmin\\TudasterAdmin.csproj|c:\\users\\keserufruzsina\\documents\\github\\2027_13.s1d_4_vizsgaremek\\tudasteradmin\\tudasteradmin\\processing\\solutionimporter.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{DD9A3328-765F-04F2-300C-E5A4C4528F11}|TudasterAdmin\\TudasterAdmin.csproj|solutionrelative:tudasteradmin\\processing\\solutionimporter.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{DD9A3328-765F-04F2-300C-E5A4C4528F11}|TudasterAdmin\\TudasterAdmin.csproj|c:\\users\\keserufruzsina\\documents\\github\\2027_13.s1d_4_vizsgaremek\\tudasteradmin\\tudasteradmin\\processing\\draftmodels.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{DD9A3328-765F-04F2-300C-E5A4C4528F11}|TudasterAdmin\\TudasterAdmin.csproj|solutionrelative:tudasteradmin\\processing\\draftmodels.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{DD9A3328-765F-04F2-300C-E5A4C4528F11}|TudasterAdmin\\TudasterAdmin.csproj|c:\\users\\keserufruzsina\\documents\\github\\2027_13.s1d_4_vizsgaremek\\tudasteradmin\\tudasteradmin\\processing\\pdfpagecontent.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -93,46 +93,8 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 5,
+          "SelectedChildIndex": 8,
           "Children": [
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "UiKit.cs",
-              "DocumentMoniker": "C:\\Users\\KeseruFruzsina\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\UiKit.cs",
-              "RelativeDocumentMoniker": "TudasterAdmin\\UiKit.cs",
-              "ToolTip": "C:\\Users\\KeseruFruzsina\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\UiKit.cs",
-              "RelativeToolTip": "TudasterAdmin\\UiKit.cs",
-              "ViewState": "AgIAADABAAAAAAAAAAAqwF4BAAABAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-11-13T09:33:03.858Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": "UiStyles.cs",
-              "DocumentMoniker": "C:\\Users\\KeseruFruzsina\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\UiStyles.cs",
-              "RelativeDocumentMoniker": "TudasterAdmin\\UiStyles.cs",
-              "ToolTip": "C:\\Users\\KeseruFruzsina\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\UiStyles.cs",
-              "RelativeToolTip": "TudasterAdmin\\UiStyles.cs",
-              "ViewState": "AgIAAD0AAAAAAAAAAAAgwG0AAAABAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-11-13T09:32:50.634Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 8,
-              "Title": "PdfTextExtractor.cs",
-              "DocumentMoniker": "C:\\Users\\KeseruFruzsina\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\Processing\\PdfTextExtractor.cs",
-              "RelativeDocumentMoniker": "TudasterAdmin\\Processing\\PdfTextExtractor.cs",
-              "ToolTip": "C:\\Users\\KeseruFruzsina\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\Processing\\PdfTextExtractor.cs",
-              "RelativeToolTip": "TudasterAdmin\\Processing\\PdfTextExtractor.cs",
-              "ViewState": "AgIAACIAAAAAAAAAAAAhwC0AAAARAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-10-13T09:38:52.819Z"
-            },
             {
               "$type": "Document",
               "DocumentIndex": 1,
@@ -141,39 +103,27 @@
               "RelativeDocumentMoniker": "TudasterAdmin\\MainWindow.xaml.cs",
               "ToolTip": "C:\\Users\\KeseruFruzsina\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\MainWindow.xaml.cs",
               "RelativeToolTip": "TudasterAdmin\\MainWindow.xaml.cs",
-              "ViewState": "AgIAAHwNAAAAAAAAAAAiwKkNAAABAAAAAAAAAA==",
+              "ViewState": "AgIAAEQAAAAAAAAAAAAAAFUAAAALAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-10-20T08:54:23.055Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 9,
-              "Title": "SolutionImporter.cs",
-              "DocumentMoniker": "C:\\Users\\KeseruFruzsina\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\Processing\\SolutionImporter.cs",
-              "RelativeDocumentMoniker": "TudasterAdmin\\Processing\\SolutionImporter.cs",
-              "ToolTip": "C:\\Users\\KeseruFruzsina\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\Processing\\SolutionImporter.cs",
-              "RelativeToolTip": "TudasterAdmin\\Processing\\SolutionImporter.cs",
-              "ViewState": "AgIAAD0AAAAAAAAAAAAwwHUAAAABAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-11-10T09:43:16.422Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 4,
               "Title": "DraftEditorWindow.cs",
               "DocumentMoniker": "C:\\Users\\KeseruFruzsina\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\DraftEditorWindow.cs",
               "RelativeDocumentMoniker": "TudasterAdmin\\DraftEditorWindow.cs",
               "ToolTip": "C:\\Users\\KeseruFruzsina\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\DraftEditorWindow.cs",
               "RelativeToolTip": "TudasterAdmin\\DraftEditorWindow.cs",
-              "ViewState": "AgIAAJAAAAAAAAAAAAAQwLcAAAA1AAAAAAAAAA==",
+              "ViewState": "AgIAAJMAAAAAAAAAAAAAAK8AAAAzAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-10-21T09:39:13.344Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 8,
               "Title": "TaskDetailsWindow.xaml.cs",
               "DocumentMoniker": "C:\\Users\\KeseruFruzsina\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\TaskDetailsWindow.xaml.cs",
               "RelativeDocumentMoniker": "TudasterAdmin\\TaskDetailsWindow.xaml.cs",
@@ -185,7 +135,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 5,
               "Title": "MainWindow.xaml",
               "DocumentMoniker": "C:\\Users\\KeseruFruzsina\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\MainWindow.xaml",
               "RelativeDocumentMoniker": "TudasterAdmin\\MainWindow.xaml",
@@ -208,39 +158,90 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 3,
               "Title": "GeminiService.cs",
               "DocumentMoniker": "C:\\Users\\KeseruFruzsina\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\Processing\\GeminiService.cs",
               "RelativeDocumentMoniker": "TudasterAdmin\\Processing\\GeminiService.cs",
               "ToolTip": "C:\\Users\\KeseruFruzsina\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\Processing\\GeminiService.cs",
               "RelativeToolTip": "TudasterAdmin\\Processing\\GeminiService.cs",
-              "ViewState": "AgIAAHkAAAAAAAAAAAAAAIcAAAAIAQAAAAAAAA==",
+              "ViewState": "AgIAAKQBAAAAAAAAAAAAAIcAAAAIAQAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-10-20T08:43:54.99Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 10,
-              "Title": "DraftModels.cs",
-              "DocumentMoniker": "C:\\Users\\KeseruFruzsina\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\Processing\\DraftModels.cs",
-              "RelativeDocumentMoniker": "TudasterAdmin\\Processing\\DraftModels.cs",
-              "ToolTip": "C:\\Users\\KeseruFruzsina\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\Processing\\DraftModels.cs",
-              "RelativeToolTip": "TudasterAdmin\\Processing\\DraftModels.cs",
-              "ViewState": "AgIAACEAAAAAAAAAAAAkwHYAAAAYAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-10-21T09:16:14.454Z"
+              "WhenOpened": "2026-10-20T08:43:54.99Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 7,
+              "Title": "UiStyles.cs",
+              "DocumentMoniker": "C:\\Users\\KeseruFruzsina\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\UiStyles.cs",
+              "RelativeDocumentMoniker": "TudasterAdmin\\UiStyles.cs",
+              "ToolTip": "C:\\Users\\KeseruFruzsina\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\UiStyles.cs",
+              "RelativeToolTip": "TudasterAdmin\\UiStyles.cs",
+              "ViewState": "AgIAAD0AAAAAAAAAAAAgwG0AAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-11-13T09:32:50.634Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
               "Title": "AiExamMapper.cs",
               "DocumentMoniker": "C:\\Users\\KeseruFruzsina\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\Processing\\AiExamMapper.cs",
               "RelativeDocumentMoniker": "TudasterAdmin\\Processing\\AiExamMapper.cs",
               "ToolTip": "C:\\Users\\KeseruFruzsina\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\Processing\\AiExamMapper.cs",
               "RelativeToolTip": "TudasterAdmin\\Processing\\AiExamMapper.cs",
-              "ViewState": "AgIAAMoAAAAAAAAAAAAiwOoAAAABAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAOoAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-10-20T08:47:18.003Z"
+              "WhenOpened": "2026-10-20T08:47:18.003Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "DraftModels.cs",
+              "DocumentMoniker": "C:\\Users\\KeseruFruzsina\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\Processing\\DraftModels.cs",
+              "RelativeDocumentMoniker": "TudasterAdmin\\Processing\\DraftModels.cs",
+              "ToolTip": "C:\\Users\\KeseruFruzsina\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\Processing\\DraftModels.cs",
+              "RelativeToolTip": "TudasterAdmin\\Processing\\DraftModels.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAcAAAAUAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-21T09:16:14.454Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "SolutionImporter.cs",
+              "DocumentMoniker": "C:\\Users\\KeseruFruzsina\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\Processing\\SolutionImporter.cs",
+              "RelativeDocumentMoniker": "TudasterAdmin\\Processing\\SolutionImporter.cs",
+              "ToolTip": "C:\\Users\\KeseruFruzsina\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\Processing\\SolutionImporter.cs",
+              "RelativeToolTip": "TudasterAdmin\\Processing\\SolutionImporter.cs",
+              "ViewState": "AgIAAD0AAAAAAAAAAAAwwHUAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-11-10T09:43:16.422Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "PdfTextExtractor.cs",
+              "DocumentMoniker": "C:\\Users\\KeseruFruzsina\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\Processing\\PdfTextExtractor.cs",
+              "RelativeDocumentMoniker": "TudasterAdmin\\Processing\\PdfTextExtractor.cs",
+              "ToolTip": "C:\\Users\\KeseruFruzsina\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\Processing\\PdfTextExtractor.cs",
+              "RelativeToolTip": "TudasterAdmin\\Processing\\PdfTextExtractor.cs",
+              "ViewState": "AgIAACIAAAAAAAAAAAAhwC0AAAARAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-10-13T09:38:52.819Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "UiKit.cs",
+              "DocumentMoniker": "C:\\Users\\KeseruFruzsina\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\UiKit.cs",
+              "RelativeDocumentMoniker": "TudasterAdmin\\UiKit.cs",
+              "ToolTip": "C:\\Users\\KeseruFruzsina\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\UiKit.cs",
+              "RelativeToolTip": "TudasterAdmin\\UiKit.cs",
+              "ViewState": "AgIAADABAAAAAAAAAAAqwF4BAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-11-13T09:33:03.858Z"
             },
             {
               "$type": "Document",
@@ -322,8 +323,7 @@
               "ToolTip": "C:\\Users\\KeseruFruzsina\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\App.xaml",
               "RelativeToolTip": "TudasterAdmin\\App.xaml",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
-              "WhenOpened": "2026-09-15T08:22:28.793Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-15T08:22:28.793Z"
             },
             {
               "$type": "Document",

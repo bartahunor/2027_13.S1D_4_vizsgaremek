@@ -224,33 +224,28 @@ function ForgotPasswordPage() {
 
                                         </div>
 
-                                        <div className="relative group">
-                                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-[#8A8196] group-focus-within:text-[#4B2A7F] transition-colors">
-                                                <span className="material-symbols-outlined text-xl">
-                                                    alternate_email
-                                                </span>
-                                            </div>
+                                        <div className="relative">
+                                            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-primary/50">
+                                                alternate_email
+                                            </span>
 
                                             <input
                                                 id="reset-email"
                                                 type="email"
                                                 value={email}
                                                 onChange={(e) => handleEmailChange(e.target.value)}
-                                                placeholder="pelda@tudaster.hu"
+                                                placeholder="pelda@email.hu"
                                                 autoComplete="email"
-                                                className={`w-full pl-12 pr-12 py-3.5 rounded-xl bg-[#F4F2F8] border ${
-                                                    emailError
-                                                        ? "border-red-400 focus:ring-red-200"
-                                                        : "border-transparent focus:border-[#4B2A7F]/30 focus:ring-[#351F5B]/10"
-                                                } text-[#24123D] text-sm placeholder:text-[#B2A9BE] focus:bg-white focus:outline-none focus:ring-4 transition-all`}
+                                                className={`w-full pl-11 pr-12 py-3 bg-primary/5 border rounded-xl focus:ring-2 outline-none transition-all ${emailError
+                                                        ? "border-red-400 focus:ring-red-300"
+                                                        : "border-primary/20 focus:ring-primary"
+                                                    }`}
                                             />
 
                                             {email.trim() && isValidEmail(email.trim()) && (
-                                                <div className="absolute inset-y-0 right-0 pr-4 flex items-center text-[#4B2A7F]">
-                                                    <span className="material-symbols-outlined text-xl">
-                                                        check_circle
-                                                    </span>
-                                                </div>
+                                                <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-primary text-xl">
+                                                    check_circle
+                                                </span>
                                             )}
                                         </div>
 
@@ -314,7 +309,7 @@ function ForgotPasswordPage() {
                                     <span className="font-bold text-[#35284B]">
                                         Nem kaptad meg a levelet?
                                     </span>{" "}
-                                    Nézd meg a Promóciók vagy a 
+                                    Nézd meg a Promóciók vagy a
                                     Spam mappát, vagy írj nekünk:
                                     <a
                                         href="mailto:tamogatas@tudaster.hu"
@@ -327,7 +322,6 @@ function ForgotPasswordPage() {
                         </div>
                     </div>
 
-                    {/* DEMÓ */}
                     <div className="mt-5 flex flex-wrap items-center justify-between gap-3 px-2">
 
                         <span className="text-[10px] text-[#A49BAD]">

@@ -108,7 +108,7 @@ export default function ResetPasswordPage({
         };
     }, [password, strength]);
 
-    const isPasswordValid = strength === 4;
+    const isPasswordValid = strength === passwordRequirements.length;
 
     useEffect(() => {
         if (!success) return;
@@ -255,47 +255,47 @@ export default function ResetPasswordPage({
                             <form onSubmit={handleSubmit} className="space-y-5">
                                 {/* Új jelszó */}
                                 <div>
-                                    <div className="flex items-center justify-between mb-2">
-                                        <label
-                                            htmlFor="newPassword"
-                                            className="text-sm font-semibold text-[#24123D]"
-                                        >
-                                            Új jelszó
-                                        </label>
-
-                                      
-                                    </div>
+                                    <label
+                                        htmlFor="newPassword"
+                                        className="block text-sm font-medium mb-2 text-primary"
+                                    >
+                                        Új jelszó
+                                    </label>
 
                                     <div className="relative">
+                                        <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-primary/50">
+                                            lock
+                                        </span>
+
                                         <input
                                             id="newPassword"
                                             type={showPassword ? "text" : "password"}
                                             autoComplete="new-password"
                                             value={password}
+                                            maxLength={12}
                                             onChange={(event) => {
                                                 setPassword(event.target.value);
                                                 setError("");
                                             }}
                                             onFocus={() => setPasswordFocused(true)}
                                             onBlur={() => setPasswordFocused(false)}
-                                            placeholder="Új jelszó..."
+                                            placeholder="••••••••"
                                             disabled={success}
-                                            className="w-full bg-[#F7F5FA] focus:bg-white border border-transparent focus:border-[#9B83BD] text-[#24123D] placeholder:text-[#A49BAF] text-sm px-4 py-3.5 pr-12 rounded-xl outline-none transition-all duration-200 focus:ring-4 focus:ring-[#351F5B]/[0.06] disabled:opacity-60"
+                                            className="w-full pl-11 pr-12 py-3 bg-primary/5 border border-primary/20 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all disabled:opacity-60"
                                         />
 
                                         <button
                                             type="button"
                                             onClick={() => setShowPassword((previous) => !previous)}
-                                            aria-label={
-                                                showPassword ? "Jelszó elrejtése" : "Jelszó felfedése"
-                                            }
-                                            className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-[#81778F] hover:text-[#351F5B] transition-colors"
+                                            aria-label={showPassword ? "Jelszó elrejtése" : "Jelszó felfedése"}
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-primary/50 hover:text-primary transition-colors"
                                         >
                                             <span className="material-symbols-outlined text-xl">
                                                 {showPassword ? "visibility_off" : "visibility"}
                                             </span>
                                         </button>
                                     </div>
+
                                     {/* Követelmények */}
                                     {(passwordFocused || (password.length > 0 && !isPasswordValid)) && (
                                         <ul className="mt-3 space-y-1.5">
@@ -306,9 +306,7 @@ export default function ResetPasswordPage({
                                                         }`}
                                                 >
                                                     <span className="material-symbols-outlined text-sm">
-                                                        {requirement.valid
-                                                            ? "check_circle"
-                                                            : "radio_button_unchecked"}
+                                                        {requirement.valid ? "check_circle" : "radio_button_unchecked"}
                                                     </span>
                                                     {requirement.label}
                                                 </li>
@@ -316,49 +314,46 @@ export default function ResetPasswordPage({
                                         </ul>
                                     )}
                                 </div>
-
                                 {/* Jelszó megerősítése */}
                                 <div>
                                     <label
                                         htmlFor="confirmPassword"
-                                        className="block text-sm font-semibold text-[#24123D] mb-2"
+                                        className="block text-sm font-medium mb-2 text-primary"
                                     >
                                         Új jelszó megerősítése
                                     </label>
 
                                     <div className="relative">
+                                        <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-primary/50">
+                                            lock
+                                        </span>
+
                                         <input
                                             id="confirmPassword"
                                             type={showConfirmPassword ? "text" : "password"}
                                             autoComplete="new-password"
                                             value={confirmPassword}
+                                            maxLength={12}
                                             onChange={(event) => {
                                                 setConfirmPassword(event.target.value);
                                                 setError("");
                                             }}
-                                            placeholder="Jelszó ismétlése"
+                                            placeholder="••••••••"
                                             disabled={success}
-                                            className="w-full bg-[#F7F5FA] focus:bg-white border border-transparent focus:border-[#9B83BD] text-[#24123D] placeholder:text-[#A49BAF] text-sm px-4 py-3.5 pr-12 rounded-xl outline-none transition-all duration-200 focus:ring-4 focus:ring-[#351F5B]/[0.06] disabled:opacity-60"
+                                            className="w-full pl-11 pr-12 py-3 bg-primary/5 border border-primary/20 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all disabled:opacity-60"
                                         />
 
                                         <button
                                             type="button"
-                                            onClick={() =>
-                                                setShowConfirmPassword((previous) => !previous)
-                                            }
-                                            aria-label={
-                                                showConfirmPassword
-                                                    ? "Jelszó elrejtése"
-                                                    : "Jelszó felfedése"
-                                            }
-                                            className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-[#81778F] hover:text-[#351F5B] transition-colors"
+                                            onClick={() => setShowConfirmPassword((previous) => !previous)}
+                                            aria-label={showConfirmPassword ? "Jelszó elrejtése" : "Jelszó felfedése"}
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-primary/50 hover:text-primary transition-colors"
                                         >
                                             <span className="material-symbols-outlined text-xl">
                                                 {showConfirmPassword ? "visibility_off" : "visibility"}
                                             </span>
                                         </button>
                                     </div>
-
                                     {passwordsMatch && (
                                         <div className="flex items-center gap-1.5 text-xs text-[#351F5B] font-semibold mt-2">
                                             <span className="material-symbols-outlined text-lg">
