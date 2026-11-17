@@ -3,7 +3,8 @@ import { useEffect, useState } from "react";
 import { useLocation, Navigate } from "react-router-dom";
 import { apiFetch } from "../../lib/apiClient";
 import TaskCard from "../ui/CorrectedTaskCard";
-
+import Skeleton from 'react-loading-skeleton';
+import 'react-loading-skeleton/dist/skeleton.css';
 const getStatus = (question) => {
     if (question.elert_pont === question.max_pont) return "correct";
     if (question.elert_pont === 0) return "incorrect";
@@ -11,15 +12,15 @@ const getStatus = (question) => {
 };
 
 function formatIdotartam(totalSeconds) {
-  const sec = Math.max(0, Math.floor(Number(totalSeconds) || 0))
+    const sec = Math.max(0, Math.floor(Number(totalSeconds) || 0))
 
-  const hours = Math.floor(sec / 3600)
-  const minutes = Math.floor((sec % 3600) / 60)
-  const seconds = sec % 60
+    const hours = Math.floor(sec / 3600)
+    const minutes = Math.floor((sec % 3600) / 60)
+    const seconds = sec % 60
 
-  return [hours, minutes, seconds]
-    .map((n) => String(n).padStart(2, '0'))
-    .join(':')
+    return [hours, minutes, seconds]
+        .map((n) => String(n).padStart(2, '0'))
+        .join(':')
 }
 
 
@@ -46,7 +47,7 @@ function ResultPage() {
 
     const { state } = useLocation();
 
-    
+
 
     // ha valaki közvetlenül, állapot nélkül nyitja meg az oldalt
     if (!state?.result) {
@@ -56,7 +57,7 @@ function ResultPage() {
     const { result } = state;
     console.log(result)
 
-    
+
 
     useEffect(() => {
         let cancelled = false;
@@ -95,7 +96,93 @@ function ResultPage() {
         };
     }, [result]);
 
-    if (loading) return <p>Betöltés...</p>;
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-[#F4F2F8] text-[#24123D] font-display">
+                <main className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-10 pt-28">
+
+                    {/* FEJLÉC */}
+                    <div className="mb-9">
+                        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                            <div>
+                                <Skeleton width={170} height={26} borderRadius={999} className="mb-3" />
+                                <Skeleton width={260} height={40} />
+                                <Skeleton width={320} height={18} className="mt-2" />
+                            </div>
+
+                            <Skeleton width={190} height={68} borderRadius={16} />
+                        </div>
+                    </div>
+
+                    {/* EREDMÉNYKÁRTYÁK */}
+                    <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-10">
+                        {[0, 1, 2, 3].map((i) => (
+                            <div
+                                key={i}
+                                className="bg-white rounded-2xl border border-[#351F5B]/10 p-5 shadow-sm"
+                            >
+                                <div className="flex justify-between items-center mb-5">
+                                    <Skeleton width={90} height={16} />
+                                    <Skeleton width={40} height={40} borderRadius={12} />
+                                </div>
+                                <Skeleton width={120} height={32} />
+                                <Skeleton width={150} height={12} className="mt-2" />
+                            </div>
+                        ))}
+                    </section>
+
+                    {/* TÉMAKÖRÖK */}
+                    <section className="mb-12">
+                        <div className="flex items-center gap-3 mb-5">
+                            <Skeleton width={40} height={40} borderRadius={12} />
+                            <div>
+                                <Skeleton width={220} height={26} />
+                                <Skeleton width={260} height={14} />
+                            </div>
+                        </div>
+
+                        <div className="bg-white rounded-2xl border border-[#351F5B]/10 p-5 sm:p-7 shadow-sm">
+                            <div className="space-y-7">
+                                {[0, 1, 2, 3].map((i) => (
+                                    <div key={i}>
+                                        <div className="flex items-center justify-between gap-1 mb-2">
+                                            <Skeleton width={180} height={18} />
+                                            <Skeleton width={110} height={14} />
+                                        </div>
+                                        <Skeleton height={12} borderRadius={999} />
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* FELADATOK ÁTTEKINTÉSE */}
+                    <section>
+                        <div className="mb-6">
+                            <Skeleton width={230} height={28} />
+                            <Skeleton width={280} height={14} className="mt-1" />
+                        </div>
+
+                        <div className="space-y-4">
+                            {[0, 1, 2].map((i) => (
+                                <div
+                                    key={i}
+                                    className="bg-white rounded-2xl border border-[#351F5B]/10 p-5 shadow-sm"
+                                >
+                                    <div className="flex items-center justify-between mb-4">
+                                        <Skeleton width={110} height={20} />
+                                        <Skeleton width={70} height={24} borderRadius={999} />
+                                    </div>
+                                    <Skeleton count={2} height={16} />
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+
+                </main>
+            </div>
+        );
+    }
     if (error) return <p>{error}</p>;
     if (!osszesito) return null;
 
@@ -150,7 +237,7 @@ function ResultPage() {
 
                 {/* FEJLÉC */}
                 <div className="mb-9">
-                    
+
 
                     <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                         <div>
@@ -278,7 +365,7 @@ function ResultPage() {
                         </div>
 
                         <div className="flex items-center gap-1 p-1 bg-[#EAE5F1] rounded-xl w-fit">
-                        {/*
+                            {/*
                             <button
                                 onClick={() => setFilter("all")}
                                 className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${

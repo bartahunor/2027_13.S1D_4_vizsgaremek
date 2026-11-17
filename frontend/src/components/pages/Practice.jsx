@@ -4,6 +4,9 @@ import { useNavigate } from "react-router-dom";
 import { apiFetch } from "../../lib/apiClient";
 import { getForrasKepUrl } from "../../lib/supabaseStorage";
 import { taskTypes, fallbackType } from "../ui/tasktypes/tasktypes.js";
+import Skeleton from 'react-loading-skeleton';
+import 'react-loading-skeleton/dist/skeleton.css';
+
 
 // Alapértelmezett serializer: a szöveget trimeli, az üreset null-ra alakítja,
 // a számot és a tömböt változatlanul hagyja, az undefined-ot null-ra alakítja.
@@ -126,7 +129,7 @@ function PracticePage() {
                         body: JSON.stringify({
                             tantargy_id: Number(subject),
                             feladat_idk: tasksWithImages.map((task) => task.id),
-                            nev: testName 
+                            nev: testName
                         }),
                     });
 
@@ -157,7 +160,46 @@ function PracticePage() {
     }, [subject, level, year, topic]);
 
     if (!hasValidParams) return null;
-    if (loading) return <div>Betöltés...</div>;
+    if (loading) {
+        return (
+            <div className="min-h-screen flex flex-col bg-background-light text-slate-900 font-display relative overflow-hidden">
+                <div className="pointer-events-none absolute inset-0 bg-grid-pattern opacity-100"></div>
+
+                <main className="relative z-10 flex-grow flex flex-col items-stretch pt-24 pb-6 px-3 sm:pt-16 sm:pb-8 sm:px-6 md:items-center md:pt-28 md:pb-10 md:px-10">
+                    <div className="max-w-7xl w-full min-w-0 bg-white rounded-xl shadow-2xl shadow-primary/5 border border-primary/10 overflow-hidden flex flex-col md:flex-row md:min-h-[700px] md:max-h-[850px]">
+                        {/* BAL OLDAL */}
+                        <div className="w-full md:w-1/2 bg-slate-50 p-3 sm:p-6 lg:p-8 flex flex-col min-w-0">
+                            <div className="flex items-center justify-between mb-4">
+                                <Skeleton width={80} height={14} />
+                                <Skeleton width={36} height={36} borderRadius={8} />
+                            </div>
+                            <Skeleton height={480} borderRadius={12} />
+                        </div>
+
+                        {/* JOBB OLDAL */}
+                        <div className="w-full md:w-1/2 p-3 sm:p-6 lg:p-10 flex flex-col min-w-0">
+                            <div className="mb-6 sm:mb-8">
+                                <Skeleton width={60} height={24} borderRadius={999} className="mb-4" />
+                                <Skeleton count={3} height={24} />
+                            </div>
+
+                            <div className="flex-grow min-w-0 space-y-4 p-1 sm:p-3">
+                                <Skeleton height={56} borderRadius={12} />
+                                <Skeleton height={56} borderRadius={12} />
+                                <Skeleton height={56} borderRadius={12} />
+                                <Skeleton height={56} borderRadius={12} />
+                            </div>
+
+                            <div className="mt-5 sm:mt-8 pt-4 sm:pt-6 border-t border-slate-100 flex items-center justify-between gap-3 shrink-0">
+                                <Skeleton width={110} height={48} borderRadius={12} />
+                                <Skeleton width={140} height={48} borderRadius={12} />
+                            </div>
+                        </div>
+                    </div>
+                </main>
+            </div>
+        );
+    }
     if (error) return <div>Hiba történt: {error}</div>;
 
     if (tasks.length === 0) {
@@ -200,9 +242,9 @@ function PracticePage() {
     };
 
     const handlePrevious = () => {
-      if (currentTaskIndex > 0) {
-        setCurrentTaskIndex((prev) => prev - 1);
-      }
+        if (currentTaskIndex > 0) {
+            setCurrentTaskIndex((prev) => prev - 1);
+        }
     };
 
     const handleFinish = async () => {
@@ -266,7 +308,7 @@ function PracticePage() {
     return (
         <div className="min-h-screen flex flex-col bg-background-light text-slate-900 font-display relative overflow-hidden">
             <div className="pointer-events-none absolute inset-0 bg-grid-pattern opacity-100"></div>
-           
+
 
             {/* FŐ TARTALOM */}
             <main
@@ -280,7 +322,7 @@ function PracticePage() {
                 "
             >
                 <div
-                className="
+                    className="
                     relative z-20
                     flex items-center gap-2
                     w-fit ml-auto mb-3
@@ -294,16 +336,16 @@ function PracticePage() {
                     tabular-nums
                     sm:hidden
                 "
-                role="timer"
-                aria-label={`Eltelt idő: ${formatTime(elapsedSeconds)}`}
-            >
-                <span className="material-symbols-outlined text-xl text-[#4B2A7F]">
-                    timer
-                </span>
-                <span>{formatTime(elapsedSeconds)}</span>
-            </div>
+                    role="timer"
+                    aria-label={`Eltelt idő: ${formatTime(elapsedSeconds)}`}
+                >
+                    <span className="material-symbols-outlined text-xl text-[#4B2A7F]">
+                        timer
+                    </span>
+                    <span>{formatTime(elapsedSeconds)}</span>
+                </div>
 
-              
+
                 <div
                     className="
                     max-w-7xl
@@ -320,8 +362,8 @@ function PracticePage() {
                     md:max-h-[850px]
                 "
                 >
-                      <div
-                className="
+                    <div
+                        className="
     hidden sm:flex
     fixed top-24 right-8
     z-[100]
@@ -336,14 +378,14 @@ function PracticePage() {
     text-sm font-semibold
     tabular-nums
 "
-                role="timer"
-                aria-label={`Eltelt idő: ${formatTime(elapsedSeconds)}`}
-            >
-                <span className="material-symbols-outlined text-xl text-[#4B2A7F]">
-                    timer
-                </span>
-                <span>{formatTime(elapsedSeconds)}</span>
-            </div>
+                        role="timer"
+                        aria-label={`Eltelt idő: ${formatTime(elapsedSeconds)}`}
+                    >
+                        <span className="material-symbols-outlined text-xl text-[#4B2A7F]">
+                            timer
+                        </span>
+                        <span>{formatTime(elapsedSeconds)}</span>
+                    </div>
                     {/* BAL OLDAL */}
                     <div
                         className="
