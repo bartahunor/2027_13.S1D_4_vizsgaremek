@@ -47,8 +47,11 @@ function ForgotPasswordPage() {
         setLoading(true);
 
         try {
-            // DEMÓ: backend csatlakoztatása később
-            await new Promise((resolve) => setTimeout(resolve, 1000));
+            const { error } = await supabase.auth.resetPasswordForEmail(trimmedEmail, {
+                redirectTo: `${window.location.origin}/reset-password`,
+            });
+
+            if (error) throw error;
 
             setSubmittedEmail(trimmedEmail);
             setSuccess(true);
@@ -73,32 +76,24 @@ function ForgotPasswordPage() {
         setLoading(true);
 
         try {
-            // DEMÓ: backend csatlakoztatása később
-            await new Promise((resolve) => setTimeout(resolve, 800));
-            setSecondsLeft(45);
+          const { error } = await supabase.auth.resetPasswordForEmail(
+            submittedEmail,
+            {
+              redirectTo: `${window.location.origin}/reset-password`,
+            },
+          );
+
+          if (error) throw error;
+
+          setSecondsLeft(45);
         } catch {
-            setEmailError("Az újraküldés nem sikerült.");
+          setEmailError("Az újraküldés nem sikerült.");
         } finally {
-            setLoading(false);
+          setLoading(false);
         }
     };
 
-    // Demó állapot
-    const handleDemo = () => {
-        if (success) {
-            setSuccess(false);
-            setEmailError("");
-            return;
-        }
-
-        const demoEmail = "diak.peter@budapest-gimnazium.hu";
-
-        setEmail(demoEmail);
-        setSubmittedEmail(demoEmail);
-        setEmailError("");
-        setSecondsLeft(45);
-        setSuccess(true);
-    };
+    
 
     return (
         <div className="min-h-screen flex flex-col bg-[#F4F2F8] text-[#24123D] font-display">
