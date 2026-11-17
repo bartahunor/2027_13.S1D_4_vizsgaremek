@@ -73,88 +73,106 @@ function TaskCard({
 
     // A feladat típusa dönti el, melyik komponensek jelennek meg
     const { Solution, Explanation } = taskTypes[question.tipus] ?? fallbackType;
+
+    // A forrás nem kötelező: lehet null/undefined is
+    const forras = question.forras ?? null;
+    const forrasKep = forras?.kep ?? null;
+    const forrasSzoveg = forras?.szoveg ?? null;
+    const hasForras = Boolean(forras);
+
     const [forrasKepUrl, setForrasKepUrl] = useState(null);
 
     useEffect(() => {
         let cancelled = false;
 
-        if (!question.forras.kep) {
+        if (!forrasKep) {
             setForrasKepUrl(null);
             return;
         }
 
-        getForrasKepUrl(question.forras.kep).then((url) => {
+        getForrasKepUrl(forrasKep).then((url) => {
             if (!cancelled) setForrasKepUrl(url);
         });
 
         return () => {
             cancelled = true;
         };
-    }, [question.forras.kep]);
+    }, [forrasKep]);
+
+    // Magyarázat csak akkor van, ha van forrás
+    const showExplanation = expandable && hasForras;
 
 
 
     return (
-        <article className="bg-white rounded-2xl border border-[#351F5B]/10 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
-            <div className={`p-5 sm:p-6 border-l-4 ${config.border}`}>
-                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-4">
-                    <div>
-                        <div className="flex flex-wrap items-center gap-2 mb-2">
-                            <span
-                                className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs font-bold ${config.badge} ${config.color}`}
-                            >
-                                <span className="material-symbols-outlined text-sm">{config.icon}</span>
-                                {config.label}
-                            </span>
-                            {question.temakor && (
-                                <span className="text-xs text-[#8A8196]">{question.temakor}</span>
-                            )}
-                        </div>
-                        <h3 className="text-lg font-bold text-[#351F5B]">
-                            {number}
-                            {mergedLabels.taskSuffix} {question.title}
-                        </h3>
-                    </div>
-                    <span className="font-bold text-[#351F5B] whitespace-nowrap">
-                        {question.elert_pont}/{question.max_pont} {mergedLabels.points}
-                    </span>
-                </div>
-
-                <p className="text-sm sm:text-base text-[#514760] leading-relaxed mb-5">
-                    {question.kerdes}
-                </p>
-
-                {Solution && (
-                    <Solution question={question} status={status} labels={mergedLabels} />
+      <article className="bg-white rounded-2xl border border-[#351F5B]/10 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+        <div className={`p-5 sm:p-6 border-l-4 ${config.border}`}>
+          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-4">
+            <div>
+              <div className="flex flex-wrap items-center gap-2 mb-2">
+                <span
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs font-bold ${config.badge} ${config.color}`}
+                >
+                  <span className="material-symbols-outlined text-sm">
+                    {config.icon}
+                  </span>
+                  {config.label}
+                </span>
+                {question.temakor && (
+                  <span className="text-xs text-[#8A8196]">
+                    {question.temakor}
+                  </span>
                 )}
-
-                {expandable && (
-                    <button
-                        onClick={onToggleExplanation}
-                        className="mt-4 flex items-center gap-1 text-sm font-semibold text-[#351F5B]"
-                    >
-                        {expanded ? "Kiegészítés elrejtése" : "Kiegészítés megtekintése"}
-                        <span className="material-symbols-outlined text-base">
-                            {expanded ? "expand_less" : "expand_more"}
-                        </span>
-                    </button>
-                )}
-
-                {expandable && expanded && (
-                    <div className="mt-3 rounded-xl bg-[#F4F2F8] p-4 text-sm text-[#35284B]">
-                        {Explanation && (
-                            <Explanation
-                                question={question}
-                                forrasKep={forrasKepUrl}
-                                forrasSzoveg={question.forras.szoveg}
-                                magyarazat={question.magyarazat}
-                                labels={mergedLabels}
-                            />
-                        )}
-                    </div>
-                )}
+              </div>
+              <h3 className="text-lg font-bold text-[#351F5B]">
+                {number}
+                {mergedLabels.taskSuffix} {question.title}
+              </h3>
             </div>
-        </article>
+            <span className="font-bold text-[#351F5B] whitespace-nowrap">
+              {question.elert_pont}/{question.max_pont} {mergedLabels.points}
+            </span>
+          </div>
+
+          <p className="text-sm sm:text-base text-[#514760] leading-relaxed mb-5">
+            {question.kerdes}
+          </p>
+
+          {Solution && (
+            <Solution
+              question={question}
+              status={status}
+              labels={mergedLabels}
+            />
+          )}
+
+          {showExplanation && (
+            <button
+              onClick={onToggleExplanation}
+              className="mt-4 flex items-center gap-1 text-sm font-semibold text-[#351F5B]"
+            >
+              {expanded ? "Kiegészítés elrejtése" : "Kiegészítés megtekintése"}
+              <span className="material-symbols-outlined text-base">
+                {expanded ? "expand_less" : "expand_more"}
+              </span>
+            </button>
+          )}
+
+          {showExplanation && expanded && (
+            <div className="mt-3 rounded-xl bg-[#F4F2F8] p-4 text-sm text-[#35284B]">
+              {Explanation && (
+                <Explanation
+                  question={question}
+                  forrasKep={forrasKepUrl}
+                  forrasSzoveg={forrasSzoveg}
+                  magyarazat={question.magyarazat}
+                  labels={mergedLabels}
+                />
+              )}
+            </div>
+          )}
+        </div>
+      </article>
     );
 }
 
