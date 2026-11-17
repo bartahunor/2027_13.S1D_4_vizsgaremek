@@ -165,7 +165,6 @@ namespace TudasterAdmin
             // Legördülők feltöltése
             foreach (var s in subjectNames) _subjectBox.Items.Add(s);
             foreach (var l in DraftDefaults.Levels) _levelBox.Items.Add(l);
-            foreach (var p in DraftDefaults.Periods) _periodBox.Items.Add(p);
             foreach (var t in DraftDefaults.TaskTypes) _typeBox.Items.Add(t);
 
             SelectOrAdd(_subjectBox, draft.Subject);
@@ -213,7 +212,6 @@ namespace TudasterAdmin
             examFields.Children.Add(Field("Tantárgy", BoxedLine(_subjectBox, 240)));
             examFields.Children.Add(Field("Év", BoxedLine(_yearBox, 100)));
             examFields.Children.Add(Field("Szint", BoxedLine(_levelBox, 170)));
-            examFields.Children.Add(Field("Időszak", BoxedLine(_periodBox, 150)));
 
             _draftWarnings.Text = string.Join("\n", draft.Warnings.Select(w => "⚠ " + w));
             _draftWarnings.Visibility = draft.Warnings.Count > 0 ? Visibility.Visible : Visibility.Collapsed;

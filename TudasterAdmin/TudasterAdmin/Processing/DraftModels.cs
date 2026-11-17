@@ -6,6 +6,7 @@ using System.Text.Json.Serialization;
 namespace TudasterAdmin.Processing
 {
     internal record TopicInfo(int Id, string Name, string Subject);
+    internal record TaskTypeInfo(int Id, string Name);
 
     // Később ezek az értékek az adatbázisból jönnek (feladat_tipusok, ev.szint).
     internal static class DraftDefaults

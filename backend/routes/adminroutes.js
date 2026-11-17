@@ -73,7 +73,7 @@ router.get('/stats', requireAdmin, async (req, res, next) => {
 
 //Tantárgyak és a hozzájuk tartozó feladatok száma
 // A feladat tantárgya a feladatok -> temakorok -> tantargyak kapcsolaton keresztül érhető el.
-router.get('/tantargyak', requireAdmin, async (req, res, next) => {
+router.get('/subjects', requireAdmin, async (req, res, next) => {
   try {
     const rows = await sql`
       select
@@ -98,7 +98,7 @@ router.get('/tantargyak', requireAdmin, async (req, res, next) => {
 })
 
 //Témakörök, a hozzájuk tartozó tantárgy és a feladatok száma
-router.get('/temakorok', requireAdmin, async (req, res, next) => {
+router.get('/topics', requireAdmin, async (req, res, next) => {
   try {
     const rows = await sql`
       select
@@ -119,6 +119,29 @@ router.get('/temakorok', requireAdmin, async (req, res, next) => {
       nev: r.nev,
       tantargyId: r.tantargy_id,
       tantargyNev: r.tantargy_nev,
+      feladatokSzama: r.feladatok_szama
+    })))
+  } catch (err) {
+    next(err)
+  }
+})
+
+router.get('/tasktypes', requireAdmin, async (req, res, next) => {
+  try {
+    const rows = await sql`
+      select
+        ft.id,
+        ft.nev,
+        count(f.id)::int as feladatok_szama
+      from feladat_tipusok ft
+      left join feladatok f on f.tipus_id = ft.id
+      group by ft.id, ft.nev
+      order by ft.nev
+    `
+
+    res.json(rows.map(r => ({
+      id: r.id,
+      nev: r.nev,
       feladatokSzama: r.feladatok_szama
     })))
   } catch (err) {

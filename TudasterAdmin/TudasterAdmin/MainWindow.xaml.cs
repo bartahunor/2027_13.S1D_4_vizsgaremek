@@ -32,6 +32,7 @@ namespace TudasterAdmin
         private readonly ObservableCollection<ExamSetItem> _examSets = new();
         private readonly ObservableCollection<SubjectItem> _subjects = new();
         private readonly ObservableCollection<TopicItem> _topics = new();
+        private readonly ObservableCollection<TaskTypeItem> _tasktypes = new();
         private readonly ObservableCollection<UserItem> _users = new();
         private int _nextTaskId = 5;
         private DataGrid? _taskGrid;
@@ -82,6 +83,7 @@ namespace TudasterAdmin
             _ = LoadDashboardDataAsync();
             _ = LoadTopicsAsync();
             _ = LoadUsersAsync();
+            _ = LoadTasktypesAsync();
             LoadLocalTaskTypes();
             LoadLocalTopics();
             LoadLocalSubjects();
@@ -256,7 +258,7 @@ namespace TudasterAdmin
         {
             try
             {
-                var subjects = await GetFromBackendAsync<List<SubjectResponse>>("tantargyak");
+                var subjects = await GetFromBackendAsync<List<SubjectResponse>>("subjects");
 
                 _subjects.Clear();
 
@@ -274,6 +276,33 @@ namespace TudasterAdmin
             {
                 MessageBox.Show(
                     "Nem sikerült betölteni a tantárgyakat: " + ex.Message,
+                    "Hiba",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+            }
+        }
+
+        private async Task LoadTasktypesAsync()
+        {
+            try
+            {
+                var tasktypes = await GetFromBackendAsync<List<TaskTypeResponse>>("tasktypes");
+
+                _tasktypes.Clear();
+
+                foreach (var t in tasktypes)
+                {
+                    _tasktypes.Add(new TaskTypeItem
+                    {
+                        Id = t.Id,
+                        Name = t.Nev
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    "Nem sikerült betölteni a feladattípusokat: " + ex.Message,
                     "Hiba",
                     MessageBoxButton.OK,
                     MessageBoxImage.Warning);
@@ -384,7 +413,7 @@ namespace TudasterAdmin
         {
             try
             {
-                var topics = await GetFromBackendAsync<List<TopicResponse>>("temakorok");
+                var topics = await GetFromBackendAsync<List<TopicResponse>>("topics");
 
                 _topics.Clear();
 
@@ -700,13 +729,14 @@ namespace TudasterAdmin
 
                 string filter = searchBox.Text.Trim();
 
-                var visible = _localTaskTypes
+                var visible = _tasktypes
                     .Where(t => filter.Length == 0 ||
-                                t.Contains(filter, StringComparison.OrdinalIgnoreCase))
+                        t.Name.Contains(filter, StringComparison.OrdinalIgnoreCase))
                     .ToList();
 
-                foreach (string typeName in visible)
+                foreach (var taskType in visible)
                 {
+                    string typeName = taskType.Name;
                     var card = new Border
                     {
                         Background = Brushes.White,
@@ -1498,9 +1528,10 @@ namespace TudasterAdmin
                     // 2) Gemini
                     byte[] pdfBytes = await System.IO.File.ReadAllBytesAsync(pdfPath);
                     var topics = _topics.Select(t => new TopicInfo(t.Id, t.Name, t.Subject)).ToList();
+                    var tasktypes = _tasktypes.Select(tt => new TaskTypeInfo(tt.Id, tt.Name)).ToList();
 
                     var ai = new GeminiService();
-                    AiExamDto exam = await ai.ParseExamAsync(pdfBytes, topics);
+                    AiExamDto exam = await ai.ParseExamAsync(pdfBytes, topics, tasktypes);
 
                     // Hibakereséshez: a nyers eredmény a %TEMP% mappában
                     System.IO.File.WriteAllText(
@@ -1742,6 +1773,7 @@ namespace TudasterAdmin
             }
 
             var topics = _topics.Select(t => new TopicInfo(t.Id, t.Name, t.Subject)).ToList();
+            var tasktypes = _tasktypes.Select(tt => new TaskTypeInfo(tt.Id, tt.Name)).ToList();
             var subjects = _subjects.Select(s => s.Name).ToList();
 
             var window = new DraftEditorWindow(draft, topics, subjects) { Owner = this };
@@ -3214,6 +3246,12 @@ namespace TudasterAdmin
             public int TaskCount { get; set; }
         }
 
+        public class TaskTypeItem
+        {
+            public int Id { get; set; }
+            public string Name { get; set; } = "";
+        }
+
         public class TopicItem
         {
             public int Id { get; set; }
@@ -3273,6 +3311,14 @@ namespace TudasterAdmin
 
             [JsonPropertyName("feladatokSzama")]
             public int FeladatokSzama { get; set; }
+        }
+
+        public class TaskTypeResponse
+        {
+            [JsonPropertyName("id")]
+            public int Id { get; set; }
+            [JsonPropertyName("nev")]
+            public string Nev { get; set; } = "";
         }
         public class LocalTopic
         {
