@@ -24,6 +24,7 @@ namespace TudasterAdmin.Processing
 
         private static string DraftDir(string id) => Path.Combine(RootDir, id);
         private static string DraftFile(string id) => Path.Combine(DraftDir(id), "draft.json");
+        public static string DraftFilePath(string id) => DraftFile(id);
         private static string ImagesDir(string id) => Path.Combine(DraftDir(id), "images");
 
         public static void Save(DraftExam draft)

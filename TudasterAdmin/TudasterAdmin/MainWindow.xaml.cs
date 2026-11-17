@@ -1754,6 +1754,32 @@ namespace TudasterAdmin
 
                 var buttons = new StackPanel { Orientation = Orientation.Horizontal };
                 buttons.Children.Add(openBtn);
+
+                // Feltöltés gomb: csak akkor jelenik meg, ha minden feladathoz van megoldókulcs
+                if (full != null && total > 0 && without.Count == 0 && full.UploadedUtc == null)
+                {
+                    var uploadBtn = UiKit.Button("FELTÖLTÉS", BtnKind.Primary, 120, 38);
+                    uploadBtn.Margin = new Thickness(0, 0, 8, 0);
+
+                    uploadBtn.Click += (s, e) =>
+                    {
+                        try
+                        {
+                            string path = DraftStore.DraftFilePath(d.Id);
+                            DraftExam exam = JsonToPostgresql.Process(path);
+
+                            
+                        }
+                        catch (Exception ex)
+                        {
+                            MessageBox.Show(ex.Message, "Hiba a feltöltés előkészítésekor",
+                                MessageBoxButton.OK, MessageBoxImage.Error);
+                        }
+                    };
+
+                    buttons.Children.Add(uploadBtn);
+                }
+
                 buttons.Children.Add(deleteBtn);
                 Grid.SetColumn(buttons, 1);
                 row.Children.Add(buttons);

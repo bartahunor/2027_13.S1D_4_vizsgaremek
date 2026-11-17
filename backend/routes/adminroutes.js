@@ -1,4 +1,8 @@
 import express from 'express'
+import multer from 'multer'
+import sharp from 'sharp'
+import { randomUUID } from 'node:crypto'
+import { supabaseForUser } from '../config/supabaseClient.js'   // a te meglévő segéded
 import sql from '../db.js'
 import { requireAuth } from '../middleware/auth.js'
 import { requireAdmin } from '../middleware/adminauth.js'
@@ -9,7 +13,7 @@ const router = express.Router()
    VÉDETT API VÉGPONTOK - csak bejelentkezve érhetők el
 ========================= */
 
-router.use(requireAuth)
+router.use(requireAuth) 
 
 //Bejelentkezett felhasználó admin jogosultságát ellenőrző api végpont
 router.get('/checkadmin', async (req, res, next) => {
@@ -176,6 +180,107 @@ router.get('/felhasznalok', requireAdmin, async (req, res, next) => {
       vanMaiTeszt: r.van_mai_teszt
     })))
   } catch (err) {
+    next(err)
+  }
+})
+
+
+
+
+
+// Forrásképek feltöltése és tárolása Supabase Storage-ban
+const BUCKET = 'forras-kepek'
+const MAX_BEMENET_BYTES = 10 * 1024 * 1024   // feltöltött eredeti
+const MAX_KIMENET_BYTES = 2 * 1024 * 1024    // tárolt WebP
+const MAX_OLDAL = 1600
+
+const forrasUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: MAX_BEMENET_BYTES, files: 1 },
+}).single('kep')
+
+// WebP-re alakít, és ha nem fér bele 2 MB-ba, fokozatosan csökkenti a minőséget, majd a méretet
+async function webpreAlakit(buffer) {
+  const probak = [
+    { oldal: MAX_OLDAL, minoseg: 82 },
+    { oldal: MAX_OLDAL, minoseg: 72 },
+    { oldal: MAX_OLDAL, minoseg: 62 },
+    { oldal: 1200, minoseg: 70 },
+    { oldal: 1000, minoseg: 60 },
+    { oldal: 800, minoseg: 55 },
+  ]
+
+  for (const { oldal, minoseg } of probak) {
+    const ki = await sharp(buffer)
+      .rotate()
+      .resize({ width: oldal, height: oldal, fit: 'inside', withoutEnlargement: true })
+      .webp({ quality: minoseg })
+      .toBuffer()
+
+    if (ki.length <= MAX_KIMENET_BYTES) return ki
+  }
+  throw new Error('A kép nem tömöríthető 2 MB alá')
+}
+
+router.post('/sourceupload', requireAdmin, (req, res, next) => {
+  forrasUpload(req, res, err => {
+    if (err) return res.status(400).json({ error: `Feltöltési hiba: ${err.message}` })
+    next()
+  })
+}, async (req, res, next) => {
+  const token = req.headers.authorization?.split(' ')[1]
+  let utvonal = null
+
+  try {
+    const szoveg = String(req.body.szoveg ?? '').trim()
+    if (!szoveg) {
+      return res.status(400).json({ error: 'A szoveg megadása kötelező' })
+    }
+
+    let kepUtvonal = null
+
+    if (req.file) {
+      const mappa = String(req.body.mappa ?? '').trim()
+      if (!mappa || mappa.length > 100 || /[\\/]/.test(mappa) || mappa.includes('..')) {
+        return res.status(400).json({ error: 'Hiányzó vagy érvénytelen mappa' })
+      }
+
+      let webp
+      try {
+        webp = await webpreAlakit(req.file.buffer)   // a sharp hibát dob, ha nem valódi kép
+      } catch {
+        return res.status(400).json({ error: 'A fájl nem alakítható át képpé, vagy túl nagy marad tömörítés után' })
+      }
+
+      utvonal = `${mappa}/${randomUUID()}.webp`
+      const { error } = await supabaseForUser(token)
+        .storage
+        .from(BUCKET)
+        .upload(utvonal, webp, {
+          contentType: 'image/webp',
+          upsert: false,
+          cacheControl: '31536000',
+        })
+
+      if (error) {
+        console.error('Forráskép feltöltési hiba:', error.message)
+        utvonal = null   // nem jött létre fájl, nincs mit takarítani
+        return res.status(403).json({ error: 'A feltöltés nem sikerült' })
+      }
+      kepUtvonal = utvonal
+    }
+
+    const [row] = await sql`
+      insert into forrasok (szoveg, kep)
+      values (${szoveg}, ${kepUtvonal})
+      returning id
+    `
+
+    res.status(201).json({ id: row.id, kep: kepUtvonal })
+  } catch (err) {
+    if (utvonal) {
+      try { await supabaseForUser(token).storage.from(BUCKET).remove([utvonal]) } catch { /* nem jelezzük tovább */ }
+    }
     next(err)
   }
 })
