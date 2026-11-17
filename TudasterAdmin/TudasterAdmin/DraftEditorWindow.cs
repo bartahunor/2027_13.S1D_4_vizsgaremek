@@ -56,6 +56,8 @@ namespace TudasterAdmin
             Margin = new Thickness(0, 0, 0, 4)
         };
 
+        private readonly Button _deleteTaskButton = UiKit.Button("FELADAT TÖRLÉSE", BtnKind.Danger, 160, 40);
+
         // Feladatlista
         private readonly StackPanel _taskRowsPanel = new();
         private readonly List<RowRefs> _rows = new();
@@ -351,6 +353,10 @@ namespace TudasterAdmin
             navButtons.Children.Add(prevButton);
             navButtons.Children.Add(nextButton);
 
+            _deleteTaskButton.Margin = new Thickness(24, 0, 0, 0);
+            _deleteTaskButton.Click += (s, e) => DeleteCurrentTask();
+            navButtons.Children.Add(_deleteTaskButton);
+
             var saveSide = new StackPanel
             {
                 Orientation = Orientation.Horizontal,
@@ -385,15 +391,12 @@ namespace TudasterAdmin
             Content = root;
 
             // ----- Feladatsorok felépítése és az első kijelölése -----
-            for (int i = 0; i < _draft.Tasks.Count; i++)
-            {
-                var refs = BuildRow(i);
-                _rows.Add(refs);
-                _taskRowsPanel.Children.Add(refs.Row);
-            }
+            RebuildRows();
 
             UpdateRows();
             if (_draft.Tasks.Count > 0) SelectIndex(0);
+
+            
         }
 
         protected override void OnClosing(CancelEventArgs e)
@@ -476,6 +479,94 @@ namespace TudasterAdmin
             LoadForm(_draft.Tasks[index]);
             UpdateRows();
             _rows[index].Row.BringIntoView();
+        }
+
+        // A sorok eseménykezelői az indexet zárják be, ezért törlés után újra kell építeni őket.
+        private void RebuildRows()
+        {
+            _rows.Clear();
+            _taskRowsPanel.Children.Clear();
+
+            for (int i = 0; i < _draft.Tasks.Count; i++)
+            {
+                var refs = BuildRow(i);
+                _rows.Add(refs);
+                _taskRowsPanel.Children.Add(refs.Row);
+            }
+        }
+
+        private void DeleteCurrentTask()
+        {
+            if (_current == null || _isImportingSolutions) return;
+
+            var task = _current;
+            var answer = MessageBox.Show(
+                this,
+                $"Biztosan törlöd a(z) {task.DisplayNumber} feladatot?\nEz a művelet nem vonható vissza.",
+                "Feladat törlése",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Warning,
+                MessageBoxResult.No);
+
+            if (answer != MessageBoxResult.Yes) return;
+
+            ApplyHeader();                 // a fejléc módosításai ne vesszenek el
+            int removedIndex = _index;
+
+            // Fontos: előbb nullázni, hogy a SelectIndex/OnClosing ne írja vissza a törölt feladatot
+            _current = null;
+            _index = -1;
+
+            _draft.Tasks.Remove(task);
+
+            // Ha a feladat forrását (és képét) már senki nem használja, törlés
+            if (task.SourceKey != null && !_draft.Tasks.Any(t => t.SourceKey == task.SourceKey))
+            {
+                var src = _draft.Sources.FirstOrDefault(s => s.Key == task.SourceKey);
+                if (src != null)
+                {
+                    DraftStore.RemoveSourceImage(_draft, src);
+                    _draft.Sources.Remove(src);
+                }
+            }
+
+            DraftStore.Save(_draft);
+            RebuildRows();
+
+            if (_draft.Tasks.Count > 0)
+            {
+                SelectIndex(Math.Min(removedIndex, _draft.Tasks.Count - 1));
+            }
+            else
+            {
+                ClearForm();
+                UpdateRows();
+            }
+
+            _statusText.Text = "Feladat törölve";
+        }
+
+        private void ClearForm()
+        {
+            _loading = true;
+
+            _infoText.Text = "Nincs több feladat a piszkozatban.";
+            _issuesText.Visibility = Visibility.Collapsed;
+            _typeBox.SelectedItem = null;
+            _topicBox.SelectedItem = null;
+            _pointsBox.Text = "";
+            _questionBox.Text = "";
+            _optionsBox.Text = "";
+            _correctBox.Text = "";
+            _solutionBox.Text = "";
+            _solutionHint.Visibility = Visibility.Collapsed;
+            _sourceBox.Text = "";
+            _tableBox.Text = "";
+            _approvedBox.IsChecked = false;
+            ShowImage(null);
+            _deleteTaskButton.IsEnabled = false;
+
+            _loading = false;
         }
 
         // ---------- Tantárgy és témakörök ----------
