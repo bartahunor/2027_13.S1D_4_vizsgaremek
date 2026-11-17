@@ -18,9 +18,7 @@ namespace TudasterAdmin.Processing
                 TotalPoints = exam.TotalPoints,
                 Year = exam.Year ?? ParseYear(exam.Date),
                 Level = NormalizeLevel(exam.Level),
-                Period = !string.IsNullOrWhiteSpace(exam.Period)
-                    ? exam.Period.Trim().ToLowerInvariant()
-                    : DetectPeriod(exam.Date)
+                
             };
 
             if (draft.Year == null)

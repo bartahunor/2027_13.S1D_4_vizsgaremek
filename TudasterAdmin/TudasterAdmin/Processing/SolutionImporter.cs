@@ -23,9 +23,8 @@ namespace TudasterAdmin.Processing
             var mismatch = new List<string>();
             if (ai.Year.HasValue && exam.Year.HasValue && ai.Year != exam.Year)
                 mismatch.Add($"év: útmutató {ai.Year}, draft {exam.Year}");
-            if (!string.IsNullOrWhiteSpace(ai.Period) && !string.IsNullOrWhiteSpace(exam.Period)
-                && Norm(ai.Period) != Norm(exam.Period))
-                mismatch.Add($"időszak: útmutató {ai.Period}, draft {exam.Period}");
+            
+              
             if (!string.IsNullOrWhiteSpace(ai.Level) && !string.IsNullOrWhiteSpace(exam.Level)
                 && Norm(exam.Level).Substring(0, 3) != Norm(ai.Level).Substring(0, Math.Min(3, Norm(ai.Level).Length)))
                 mismatch.Add($"szint: útmutató {ai.Level}, draft {exam.Level}");

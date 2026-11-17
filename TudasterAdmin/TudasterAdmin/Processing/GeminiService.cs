@@ -20,7 +20,6 @@ namespace TudasterAdmin.Processing
         public string Level { get; set; } = "";
         public string? Date { get; set; }
         public int? Year { get; set; }
-        public string? Period { get; set; }
         public int? TotalPoints { get; set; }
         public List<AiSourceDto> Sources { get; set; } = new();
         public List<AiTaskDto> Tasks { get; set; } = new();
@@ -30,7 +29,6 @@ namespace TudasterAdmin.Processing
         public string Subject { get; set; } = "";
         public string Level { get; set; } = "";
         public int? Year { get; set; }
-        public string? Period { get; set; }
         public List<AiSolutionDto> Solutions { get; set; } = new();
     }
 
@@ -147,11 +145,11 @@ namespace TudasterAdmin.Processing
             - Ha a feladathoz ábra, kép, térkép vagy diagram tartozik, hasFigure legyen true. A kép tartalmát NE találd ki.
             - pageFrom / pageTo: a feladat oldalszáma a PDF-ben (1-től számolva).
             - Ha egy feladatnál bizonytalan vagy, uncertain legyen true, és írd a note mezőbe, miért.
-            - subject, level ("közép" vagy "emelt"), year (a vizsga éve egész számként), period ("május" vagy "október"), date és totalPoints (a teljes feladatlap összpontszáma) a címoldalról.
+            - subject, level ("közép" vagy "emelt"), year (a vizsga éve egész számként), date és totalPoints (a teljes feladatlap összpontszáma) a címoldalról.
             - Ne találj ki semmit, ami nincs a dokumentumban.
             """;
 
-        private static string BuildPrompt(IReadOnlyList<TopicInfo> topics)
+        private static string BuildPrompt(IReadOnlyList<TopicInfo> topics, IReadOnlyList<TaskTypeInfo> tasktypes)
         {
             var sb = new StringBuilder(BasePrompt);
             sb.AppendLine().AppendLine();
@@ -171,6 +169,15 @@ namespace TudasterAdmin.Processing
                 sb.AppendLine("A topicId mindig null.");
             }
 
+            if (tasktypes.Count > 0)
+            {
+                sb.AppendLine().AppendLine("Feladattípusok:");
+                foreach (var t in tasktypes)
+                    sb.AppendLine($"- {t.Name}");
+                sb.AppendLine(
+                    "A type mezőben kizárólag a fenti típusnevek egyikét add meg, pontosan így írva.");
+            }
+
             return sb.ToString();
         }
 
@@ -180,7 +187,7 @@ namespace TudasterAdmin.Processing
         Ez egy magyar érettségi javítási-értékelési útmutató PDF-je. Add vissza a megoldásokat a megadott JSON-szerkezetben.
 
         Szabályok:
-        - A címoldalról töltsd ki a subject, level ("közép" vagy "emelt"), year, period ("május" vagy "október") mezőket.
+        - A címoldalról töltsd ki a subject, level ("közép" vagy "emelt") és year mezőket.
         - Csak az alább felsorolt feladatokhoz adj megoldást, a felsorolás sorszámai (number, part) szerint. Mást ne adj vissza.
         - Ne találj ki semmit. Ha egy feladat megoldása nincs az útmutatóban, hagyd ki.
         - correctAnswers: feleletválasztós (tobb_opcio, tobb_valasz) és sorba_rendezos típusnál a válaszlehetőségek 1-től számozott sorszámai szövegként (pl. A→"1", B→"2", C→"3"; sorba rendezésnél a helyes sorrendben). rovid_valasz típusnál az elfogadott válasz; ha több változat is elfogadott, ugyanabban az elemben, "/" jellel elválasztva. tablazatos_feladat típusnál üres tömb.
@@ -221,14 +228,16 @@ namespace TudasterAdmin.Processing
                 ["subject"] = Str(),
                 ["level"] = Str(),
                 ["year"] = Int(true),
-                ["period"] = Str(true),
                 ["solutions"] = Arr(sol)
             }, "subject", "level", "solutions");
         }
 
         public Task<AiExamDto> ParseExamAsync(
-     byte[] pdfBytes, IReadOnlyList<TopicInfo> topics, CancellationToken ct = default)
-     => SendAsync<AiExamDto>(BuildPrompt(topics), pdfBytes, BuildSchema(), ct);
+            byte[] pdfBytes,
+            IReadOnlyList<TopicInfo> topics,
+            IReadOnlyList<TaskTypeInfo> tasktypes,
+            CancellationToken ct = default)
+            => SendAsync<AiExamDto>(BuildPrompt(topics, tasktypes), pdfBytes, BuildSchema(tasktypes), ct);
 
         public Task<AiSolutionExamDto> ParseSolutionsAsync(
             byte[] keyPdf, DraftExam exam, IReadOnlyList<DraftTask> tasks, CancellationToken ct = default)
@@ -396,7 +405,7 @@ namespace TudasterAdmin.Processing
         private static object Obj(Dictionary<string, object> props, params string[] required) =>
             new { type = "OBJECT", properties = props, required };
 
-        private static object BuildSchema()
+        private static object BuildSchema(IReadOnlyList<TaskTypeInfo> tasktypes)
         {
             var sub = Obj(new Dictionary<string, object>
             {
@@ -420,11 +429,15 @@ namespace TudasterAdmin.Processing
                 ["cells"] = Arr(cell)
             }, "columns", "cells");
 
+            object typeSchema = tasktypes.Count > 0
+                ? EnumStr(tasktypes.Select(t => t.Name).Distinct().ToArray())
+                : Str();
+
             // A típusneveket igazítsd a feladat_tipusok tábla soraihoz.
             var task = Obj(new Dictionary<string, object>
             {
                 ["number"] = Int(),
-                ["type"] = EnumStr("tobb_opcio", "rovid_valasz", "tablazatos_feladat", "tobb_valasz", "sorba_rendezos"),
+                ["type"] = typeSchema,
                 ["points"] = Int(true),
                 ["topicId"] = Int(true),
                 ["stem"] = Str(),
@@ -453,7 +466,6 @@ namespace TudasterAdmin.Processing
                 ["level"] = Str(),
                 ["date"] = Str(true),
                 ["year"] = Int(true),
-                ["period"] = Str(true),
                 ["totalPoints"] = Int(true),
                 ["sources"] = Arr(source),
                 ["tasks"] = Arr(task)
