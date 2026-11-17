@@ -173,7 +173,12 @@ namespace TudasterAdmin
             SelectOrAdd(_periodBox, draft.Period);
             _yearBox.Text = draft.Year?.ToString() ?? "";
 
-            _topicBox.DisplayMemberPath = "Name";
+            var topicTemplate = new DataTemplate();
+            var tb = new FrameworkElementFactory(typeof(TextBlock));
+            tb.SetBinding(TextBlock.TextProperty, new System.Windows.Data.Binding("Name"));
+            tb.SetValue(TextBlock.TextTrimmingProperty, TextTrimming.CharacterEllipsis);
+            topicTemplate.VisualTree = tb;
+            _topicBox.ItemTemplate = topicTemplate;
             RebuildTopicList();
 
             _subjectBox.SelectionChanged += (s, e) =>
