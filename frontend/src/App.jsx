@@ -11,6 +11,8 @@ import TaskSelection from './components/pages/TaskType'
 import ResultPage from './components/pages/ResultPage'
 import PracticePage from './components/pages/Practice'
 import ProfilePage from './components/pages/Profile'
+import ForgotPasswordPage from './components/pages/PasswordRecoveryPage'
+import ResetPasswordPage from './components/pages/NewPasswordPage'
 
 export default function App() {
   return (
@@ -22,6 +24,9 @@ export default function App() {
             <Route path="/" element={<HomePage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
+            
             <Route
               path="/tasktype"
               element={
