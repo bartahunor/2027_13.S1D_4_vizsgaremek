@@ -55,25 +55,26 @@ function ProfileTwoPage() {
     }, []);
 
     return (
-        <main className="w-full max-w-7xl mx-auto px-4 sm:px-6 pt-24 bg-transparent flex-grow">
+         <div className="min-h-screen bg-[#F4F2F8]">
+        <main className="w-full max-w-7xl mx-auto px-4 sm:px-6 pt-24 flex-grow">
             <div className="flex flex-col w-full pb-10">
 
-                <ProfileHeader profildata={profildata} profilkepUrl={profilkepUrl} />
+                <ProfileHeader
+                    profildata={profildata}
+                    profilkepUrl={profilkepUrl}
+                />
 
                 <ProgressAnalytics tabSubjects={tabSubjects} />
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6 items-stretch">
-
                     <SubjectPieChart pieStats={pieStats} />
-
                     <ActivityCalendar calendarStats={calendarStats} />
-
                     <ActivityLog tabSubjects={tabSubjects} />
-
                 </div>
 
             </div>
         </main>
+    </div>
     );
 }
 
