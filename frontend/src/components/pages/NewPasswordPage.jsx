@@ -4,22 +4,27 @@ import { useEffect, useMemo, useState } from "react";
 const passwordRequirements = [
     {
         key: "length",
-        label: "Min. 8 karakter",
+        label: "8–12 karakter hosszú",
         test: (password) => password.length >= 8,
     },
     {
-        key: "cases",
-        label: "Kis- és nagybetű",
-        test: (password) => /[a-z]/.test(password) && /[A-Z]/.test(password),
+        key: "upercase",
+        label: "Legalább egy nagybetű (A-Z)",
+        test: (password) => /[A-Z]/.test(password),
+    },
+    {
+        key: "lowercase",
+        label: "Legalább egy kisbetű (a-z)",
+        test: (password) => /[a-z]/.test(password),
     },
     {
         key: "number",
-        label: "Legalább egy szám",
+        label: "Legalább egy szám (0-9)",
         test: (password) => /[0-9]/.test(password),
     },
     {
         key: "special",
-        label: "Speciális karakter (!@#$%)",
+        label: "Legalább egy írásjel (pl. ! ? . , @)",
         test: (password) => /[^A-Za-z0-9]/.test(password),
     },
 ];
@@ -43,6 +48,7 @@ export default function ResetPasswordPage({
     const [error, setError] = useState("");
 
     const [countdown, setCountdown] = useState(3);
+    const [passwordFocused, setPasswordFocused] = useState(false);
 
     const token = new URLSearchParams(window.location.search).get("token");
 
@@ -257,11 +263,7 @@ export default function ResetPasswordPage({
                                             Új jelszó
                                         </label>
 
-                                        <span
-                                            className={`text-[11px] font-bold uppercase tracking-wide ${strengthInfo.textColor}`}
-                                        >
-                                            {strengthInfo.label}
-                                        </span>
+                                      
                                     </div>
 
                                     <div className="relative">
@@ -274,7 +276,9 @@ export default function ResetPasswordPage({
                                                 setPassword(event.target.value);
                                                 setError("");
                                             }}
-                                            placeholder="Legalább 8 karakter..."
+                                            onFocus={() => setPasswordFocused(true)}
+                                            onBlur={() => setPasswordFocused(false)}
+                                            placeholder="Új jelszó..."
                                             disabled={success}
                                             className="w-full bg-[#F7F5FA] focus:bg-white border border-transparent focus:border-[#9B83BD] text-[#24123D] placeholder:text-[#A49BAF] text-sm px-4 py-3.5 pr-12 rounded-xl outline-none transition-all duration-200 focus:ring-4 focus:ring-[#351F5B]/[0.06] disabled:opacity-60"
                                         />
@@ -292,48 +296,25 @@ export default function ResetPasswordPage({
                                             </span>
                                         </button>
                                     </div>
-
-                                    {/* Jelszóerősség */}
-                                    <div className="mt-3">
-                                        <div className="grid grid-cols-4 gap-1.5 mb-2">
-                                            {[0, 1, 2, 3].map((index) => (
-                                                <div
-                                                    key={index}
-                                                    className={`h-1.5 rounded-full transition-all duration-300 ${index < strength
-                                                        ? strengthInfo.color
-                                                        : "bg-[#EAE6EF]"
-                                                        }`}
-                                                />
-                                            ))}
-                                        </div>
-                                    </div>
-
                                     {/* Követelmények */}
-                                    <div className="mt-3 bg-[#F7F5FA] rounded-xl p-3.5 space-y-3">
-                                        <div className="text-[10px] font-bold uppercase tracking-wider text-[#81778F]">
-                                            Követelmények
-                                        </div>
-
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    {(passwordFocused || (password.length > 0 && !isPasswordValid)) && (
+                                        <ul className="mt-3 space-y-1.5">
                                             {requirements.map((requirement) => (
-                                                <div
+                                                <li
                                                     key={requirement.key}
-                                                    className={`flex items-center gap-2 text-xs transition-colors ${requirement.valid
-                                                        ? "text-[#351F5B] font-semibold"
-                                                        : "text-[#968D9F]"
+                                                    className={`flex items-center gap-2 text-xs transition-colors ${requirement.valid ? "text-green-600" : "text-gray-400"
                                                         }`}
                                                 >
-                                                    <span className="material-symbols-outlined text-[17px]">
+                                                    <span className="material-symbols-outlined text-sm">
                                                         {requirement.valid
                                                             ? "check_circle"
                                                             : "radio_button_unchecked"}
                                                     </span>
-
-                                                    <span>{requirement.label}</span>
-                                                </div>
+                                                    {requirement.label}
+                                                </li>
                                             ))}
-                                        </div>
-                                    </div>
+                                        </ul>
+                                    )}
                                 </div>
 
                                 {/* Jelszó megerősítése */}
@@ -460,6 +441,12 @@ export default function ResetPasswordPage({
                             </div>
                         </div>
                     </section>
+                    <div className="mt-5 flex flex-wrap items-center justify-between gap-3 px-2">
+
+                        <span className="text-[10px] text-[#A49BAD]">
+                            TudásTér · Fiókkezelés
+                        </span>
+                    </div>
                 </div>
             </main>
         </div>

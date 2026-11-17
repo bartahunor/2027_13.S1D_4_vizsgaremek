@@ -17,6 +17,7 @@ function RegisterPage() {
     const [loading, setLoading] = useState(false);
     const [passwordFocused, setPasswordFocused] = useState(false);
 
+
     function getPasswordRequirements(password) {
         return {
             length: password.length >= 8 && password.length <= 12,
