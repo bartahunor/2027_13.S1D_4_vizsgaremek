@@ -76,24 +76,24 @@ function ForgotPasswordPage() {
         setLoading(true);
 
         try {
-          const { error } = await supabase.auth.resetPasswordForEmail(
-            submittedEmail,
-            {
-              redirectTo: `${window.location.origin}/reset-password`,
-            },
-          );
+            const { error } = await supabase.auth.resetPasswordForEmail(
+                submittedEmail,
+                {
+                    redirectTo: `${window.location.origin}/reset-password`,
+                },
+            );
 
-          if (error) throw error;
+            if (error) throw error;
 
-          setSecondsLeft(45);
+            setSecondsLeft(45);
         } catch {
-          setEmailError("Az újraküldés nem sikerült.");
+            setEmailError("Az újraküldés nem sikerült.");
         } finally {
-          setLoading(false);
+            setLoading(false);
         }
     };
 
-    
+
 
     return (
         <div className="min-h-screen flex flex-col bg-[#F4F2F8] text-[#24123D] font-display">
@@ -231,9 +231,9 @@ function ForgotPasswordPage() {
                                                 onChange={(e) => handleEmailChange(e.target.value)}
                                                 placeholder="pelda@email.hu"
                                                 autoComplete="email"
-                                                className={`w-full pl-11 pr-12 py-3 bg-primary/5 border rounded-xl focus:ring-2 outline-none transition-all ${emailError
-                                                        ? "border-red-400 focus:ring-red-300"
-                                                        : "border-primary/20 focus:ring-primary"
+                                                className={`w-full pl-11 pr-12 py-3 bg-primary/5 border rounded-xl focus:ring-2 outline-none transition-all text-gray-900 dark:text-white placeholder:text-gray-400 ${emailError
+                                                    ? "border-red-400 focus:ring-red-300"
+                                                    : "border-primary/20 focus:ring-primary"
                                                     }`}
                                             />
 

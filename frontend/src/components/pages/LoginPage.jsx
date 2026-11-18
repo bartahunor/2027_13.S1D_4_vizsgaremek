@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import React, { useState } from 'react';
-import { supabase } from  '../../lib/supabaseClient';
+import { supabase } from '../../lib/supabaseClient';
 import LogoFeher from '../../assets/logofeher.png';
 
 function LoginPage() {
@@ -13,6 +13,7 @@ function LoginPage() {
 
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   function handleInputChange(e) {
     setFormData((prevData) => {
@@ -85,7 +86,7 @@ function LoginPage() {
         <div className="w-full lg:w-1/2 flex flex-col justify-center px-8 sm:px-16 md:px-24 py-12 bg-white dark:bg-backgroundDark">
           <div className="max-w-md w-full mx-auto">
             <div className="lg:hidden flex items-center gap-2 mb-8 justify-center">
-              
+
               <span className="text-2xl font-bold text-primary">
                 Tudástér
               </span>
@@ -133,7 +134,7 @@ function LoginPage() {
                     placeholder="pelda@email.hu"
                     required
                     onChange={handleInputChange}
-                    className="w-full pl-11 pr-4 py-3 bg-primary/5 border border-primary/20 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all dark:text-white"
+                    className="w-full pl-11 pr-4 py-3 bg-primary/5 border border-primary/20 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all text-gray-900 dark:text-white placeholder:text-gray-400"
                   />
                 </div>
               </div>
@@ -153,19 +154,29 @@ function LoginPage() {
                   <input
                     id="password"
                     name="password"
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     placeholder="••••••••"
                     required
                     onChange={handleInputChange}
-                    className="w-full pl-11 pr-4 py-3 bg-primary/5 border border-primary/20 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all dark:text-white"
+                    className="w-full pl-11 pr-12 py-3 bg-primary/5 border border-primary/20 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all text-gray-900 dark:text-white placeholder:text-gray-400"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    aria-label={showPassword ? "Jelszó elrejtése" : "Jelszó felfedése"}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-primary/50 hover:text-primary transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-xl">
+                      {showPassword ? "visibility_off" : "visibility"}
+                    </span>
+                  </button>
                 </div>
 
               </div>
 
 
               <div id="remember-container" className="flex items-center justify-end">
-                
+
                 <a
                   href="#"
                   className="text-sm font-semibold text-primary hover:text-primaryLight transition-colors"

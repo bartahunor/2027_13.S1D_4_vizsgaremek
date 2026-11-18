@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import React, { useState } from 'react';
-import { supabase } from  '../../lib/supabaseClient';
+import { supabase } from '../../lib/supabaseClient';
 import LogoFeher from '../../assets/logofeher.png';
 
 function RegisterPage() {
@@ -16,6 +16,8 @@ function RegisterPage() {
     const [successMessage, setSuccessMessage] = useState(null);
     const [loading, setLoading] = useState(false);
     const [passwordFocused, setPasswordFocused] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+    const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
 
 
     function getPasswordRequirements(password) {
@@ -33,11 +35,11 @@ function RegisterPage() {
 
     function handleInputChange(e) {
         setFormData((prevData) => {
-            return{
+            return {
                 ...prevData,
                 [e.target.name]: e.target.value
             }
-            
+
         });
     }
 
@@ -117,7 +119,7 @@ function RegisterPage() {
 
         setSuccessMessage('Sikeres regisztráció! Ellenőrizd az emailedet a megerősítéshez.')
     }
-    
+
 
     return (
         <div className="min-h-screen pt-20 bg-grid-pattern font-display min-h-screen flex items-center justify-center">
@@ -171,7 +173,7 @@ function RegisterPage() {
                     <div className="max-w-md w-full mx-auto">
 
                         <div className="lg:hidden flex items-center gap-2 mb-8 justify-center">
-                            
+
                             <span className="text-2xl font-bold text-primary">
                                 Tudástér
                             </span>
@@ -189,11 +191,10 @@ function RegisterPage() {
                         {(error || successMessage) && (
                             <div
                                 role="alert"
-                                className={`mb-6 px-4 py-3 rounded-xl text-sm font-medium flex items-start gap-2 ${
-                                    error
-                                        ? 'bg-red-50 text-red-600 border border-red-200 dark:bg-red-500/10 dark:border-red-500/30 dark:text-red-400'
-                                        : 'bg-green-50 text-green-600 border border-green-200 dark:bg-green-500/10 dark:border-green-500/30 dark:text-green-400'
-                                }`}
+                                className={`mb-6 px-4 py-3 rounded-xl text-sm font-medium flex items-start gap-2 ${error
+                                    ? 'bg-red-50 text-red-600 border border-red-200 dark:bg-red-500/10 dark:border-red-500/30 dark:text-red-400'
+                                    : 'bg-green-50 text-green-600 border border-green-200 dark:bg-green-500/10 dark:border-green-500/30 dark:text-green-400'
+                                    }`}
                             >
                                 <span className="material-symbols-outlined text-base mt-0.5">
                                     {error ? 'error' : 'check_circle'}
@@ -233,11 +234,10 @@ function RegisterPage() {
                                     <button
                                         type="button"
                                         onClick={() => setFormData((prev) => ({ ...prev, szerep: 'diak' }))}
-                                        className={`flex flex-col items-center gap-1.5 py-3 px-4 rounded-xl border transition-all ${
-                                            formData.szerep === 'diak'
-                                                ? 'border-primary bg-primary/10 text-primary font-semibold'
-                                                : 'border-primary/20 bg-primary/5 text-gray-600 dark:text-gray-300 hover:border-primary/40'
-                                        }`}
+                                        className={`flex flex-col items-center gap-1.5 py-3 px-4 rounded-xl border transition-all ${formData.szerep === 'diak'
+                                            ? 'border-primary bg-primary/10 text-primary font-semibold'
+                                            : 'border-primary/20 bg-primary/5 text-gray-600 dark:text-gray-300 hover:border-primary/40'
+                                            }`}
                                     >
                                         <span className="material-symbols-outlined">school</span>
                                         Diák
@@ -245,11 +245,10 @@ function RegisterPage() {
                                     <button
                                         type="button"
                                         onClick={() => setFormData((prev) => ({ ...prev, szerep: 'tanar' }))}
-                                        className={`flex flex-col items-center gap-1.5 py-3 px-4 rounded-xl border transition-all ${
-                                            formData.szerep === 'tanar'
-                                                ? 'border-primary bg-primary/10 text-primary font-semibold'
-                                                : 'border-primary/20 bg-primary/5 text-gray-600 dark:text-gray-300 hover:border-primary/40'
-                                        }`}
+                                        className={`flex flex-col items-center gap-1.5 py-3 px-4 rounded-xl border transition-all ${formData.szerep === 'tanar'
+                                            ? 'border-primary bg-primary/10 text-primary font-semibold'
+                                            : 'border-primary/20 bg-primary/5 text-gray-600 dark:text-gray-300 hover:border-primary/40'
+                                            }`}
                                     >
                                         <span className="material-symbols-outlined">cast_for_education</span>
                                         Tanár
@@ -273,7 +272,7 @@ function RegisterPage() {
                                         placeholder="pelda@email.hu"
                                         required
                                         onChange={handleInputChange}
-                                        className="w-full pl-11 pr-4 py-3 bg-primary/5 border border-primary/20 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all dark:text-white"
+                                        className="w-full pl-11 pr-4 py-3 bg-primary/5 border border-primary/20 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all text-gray-900 dark:text-white placeholder:text-gray-400"
                                     />
                                 </div>
                             </div>
@@ -283,14 +282,13 @@ function RegisterPage() {
                                     Jelszó
                                 </label>
                                 <div className="relative">
-                                    <span
-                                        className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-primary/50">
+                                    <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-primary/50">
                                         lock
                                     </span>
                                     <input
                                         id="password"
                                         name="password"
-                                        type="password"
+                                        type={showPassword ? "text" : "password"}
                                         placeholder="••••••••"
                                         required
                                         maxLength={12}
@@ -298,8 +296,18 @@ function RegisterPage() {
                                         onChange={handleInputChange}
                                         onFocus={() => setPasswordFocused(true)}
                                         onBlur={() => setPasswordFocused(false)}
-                                        className="w-full pl-11 pr-4 py-3 bg-primary/5 border border-primary/20 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all dark:text-white"
+                                        className="w-full pl-11 pr-12 py-3 bg-primary/5 border border-primary/20 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all text-gray-900 dark:text-white placeholder:text-gray-400"
                                     />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword((prev) => !prev)}
+                                        aria-label={showPassword ? "Jelszó elrejtése" : "Jelszó felfedése"}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-primary/50 hover:text-primary transition-colors"
+                                    >
+                                        <span className="material-symbols-outlined text-xl">
+                                            {showPassword ? "visibility_off" : "visibility"}
+                                        </span>
+                                    </button>
                                 </div>
 
                                 {(passwordFocused || (formData.password.length > 0 && !isPasswordValid)) && (
@@ -315,9 +323,8 @@ function RegisterPage() {
                                             return (
                                                 <li
                                                     key={key}
-                                                    className={`flex items-center gap-2 text-xs transition-colors ${
-                                                        met ? 'text-green-600 dark:text-green-400' : 'text-gray-400 dark:text-gray-500'
-                                                    }`}
+                                                    className={`flex items-center gap-2 text-xs transition-colors ${met ? 'text-green-600 dark:text-green-400' : 'text-gray-400 dark:text-gray-500'
+                                                        }`}
                                                 >
                                                     <span className="material-symbols-outlined text-sm">
                                                         {met ? 'check_circle' : 'radio_button_unchecked'}
@@ -335,19 +342,28 @@ function RegisterPage() {
                                     Jelszó megerősítése
                                 </label>
                                 <div className="relative">
-                                    <span
-                                        className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-primary/50">
+                                    <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-primary/50">
                                         lock
                                     </span>
                                     <input
                                         id="password-confirm"
                                         name="password_confirm"
-                                        type="password"
+                                        type={showPasswordConfirm ? "text" : "password"}
                                         placeholder="••••••••"
                                         required
                                         onChange={handleInputChange}
-                                        className="w-full pl-11 pr-4 py-3 bg-primary/5 border border-primary/20 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all dark:text-white"
+                                        className="w-full pl-11 pr-12 py-3 bg-primary/5 border border-primary/20 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all text-gray-900 dark:text-white placeholder:text-gray-400"
                                     />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPasswordConfirm((prev) => !prev)}
+                                        aria-label={showPasswordConfirm ? "Jelszó elrejtése" : "Jelszó felfedése"}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-primary/50 hover:text-primary transition-colors"
+                                    >
+                                        <span className="material-symbols-outlined text-xl">
+                                            {showPasswordConfirm ? "visibility_off" : "visibility"}
+                                        </span>
+                                    </button>
                                 </div>
                             </div>
 

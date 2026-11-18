@@ -281,7 +281,7 @@ export default function ResetPasswordPage({
                                             onBlur={() => setPasswordFocused(false)}
                                             placeholder="••••••••"
                                             disabled={success}
-                                            className="w-full pl-11 pr-12 py-3 bg-primary/5 border border-primary/20 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all disabled:opacity-60"
+                                            className="w-full pl-11 pr-12 py-3 bg-primary/5 border border-primary/20 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all disabled:opacity-60 text-gray-900 dark:text-white placeholder:text-gray-400"
                                         />
 
                                         <button
@@ -340,7 +340,7 @@ export default function ResetPasswordPage({
                                             }}
                                             placeholder="••••••••"
                                             disabled={success}
-                                            className="w-full pl-11 pr-12 py-3 bg-primary/5 border border-primary/20 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all disabled:opacity-60"
+                                            className="w-full pl-11 pr-12 py-3 bg-primary/5 border border-primary/20 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all disabled:opacity-60 text-gray-900 dark:text-white placeholder:text-gray-400"
                                         />
 
                                         <button
