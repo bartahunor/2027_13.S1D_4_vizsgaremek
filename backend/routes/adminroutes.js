@@ -233,8 +233,8 @@ router.post('/sourceupload', requireAdmin, (req, res, next) => {
 
   try {
     const szoveg = String(req.body.szoveg ?? '').trim()
-    if (!szoveg) {
-      return res.status(400).json({ error: 'A szoveg megadása kötelező' })
+    if (!szoveg && !req.file) {
+      return res.status(400).json({ error: 'A szoveg vagy a kep megadasa kotelezo' })
     }
 
     let kepUtvonal = null
