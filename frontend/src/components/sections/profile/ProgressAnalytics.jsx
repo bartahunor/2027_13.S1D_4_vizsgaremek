@@ -144,6 +144,32 @@ function ProgressAnalytics({ tabSubjects }) {
         ? `${((totalEarned / totalMax) * 100).toFixed(2)}%`
         : "–";
 
+
+    const handlePointer = (e) => {
+        const rect = e.currentTarget.getBoundingClientRect();
+
+        setChartSize((prev) =>
+            prev.width === rect.width && prev.height === rect.height
+                ? prev
+                : { width: rect.width, height: rect.height }
+        );
+
+        const { scale, offsetX } = getSvgScale(rect);
+        const mouseX = (e.clientX - rect.left - offsetX) / scale;
+
+        let closestIndex = 0;
+        let closestDistance = Infinity;
+        chartPoints.forEach((point, index) => {
+            const distance = Math.abs(point.x - mouseX);
+            if (distance < closestDistance) {
+                closestDistance = distance;
+                closestIndex = index;
+            }
+        });
+
+        setHoveredPoint(closestIndex);
+    };
+
     return (
         <section className="w-full bg-white rounded-2xl border border-[#E8E3EE] shadow-sm overflow-hidden mb-6">
 
@@ -366,259 +392,264 @@ function ProgressAnalytics({ tabSubjects }) {
             {/* VONALDIAGRAM */}
             <div className="p-4 sm:p-6 relative bg-white select-none">
 
-                <div
-                    className="relative w-full h-[360px] sm:h-80 cursor-crosshair overflow-hidden"
-                    id="chartContainer"
-                >
-
-                    <svg
-                        className="w-full h-full overflow-visible"
-                        id="evolutionChart"
-                        preserveAspectRatio="xMidYMid meet"
-                        viewBox="0 0 920 280"
-
-                        onMouseMove={(e) => {
-                            const rect = e.currentTarget.getBoundingClientRect();
-
-                            setChartSize((prev) =>
-                                prev.width === rect.width && prev.height === rect.height
-                                    ? prev
-                                    : { width: rect.width, height: rect.height }
-                            );
-
-                            const { scale, offsetX } = getSvgScale(rect);
-                            const mouseX = (e.clientX - rect.left - offsetX) / scale;
-
-                            let closestIndex = 0;
-                            let closestDistance = Infinity;
-
-                            chartPoints.forEach((point, index) => {
-                                const distance = Math.abs(point.x - mouseX);
-
-                                if (distance < closestDistance) {
-                                    closestDistance = distance;
-                                    closestIndex = index;
-                                }
-                            });
-
-                            setHoveredPoint(closestIndex);
-                        }}
-
-                        onMouseLeave={() => setHoveredPoint(null)}
+                {/* Telefonon vízszintesen görgethető */}
+                <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+                    <div
+                        className="relative w-full min-w-[720px] h-[240px] sm:h-80 cursor-crosshair overflow-hidden"
+                        id="chartContainer"
                     >
 
-                        <defs>
+                        <svg
+                            className="w-full h-full overflow-visible"
+                            id="evolutionChart"
+                            preserveAspectRatio="xMidYMid meet"
+                            viewBox="0 0 920 280"
 
-                            <linearGradient
-                                id="chartCleanGradient"
-                                x1="0"
-                                y1="0"
-                                x2="0"
-                                y2="1"
-                            >
-                                <stop offset="0%" stopColor="#6B46C1" stopOpacity="0.95" />
-                                <stop offset="30%" stopColor="#6B46C1" stopOpacity="0.50" />
-                                <stop offset="65%" stopColor="#6B46C1" stopOpacity="0.20" />
-                                <stop offset="100%" stopColor="#6B46C1" stopOpacity="0" />
-                            </linearGradient>
+                            onMouseMove={(e) => {
+                                const rect = e.currentTarget.getBoundingClientRect();
 
-                            <filter
-                                height="200%"
-                                id="dotGlow"
-                                width="200%"
-                                x="-50%"
-                                y="-50%"
-                            >
-                                <feDropShadow
-                                    dx="0"
-                                    dy="2"
-                                    floodColor="#351F5B"
-                                    floodOpacity="0.35"
-                                    stdDeviation="3"
-                                />
-                            </filter>
+                                setChartSize((prev) =>
+                                    prev.width === rect.width && prev.height === rect.height
+                                        ? prev
+                                        : { width: rect.width, height: rect.height }
+                                );
 
-                        </defs>
+                                const { scale, offsetX } = getSvgScale(rect);
+                                const mouseX = (e.clientX - rect.left - offsetX) / scale;
 
+                                let closestIndex = 0;
+                                let closestDistance = Infinity;
 
-                        {/* RÁCSVONALAK */}
-                        <g className="stroke-[#ECE7F2]" strokeDasharray="3 3" strokeWidth="1">
-                            {yAxis.ticks.map((t) => (
-                                <line key={t.value} x1="60" x2="900" y1={t.y} y2={t.y} />
-                            ))}
-                        </g>
+                                chartPoints.forEach((point, index) => {
+                                    const distance = Math.abs(point.x - mouseX);
 
-                        {/* Y TENGELY */}
-                        <g className="fill-[#7B7580]" textAnchor="end">
-                            {yAxis.ticks.map((t) => (
-                                <text key={t.value} x="50" y={t.y + 4} fontSize="14">
-                                    {t.label}
-                                </text>
-                            ))}
-                        </g>
+                                    if (distance < closestDistance) {
+                                        closestDistance = distance;
+                                        closestIndex = index;
+                                    }
+                                });
 
+                                setHoveredPoint(closestIndex);
+                            }}
 
-                        {/* GRADIENS TERÜLET */}
-                        <path
-                            d={chartAreaPath}
-                            fill="url(#chartCleanGradient)"
-                            opacity="0.15"
-                            id="evoArea"
-                        />
+                            onMouseMove={handlePointer}
+                            onClick={handlePointer}
+                            onMouseLeave={() => setHoveredPoint(null)}
+                        >
 
+                            <defs>
 
-                        {/* DIAGRAM VONALA */}
-                        <path
-                            d={chartLinePath}
-                            fill="none"
-                            stroke="#351F5B"
-                            strokeWidth="3"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            id="evoLine"
-                        />
+                                <linearGradient
+                                    id="chartCleanGradient"
+                                    x1="0"
+                                    y1="0"
+                                    x2="0"
+                                    y2="1"
+                                >
+                                    <stop offset="0%" stopColor="#6B46C1" stopOpacity="0.95" />
+                                    <stop offset="30%" stopColor="#6B46C1" stopOpacity="0.50" />
+                                    <stop offset="65%" stopColor="#6B46C1" stopOpacity="0.20" />
+                                    <stop offset="100%" stopColor="#6B46C1" stopOpacity="0" />
+                                </linearGradient>
 
+                                <filter
+                                    height="200%"
+                                    id="dotGlow"
+                                    width="200%"
+                                    x="-50%"
+                                    y="-50%"
+                                >
+                                    <feDropShadow
+                                        dx="0"
+                                        dy="2"
+                                        floodColor="#351F5B"
+                                        floodOpacity="0.35"
+                                        stdDeviation="3"
+                                    />
+                                </filter>
 
-                        {/* HOVER CROSSHAIR */}
-                        {hoveredPoint !== null && chartPoints[hoveredPoint] && (
-                            <>
-                                {/* FÜGGŐLEGES HOVER VONAL */}
-                                <line
-                                    x1={chartPoints[hoveredPoint].x}
-                                    x2={chartPoints[hoveredPoint].x}
-                                    y1="30"
-                                    y2="240"
-                                    stroke="#8C69B5"
-                                    strokeDasharray="3 3"
-                                    strokeWidth="1.5"
-                                    className="pointer-events-none"
-                                />
-
-                                {/* HALO */}
-                                <circle
-                                    cx={chartPoints[hoveredPoint].x}
-                                    cy={chartPoints[hoveredPoint].y}
-                                    r="14"
-                                    fill="#6B46C1"
-                                    fillOpacity="0.2"
-                                    className="pointer-events-none"
-                                />
-
-                                {/* AKTÍV PONT */}
-                                <circle
-                                    cx={chartPoints[hoveredPoint].x}
-                                    cy={chartPoints[hoveredPoint].y}
-                                    r="6"
-                                    fill="#351F5B"
-                                    stroke="#ffffff"
-                                    strokeWidth="2.5"
-                                    className="pointer-events-none"
-                                />
-                            </>
-                        )}
+                            </defs>
 
 
-                        {/* FÓKUSZ HALO */}
-                        <circle
-                            className="transition-opacity duration-150 opacity-0 pointer-events-none"
-                            cx="0"
-                            cy="0"
-                            fill="#6B46C1"
-                            fillOpacity="0.25"
-                            id="chartFocusHalo"
-                            r="14"
-                        />
+                            {/* RÁCSVONALAK */}
+                            <g className="stroke-[#ECE7F2]" strokeDasharray="3 3" strokeWidth="1">
+                                {yAxis.ticks.map((t) => (
+                                    <line key={t.value} x1="60" x2="900" y1={t.y} y2={t.y} />
+                                ))}
+                            </g>
+
+                            {/* Y TENGELY */}
+                            <g className="fill-[#7B7580]" textAnchor="end">
+                                {yAxis.ticks.map((t) => (
+                                    <text key={t.value} x="50" y={t.y + 4} fontSize="16">
+                                        {t.label}
+                                    </text>
+                                ))}
+                            </g>
 
 
-                        {/* FÓKUSZPONT */}
-                        <circle
-                            className="transition-opacity duration-150 opacity-0 pointer-events-none"
-                            cx="0"
-                            cy="0"
-                            fill="#351F5B"
-                            filter="url(#dotGlow)"
-                            id="chartFocusDot"
-                            r="6"
-                            stroke="#ffffff"
-                            strokeWidth="2.5"
-                        />
+                            {/* GRADIENS TERÜLET */}
+                            <path
+                                d={chartAreaPath}
+                                fill="url(#chartCleanGradient)"
+                                opacity="0.15"
+                                id="evoArea"
+                            />
 
 
-                        {/* X TENGELY */}
-                        <g className="fill-[#49454F]" id="evoXAxisLabels" textAnchor="middle">
-                            {xAxis.ticks.map((t) => (
-                                <text key={t.dayIndex} x={t.x} y="268" fontSize="12">
-                                    {t.label}
-                                </text>
-                            ))}
-                        </g>
+                            {/* DIAGRAM VONALA */}
+                            <path
+                                d={chartLinePath}
+                                fill="none"
+                                stroke="#351F5B"
+                                strokeWidth="3"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                id="evoLine"
+                            />
 
-                    </svg>
+
+                            {/* HOVER CROSSHAIR */}
+                            {hoveredPoint !== null && chartPoints[hoveredPoint] && (
+                                <>
+                                    {/* FÜGGŐLEGES HOVER VONAL */}
+                                    <line
+                                        x1={chartPoints[hoveredPoint].x}
+                                        x2={chartPoints[hoveredPoint].x}
+                                        y1="30"
+                                        y2="240"
+                                        stroke="#8C69B5"
+                                        strokeDasharray="3 3"
+                                        strokeWidth="1.5"
+                                        className="pointer-events-none"
+                                    />
+
+                                    {/* HALO */}
+                                    <circle
+                                        cx={chartPoints[hoveredPoint].x}
+                                        cy={chartPoints[hoveredPoint].y}
+                                        r="14"
+                                        fill="#6B46C1"
+                                        fillOpacity="0.2"
+                                        className="pointer-events-none"
+                                    />
+
+                                    {/* AKTÍV PONT */}
+                                    <circle
+                                        cx={chartPoints[hoveredPoint].x}
+                                        cy={chartPoints[hoveredPoint].y}
+                                        r="6"
+                                        fill="#351F5B"
+                                        stroke="#ffffff"
+                                        strokeWidth="2.5"
+                                        className="pointer-events-none"
+                                    />
+                                </>
+                            )}
+
+
+                            {/* FÓKUSZ HALO */}
+                            <circle
+                                className="transition-opacity duration-150 opacity-0 pointer-events-none"
+                                cx="0"
+                                cy="0"
+                                fill="#6B46C1"
+                                fillOpacity="0.25"
+                                id="chartFocusHalo"
+                                r="14"
+                            />
+
+
+                            {/* FÓKUSZPONT */}
+                            <circle
+                                className="transition-opacity duration-150 opacity-0 pointer-events-none"
+                                cx="0"
+                                cy="0"
+                                fill="#351F5B"
+                                filter="url(#dotGlow)"
+                                id="chartFocusDot"
+                                r="6"
+                                stroke="#ffffff"
+                                strokeWidth="2.5"
+                            />
+
+
+                            {/* X TENGELY */}
+                            <g className="fill-[#49454F]" id="evoXAxisLabels" textAnchor="middle">
+                                {xAxis.ticks.map((t) => (
+                                    <text key={t.dayIndex} x={t.x} y="268" fontSize="14">
+                                        {t.label}
+                                    </text>
+                                ))}
+                            </g>
+
+                        </svg>
 
 
 
-                    {/* TOOLTIP */}
-                    {hoveredPoint !== null && chartPoints[hoveredPoint] && chartSize.width > 0 && (() => {
-                        const { scale, offsetX, offsetY } = getSvgScale(chartSize);
-                        const p = chartPoints[hoveredPoint];
+                        {/* TOOLTIP */}
+                        {hoveredPoint !== null && chartPoints[hoveredPoint] && chartSize.width > 0 && (() => {
+                            const { scale, offsetX, offsetY } = getSvgScale(chartSize);
+                            const p = chartPoints[hoveredPoint];
 
-                        const px = offsetX + p.x * scale;
-                        const py = offsetY + p.y * scale;
+                            const px = offsetX + p.x * scale;
+                            const py = offsetY + p.y * scale;
 
-                        const margin = 4;
-                        const left = Math.min(
-                            Math.max(px, TOOLTIP_W / 2 + margin),
-                            chartSize.width - TOOLTIP_W / 2 - margin
-                        );
-                        const top = Math.max(margin, py - 110);
+                            const margin = 4;
+                            const left = Math.min(
+                                Math.max(px, TOOLTIP_W / 2 + margin),
+                                chartSize.width - TOOLTIP_W / 2 - margin
+                            );
+                            const top = Math.max(margin, py - 110);
 
-                        return (
-                            <div
-                                className="pointer-events-none absolute p-3 rounded-xl bg-[#24123D] text-white shadow-xl z-30 font-medium border border-[#6B46C1]/40 backdrop-blur-md"
-                                style={{
-                                    width: TOOLTIP_W,
-                                    left,
-                                    top,
-                                    transform: "translateX(-50%)",
-                                }}
-                            >
-                                {/* FEJLÉC */}
-                                <div className="flex items-center justify-between pb-1.5 mb-1.5 border-b border-white/10">
-                                    <span className="text-[11px] text-[#DECFF2] uppercase tracking-wider">
-                                        {p.date}
-                                    </span>
+                            return (
+                                <div
+                                    className="pointer-events-none absolute p-3 rounded-xl bg-[#24123D] text-white shadow-xl z-30 font-medium border border-[#6B46C1]/40 backdrop-blur-md"
+                                    style={{
+                                        width: TOOLTIP_W,
+                                        left,
+                                        top,
+                                        transform: "translateX(-50%)",
+                                    }}
+                                >
+                                    {/* FEJLÉC */}
+                                    <div className="flex items-center justify-between pb-1.5 mb-1.5 border-b border-white/10">
+                                        <span className="text-[11px] text-[#DECFF2] uppercase tracking-wider">
+                                            {p.date}
+                                        </span>
 
-                                    <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                                        <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                                    </div>
+
+                                    {/* ADATOK */}
+                                    <div className="space-y-1">
+
+                                        {/* Pontszám */}
+                                        <div className="flex items-center justify-between gap-5 text-xs">
+                                            <span className="text-white/70">Pontszám:</span>
+                                            <span className="font-bold text-[#EDDCFF]">{p.score}</span>
+                                        </div>
+
+                                        {/* Megoldott feladatok */}
+                                        <div className="flex items-center justify-between gap-5 text-xs">
+                                            <span className="text-white/70">Megoldva:</span>
+                                            <span className="font-medium text-white">{p.tasks}</span>
+                                        </div>
+
+                                        {/* Pontosság */}
+                                        <div className="flex items-center justify-between gap-5 text-xs">
+                                            <span className="text-white/70">Pontosság:</span>
+                                            <span className="font-semibold text-emerald-300">{p.accuracy}</span>
+                                        </div>
+
+                                    </div>
                                 </div>
+                            );
+                        })()}
 
-                                {/* ADATOK */}
-                                <div className="space-y-1">
-
-                                    {/* Pontszám */}
-                                    <div className="flex items-center justify-between gap-5 text-xs">
-                                        <span className="text-white/70">Pontszám:</span>
-                                        <span className="font-bold text-[#EDDCFF]">{p.score}</span>
-                                    </div>
-
-                                    {/* Megoldott feladatok */}
-                                    <div className="flex items-center justify-between gap-5 text-xs">
-                                        <span className="text-white/70">Megoldva:</span>
-                                        <span className="font-medium text-white">{p.tasks}</span>
-                                    </div>
-
-                                    {/* Pontosság */}
-                                    <div className="flex items-center justify-between gap-5 text-xs">
-                                        <span className="text-white/70">Pontosság:</span>
-                                        <span className="font-semibold text-emerald-300">{p.accuracy}</span>
-                                    </div>
-
-                                </div>
-                            </div>
-                        );
-                    })()}
+                    </div>
 
                 </div>
-
             </div>
 
         </section>

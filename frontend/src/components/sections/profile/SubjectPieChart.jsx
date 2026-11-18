@@ -71,17 +71,19 @@ function SubjectPieChart({ pieStats }) {
 
         const angle = totalPercent ? (item.percent / totalPercent) * 360 : 0;
 
-        const endAngle = startAngle + angle;
+        // 359.99: ha egyetlen szelet van (100%), az ív kezdő- és végpontja
+        // nem eshet egybe, különben az SVG nem rajzol semmit
+        const endAngle = startAngle + Math.min(angle, 359.99);
 
         const middleAngle = startAngle + angle / 2;
 
-        currentAngle = endAngle;
+        currentAngle = startAngle + angle;
 
         return {
             ...item,
             startAngle,
             endAngle,
-            middleAngle
+            middleAngle,
         };
     });
 
@@ -110,7 +112,7 @@ function SubjectPieChart({ pieStats }) {
                         </span>
 
                         <span>
-                            Összesen: <strong>{ totalHoursText } óra</strong>
+                            Összesen: <strong>{totalHoursText} óra</strong>
                         </span>
 
                     </div>
@@ -125,10 +127,10 @@ function SubjectPieChart({ pieStats }) {
                     {/* DONUT */}
                     {/* ===================== */}
 
-                    <div className="relative w-64 h-64 shrink-0 flex items-center justify-center">
+                    <div className="relative w-full max-w-[16rem] aspect-square shrink-0 mx-auto flex items-center justify-center">
 
                         <svg
-                            className="w-full h-full overflow-visible"
+                            className="block w-full h-full overflow-visible"
                             viewBox="0 0 300 300"
                         >
                             {slices.map((slice) => {
@@ -197,14 +199,9 @@ function SubjectPieChart({ pieStats }) {
                                         key={slice.subject}
                                         style={{
                                             transform: isActive
-                                                ? getSliceTransform(
-                                                    slice.middleAngle,
-                                                    11
-                                                )
+                                                ? getSliceTransform(slice.middleAngle, 11)
                                                 : "translate(0, 0)",
-                                            transformOrigin: "150px 150px",
-                                            transition:
-                                                "transform 220ms cubic-bezier(0.22, 1, 0.36, 1)"
+                                            transition: "transform 220ms cubic-bezier(0.22, 1, 0.36, 1)",
                                         }}
                                     >
                                         <path
@@ -224,6 +221,9 @@ function SubjectPieChart({ pieStats }) {
                                             }
                                             onMouseLeave={() =>
                                                 setHoveredPieSubject(null)
+                                            }
+                                            onClick={() =>
+                                                setHoveredPieSubject(slice.subject)
                                             }
                                         />
                                     </g>
@@ -316,6 +316,9 @@ function SubjectPieChart({ pieStats }) {
                                     onMouseLeave={() =>
                                         setHoveredPieSubject(null)
                                     }
+                                    onClick={() =>
+                                        setHoveredPieSubject(item.subject)
+                                    }
                                 >
 
                                     <div className="flex items-center gap-3">
@@ -385,7 +388,7 @@ function SubjectPieChart({ pieStats }) {
                         info
                     </span>
 
-                    Vidd rá a kurzort egy körcikkre a részletekhez!
+                    Érints meg egy körcikket a részletekhez!
 
                 </span>
 
