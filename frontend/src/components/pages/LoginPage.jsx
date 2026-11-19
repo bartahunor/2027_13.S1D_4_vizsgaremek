@@ -178,7 +178,7 @@ function LoginPage() {
               <div id="remember-container" className="flex items-center justify-end">
 
                 <a
-                  href="#"
+                  href="/forgot-password"
                   className="text-sm font-semibold text-primary hover:text-primaryLight transition-colors"
                 >
                   Elfelejtetted?
