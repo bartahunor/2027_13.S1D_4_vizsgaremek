@@ -242,7 +242,7 @@ router.post('/sourceupload', requireAdmin, (req, res, next) => {
     if (req.file) {
       const mappa = String(req.body.mappa ?? '').trim()
       if (!mappa || mappa.length > 100 || /[\\/]/.test(mappa) || mappa.includes('..')) {
-        return res.status(400).json({ error: 'Hiányzó vagy érvénytelen mappa' })
+        return res.status(400).json({ error: `Hiányzó vagy érvénytelen mappa. Mappa név: ${mappa}` })
       }
 
       let webp

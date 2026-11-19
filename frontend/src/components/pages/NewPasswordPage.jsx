@@ -1,5 +1,5 @@
-
 import { useEffect, useMemo, useState } from "react";
+import { supabase } from '../../lib/supabaseClient';
 
 const passwordRequirements = [
     {
@@ -29,6 +29,20 @@ const passwordRequirements = [
     },
 ];
 
+function translateAuthError(err) {
+    switch (err?.code) {
+        case "same_password":
+            return "Az új jelszó nem egyezhet meg a régivel.";
+        case "weak_password":
+            return "A jelszó túl gyenge a szerver szerint. Válassz erősebbet.";
+        case "session_not_found":
+        case "session_expired":
+            return "A jelszó-visszaállító munkamenet lejárt. Kérj új jelszó-visszaállító e-mailt.";
+        default:
+            return err?.message || "Nem sikerült megváltoztatni a jelszót. Próbáld újra később.";
+    }
+}
+
 export default function ResetPasswordPage({
     onResetPassword,
     userName = "",
@@ -50,7 +64,22 @@ export default function ResetPasswordPage({
     const [countdown, setCountdown] = useState(3);
     const [passwordFocused, setPasswordFocused] = useState(false);
 
-    const token = new URLSearchParams(window.location.search).get("token");
+    // Az első renderkor kiolvassuk, hogy recovery linkről jövünk-e, mert a Supabase
+    // a feldolgozás után törli az URL hash-t.
+    const [linkInfo] = useState(() => {
+        const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+        const query = new URLSearchParams(window.location.search);
+
+        return {
+            isRecoveryLink:
+                hash.get("type") === "recovery" || query.has("code"), 
+            errorDescription: hash.get("error_description") || query.get("error_description"),
+            hasError: hash.has("error") || hash.has("error_code") || query.has("error"),
+        };
+    });
+
+    const [recoveryStatus, setRecoveryStatus] = useState("checking"); // checking | ready | invalid
+    const [token, setToken] = useState(null); // a recovery session access tokenje
 
     const requirements = useMemo(
         () =>
@@ -111,6 +140,49 @@ export default function ResetPasswordPage({
     const isPasswordValid = strength === passwordRequirements.length;
 
     useEffect(() => {
+        // Nem recovery e-mailből jött (nincs recovery link, és hibaparaméter sincs): főoldalra
+        if (!linkInfo.isRecoveryLink && !linkInfo.hasError) {
+            window.location.replace("/");
+            return;
+        }
+        
+        if (linkInfo.hasError) {
+            setRecoveryStatus("invalid");
+            return;
+        }
+
+        const markReady = (session) => {
+            setToken(session.access_token);
+            setRecoveryStatus("ready");
+        };
+
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(
+            (event, session) => {
+                if (event === "PASSWORD_RECOVERY" && session) {
+                    markReady(session);
+                }
+            }
+        );
+
+        // Ha az esemény már az oldal betöltése előtt lefutott, a session akkor is megvan
+        supabase.auth.getSession().then(({ data }) => {
+            if (data.session && linkInfo.isRecoveryLink) {
+                markReady(data.session);
+            }
+        });
+
+        // Ha egy idő után sincs recovery session, a link érvénytelen
+        const timeout = setTimeout(() => {
+            setRecoveryStatus((current) => (current === "checking" ? "invalid" : current));
+        }, 3000);
+
+        return () => {
+            subscription.unsubscribe();
+            clearTimeout(timeout);
+        };
+    }, [linkInfo]);
+
+    useEffect(() => {
         if (!success) return;
 
         if (countdown <= 0) {
@@ -129,9 +201,16 @@ export default function ResetPasswordPage({
         event.preventDefault();
         setError("");
 
-        if (!token) {
+        if (recoveryStatus === "checking") {
+            setError("A hivatkozás ellenőrzése folyamatban van, kérlek várj egy pillanatot.");
+            return;
+        }
+
+        if (recoveryStatus !== "ready") {
             setError(
-                "A jelszó-visszaállító hivatkozás érvénytelen vagy hiányos. Kérj új jelszó-visszaállító e-mailt."
+                linkInfo.errorDescription
+                    ? "A jelszó-visszaállító hivatkozás lejárt vagy már felhasználták. Kérj új jelszó-visszaállító e-mailt."
+                    : "A jelszó-visszaállító hivatkozás érvénytelen vagy hiányos. Kérj új jelszó-visszaállító e-mailt."
             );
             return;
         }
@@ -146,27 +225,39 @@ export default function ResetPasswordPage({
             return;
         }
 
-        if (typeof onResetPassword !== "function") {
-            setError("A jelszó-visszaállítási szolgáltatás még nincs beállítva.");
-            return;
-        }
-
         try {
             setLoading(true);
 
-            await onResetPassword({
-                token,
+            // 1. Új jelszó beállítása a recovery session jogosultságával
+            const { data: updateData, error: updateError } =
+                await supabase.auth.updateUser({ password });
+
+            if (updateError) throw updateError;
+
+            // 2. Automatikus bejelentkeztetés az új jelszóval
+            const email = updateData?.user?.email || userEmail;
+
+            const { error: signInError } = await supabase.auth.signInWithPassword({
+                email,
                 password,
-                logoutOthers,
             });
+
+            if (signInError) throw signInError;
+
+            // 3. Az összes többi munkamenet kiléptetése (a mostani megmarad)
+            if (logoutOthers) {
+                const { error: signOutError } = await supabase.auth.signOut({
+                    scope: "others",
+                });
+
+                // A jelszó már megváltozott, ezért ez nem állítja meg a folyamatot
+                if (signOutError) console.warn("Más munkamenetek kiléptetése sikertelen:", signOutError.message);
+            }
 
             setSuccess(true);
             setCountdown(3);
         } catch (err) {
-            setError(
-                err?.message ||
-                "Nem sikerült megváltoztatni a jelszót. Próbáld újra később."
-            );
+            setError(translateAuthError(err));
         } finally {
             setLoading(false);
         }

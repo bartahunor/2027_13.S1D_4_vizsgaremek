@@ -45,8 +45,7 @@
               "RelativeToolTip": "TudasterAdmin\\Processing\\DraftStore.cs",
               "ViewState": "AgIAAA0AAAAAAAAAAAD4vxkAAABfAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-11-17T17:49:00.758Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-11-17T17:49:00.758Z"
             },
             {
               "$type": "Document",
@@ -56,7 +55,7 @@
               "RelativeDocumentMoniker": "TudasterAdmin\\Processing\\JsonToPostgresql.cs",
               "ToolTip": "C:\\Sajat\\informatika\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\Processing\\JsonToPostgresql.cs",
               "RelativeToolTip": "TudasterAdmin\\Processing\\JsonToPostgresql.cs",
-              "ViewState": "AgIAABgAAAAAAAAAAAAkwDEAAAABAAAAAAAAAA==",
+              "ViewState": "AgIAAJ0AAAAAAAAAAAAiwKoAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-11-17T17:28:29.76Z",
               "EditorCaption": ""
@@ -71,8 +70,7 @@
               "RelativeToolTip": "TudasterAdmin\\MainWindow.xaml.cs",
               "ViewState": "AgIAANUGAAAAAAAAAAAqwOoGAAAcAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-11-17T17:21:22.56Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-11-17T17:21:22.56Z"
             },
             {
               "$type": "Document",
@@ -84,8 +82,7 @@
               "RelativeToolTip": "TudasterAdmin\\DraftEditorWindow.cs",
               "ViewState": "AgIAAHUDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-11-17T16:53:57.088Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-11-17T16:53:57.088Z"
             },
             {
               "$type": "Document",
@@ -97,8 +94,7 @@
               "RelativeToolTip": "TudasterAdmin\\Processing\\GeminiService.cs",
               "ViewState": "AgIAAKwAAAAAAAAAAAAqwLoAAABtAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-11-08T16:40:00.06Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-11-08T16:40:00.06Z"
             },
             {
               "$type": "Document",
@@ -110,8 +106,7 @@
               "RelativeToolTip": "..\\..\\..\\..\\..\\Users\\barta\\AppData\\Roaming\\Microsoft\\UserSecrets\\bc11a4cc-92d0-46ca-92de-cd40f602e208\\secrets.json",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAQAAAApAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2026-11-08T16:42:28.386Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-11-08T16:42:28.386Z"
             }
           ]
         }

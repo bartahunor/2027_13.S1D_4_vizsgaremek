@@ -168,7 +168,7 @@ namespace TudasterAdmin.Processing
             string s = Regex.Replace(sb.ToString(), @"\s+", "_");   // szóköz -> _
             s = Regex.Replace(s, @"[^a-z0-9_]", "");                // minden más törlése
             s = Regex.Replace(s, @"_+", "_").Trim('_');             // dupla/szélső _ eltüntetése
-            s = "/" + s; // a bucket-útvonal mindig kezdődik /-vel
+
 
             if (s.Length == 0)
                 throw new ArgumentException($"A(z) \"{subject}\" tantárgynévből nem képezhető mappanév.", nameof(subject));

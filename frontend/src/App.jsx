@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import React from 'react'
 import { AuthProvider } from './context/AuthContext'
 import ProtectedRoute from './components/layout/ProtectedRoute'
+import ScrollToTop from './components/layout/ScrollToTop'
 import Navbar from './components/layout/Navbar'
 import Footer from './components/layout/Footer'
 import HomePage from './components/pages/HomePage'
@@ -20,6 +21,7 @@ export default function App() {
       <BrowserRouter>
         <Navbar />
         <main className="min-h-screen">
+          <ScrollToTop />
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/login" element={<LoginPage />} />

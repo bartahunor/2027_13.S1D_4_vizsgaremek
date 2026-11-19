@@ -1,5 +1,5 @@
-
 import { useEffect, useState } from "react";
+import { supabase } from '../../lib/supabaseClient';
 
 function ForgotPasswordPage() {
     const [email, setEmail] = useState("");
@@ -57,7 +57,7 @@ function ForgotPasswordPage() {
             setSuccess(true);
             setSecondsLeft(45);
         } catch (error) {
-            setEmailError("Nem sikerült elküldeni a visszaállító linket.");
+            setEmailError("Nem sikerült elküldeni a visszaállító linket." );
         } finally {
             setLoading(false);
         }
