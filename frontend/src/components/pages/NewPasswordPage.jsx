@@ -1,14 +1,14 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from '../../lib/supabaseClient';
 
 const passwordRequirements = [
     {
         key: "length",
         label: "8–12 karakter hosszú",
-        test: (password) => password.length >= 8,
+        test: (password) => password.length >= 8 && password.length <= 12,
     },
     {
-        key: "upercase",
+        key: "uppercase",
         label: "Legalább egy nagybetű (A-Z)",
         test: (password) => /[A-Z]/.test(password),
     },
@@ -35,16 +35,16 @@ function translateAuthError(err) {
             return "Az új jelszó nem egyezhet meg a régivel.";
         case "weak_password":
             return "A jelszó túl gyenge a szerver szerint. Válassz erősebbet.";
+        case "otp_expired":
         case "session_not_found":
         case "session_expired":
-            return "A jelszó-visszaállító munkamenet lejárt. Kérj új jelszó-visszaállító e-mailt.";
+            return "A jelszó-visszaállító hivatkozás lejárt vagy már felhasználták. Kérj új jelszó-visszaállító e-mailt.";
         default:
             return err?.message || "Nem sikerült megváltoztatni a jelszót. Próbáld újra később.";
     }
 }
 
 export default function ResetPasswordPage({
-    onResetPassword,
     userName = "",
     userEmail = "",
     redirectTo = "/profil",
@@ -64,22 +64,20 @@ export default function ResetPasswordPage({
     const [countdown, setCountdown] = useState(3);
     const [passwordFocused, setPasswordFocused] = useState(false);
 
-    // Az első renderkor kiolvassuk, hogy recovery linkről jövünk-e, mert a Supabase
-    // a feldolgozás után törli az URL hash-t.
+    // Az e-mailből érkező linkből csak a token_hash-t olvassuk ki.
+    // Session nem jön létre, amíg a felhasználó el nem küldi az új jelszót.
     const [linkInfo] = useState(() => {
-        const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
         const query = new URLSearchParams(window.location.search);
+        const tokenHash = query.get("token_hash");
 
         return {
-            isRecoveryLink:
-                hash.get("type") === "recovery" || query.has("code"), 
-            errorDescription: hash.get("error_description") || query.get("error_description"),
-            hasError: hash.has("error") || hash.has("error_code") || query.has("error"),
+            tokenHash,
+            isRecoveryLink: query.get("type") === "recovery" && !!tokenHash,
         };
     });
 
-    const [recoveryStatus, setRecoveryStatus] = useState("checking"); // checking | ready | invalid
-    const [token, setToken] = useState(null); // a recovery session access tokenje
+    const verifiedRef = useRef(false);        // lefutott-e már a verifyOtp
+    const passwordChangedRef = useRef(false); // sikerült-e a jelszócsere
 
     const requirements = useMemo(
         () =>
@@ -107,27 +105,15 @@ export default function ResetPasswordPage({
         }
 
         if (strength <= 1) {
-            return {
-                label: "Gyenge",
-                color: "bg-red-500",
-                textColor: "text-red-500",
-            };
+            return { label: "Gyenge", color: "bg-red-500", textColor: "text-red-500" };
         }
 
         if (strength === 2) {
-            return {
-                label: "Közepes",
-                color: "bg-amber-500",
-                textColor: "text-amber-600",
-            };
+            return { label: "Közepes", color: "bg-amber-500", textColor: "text-amber-600" };
         }
 
         if (strength === 3) {
-            return {
-                label: "Jó",
-                color: "bg-primary",
-                textColor: "text-primary",
-            };
+            return { label: "Jó", color: "bg-primary", textColor: "text-primary" };
         }
 
         return {
@@ -139,49 +125,30 @@ export default function ResetPasswordPage({
 
     const isPasswordValid = strength === passwordRequirements.length;
 
+    // Ha nincs érvényes formátumú recovery link: főoldalra
     useEffect(() => {
-        // Nem recovery e-mailből jött (nincs recovery link, és hibaparaméter sincs): főoldalra
-        if (!linkInfo.isRecoveryLink && !linkInfo.hasError) {
+        if (!linkInfo.isRecoveryLink) {
             window.location.replace("/");
-            return;
         }
-        
-        if (linkInfo.hasError) {
-            setRecoveryStatus("invalid");
-            return;
-        }
-
-        const markReady = (session) => {
-            setToken(session.access_token);
-            setRecoveryStatus("ready");
-        };
-
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(
-            (event, session) => {
-                if (event === "PASSWORD_RECOVERY" && session) {
-                    markReady(session);
-                }
-            }
-        );
-
-        // Ha az esemény már az oldal betöltése előtt lefutott, a session akkor is megvan
-        supabase.auth.getSession().then(({ data }) => {
-            if (data.session && linkInfo.isRecoveryLink) {
-                markReady(data.session);
-            }
-        });
-
-        // Ha egy idő után sincs recovery session, a link érvénytelen
-        const timeout = setTimeout(() => {
-            setRecoveryStatus((current) => (current === "checking" ? "invalid" : current));
-        }, 3000);
-
-        return () => {
-            subscription.unsubscribe();
-            clearTimeout(timeout);
-        };
     }, [linkInfo]);
 
+    // Ha a verifyOtp sikerült, de a jelszócsere nem, az oldal elhagyásakor
+    // kiléptetjük a felhasználót, hogy ne maradjon jelszó nélküli session.
+    useEffect(() => {
+        const cleanup = () => {
+            if (verifiedRef.current && !passwordChangedRef.current) {
+                supabase.auth.signOut({ scope: "local" });
+            }
+        };
+
+        window.addEventListener("pagehide", cleanup);
+        return () => {
+            window.removeEventListener("pagehide", cleanup);
+            cleanup();
+        };
+    }, []);
+
+    // Átirányítás visszaszámlálással
     useEffect(() => {
         if (!success) return;
 
@@ -201,17 +168,8 @@ export default function ResetPasswordPage({
         event.preventDefault();
         setError("");
 
-        if (recoveryStatus === "checking") {
-            setError("A hivatkozás ellenőrzése folyamatban van, kérlek várj egy pillanatot.");
-            return;
-        }
-
-        if (recoveryStatus !== "ready") {
-            setError(
-                linkInfo.errorDescription
-                    ? "A jelszó-visszaállító hivatkozás lejárt vagy már felhasználták. Kérj új jelszó-visszaállító e-mailt."
-                    : "A jelszó-visszaállító hivatkozás érvénytelen vagy hiányos. Kérj új jelszó-visszaállító e-mailt."
-            );
+        if (!linkInfo.isRecoveryLink) {
+            setError("A jelszó-visszaállító hivatkozás érvénytelen vagy hiányos. Kérj új jelszó-visszaállító e-mailt.");
             return;
         }
 
@@ -228,21 +186,22 @@ export default function ResetPasswordPage({
         try {
             setLoading(true);
 
-            // 1. Új jelszó beállítása a recovery session jogosultságával
-            const { data: updateData, error: updateError } =
-                await supabase.auth.updateUser({ password });
+            // 1. Token beváltása: csak most jön létre a session
+            if (!verifiedRef.current) {
+                const { error: otpError } = await supabase.auth.verifyOtp({
+                    token_hash: linkInfo.tokenHash,
+                    type: "recovery",
+                });
 
+                if (otpError) throw otpError;
+                verifiedRef.current = true;
+            }
+
+            // 2. Új jelszó beállítása
+            const { error: updateError } = await supabase.auth.updateUser({ password });
             if (updateError) throw updateError;
 
-            // 2. Automatikus bejelentkeztetés az új jelszóval
-            const email = updateData?.user?.email || userEmail;
-
-            const { error: signInError } = await supabase.auth.signInWithPassword({
-                email,
-                password,
-            });
-
-            if (signInError) throw signInError;
+            passwordChangedRef.current = true;
 
             // 3. Az összes többi munkamenet kiléptetése (a mostani megmarad)
             if (logoutOthers) {
@@ -251,7 +210,9 @@ export default function ResetPasswordPage({
                 });
 
                 // A jelszó már megváltozott, ezért ez nem állítja meg a folyamatot
-                if (signOutError) console.warn("Más munkamenetek kiléptetése sikertelen:", signOutError.message);
+                if (signOutError) {
+                    console.warn("Más munkamenetek kiléptetése sikertelen:", signOutError.message);
+                }
             }
 
             setSuccess(true);
@@ -264,6 +225,7 @@ export default function ResetPasswordPage({
     };
 
     const displayName = userName || "Tudástér-felhasználó";
+
 
     return (
         <div className="min-h-screen flex flex-col bg-[#F4F2F8] text-[#24123D] font-display">
