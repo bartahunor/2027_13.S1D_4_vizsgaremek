@@ -1,5 +1,5 @@
 import TudasterIntro from "../../../assets/tudaster-logo-transparent.webm";
-import TudasterIntro2 from "../../../assets/tudaster-logo-transparent-prores4444.mov";
+import TudasterIntro2 from "../../../assets/tudaster-logo-transparent-prores-kicsi.mov";
 import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 
