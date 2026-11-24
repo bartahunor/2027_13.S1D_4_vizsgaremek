@@ -1,5 +1,6 @@
 import TudasterIntro from "../../../assets/tudaster-logo-transparent.webm";
-import { useState } from "react";
+import TudasterIntro2 from "../../../assets/tudaster-logo-transparent-prores4444.mov";
+import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 
 function Hero() {
@@ -14,6 +15,13 @@ function Hero() {
             y: e.clientY - rect.top,
         });
     };
+
+    const isSafari = () => {
+        if (typeof navigator === 'undefined') return false;
+        const ua = navigator.userAgent;
+        return /^((?!chrome|chromium|android|crios|fxios|edgios|edg).)*safari/i.test(ua);
+    };
+    const introSrc = useMemo(() => (isSafari() ? TudasterIntro2 : TudasterIntro), []);
 
 
     return (
@@ -60,11 +68,13 @@ function Hero() {
                     {/* BAL OLDAL - KÉP / VIDEÓ */}
                     {/* ======================================== */}
 
+
                     <div className="order-2 w-full lg:order-1 lg:w-[72%] lg:-ml-20">
                         <div className="group relative overflow-hidden rounded-2xl md:rounded-3xl">
                             <div className="aspect-video w-full overflow-hidden relative">
                                 <video
-                                    src={TudasterIntro}
+                                    key={introSrc}
+                                    src={introSrc}
                                     autoPlay
                                     muted
                                     playsInline

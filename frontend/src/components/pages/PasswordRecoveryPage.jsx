@@ -281,7 +281,7 @@ function ForgotPasswordPage() {
                             {/* VISSZA A BEJELENTKEZÉSHEZ */}
                             <div className="mt-7 flex flex-col items-center gap-3">
                                 <a
-                                    href="/bejelentkezes"
+                                    href="/login"
                                     className="inline-flex items-center gap-2 text-sm font-semibold text-[#4B2A7F] hover:text-[#24123D] transition-colors"
                                 >
                                     <span className="material-symbols-outlined text-lg">
