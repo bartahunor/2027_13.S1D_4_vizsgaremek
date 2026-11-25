@@ -7,6 +7,13 @@
       "RelativeMoniker": "D:0:0:{DD9A3328-765F-04F2-300C-E5A4C4528F11}|TudasterAdmin\\TudasterAdmin.csproj|solutionrelative:tudasteradmin\\processing\\jsontopostgresql.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
+      "AbsoluteMoniker": "D:0:0:{DD9A3328-765F-04F2-300C-E5A4C4528F11}|TudasterAdmin\\TudasterAdmin.csproj|c:\\users\\bartahunor\\documents\\github\\2027_13.s1d_4_vizsgaremek\\tudasteradmin\\tudasteradmin\\processing\\geminiservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{DD9A3328-765F-04F2-300C-E5A4C4528F11}|TudasterAdmin\\TudasterAdmin.csproj|solutionrelative:tudasteradmin\\processing\\geminiservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\BartaHunor\\AppData\\Roaming\\Microsoft\\UserSecrets\\bc11a4cc-92d0-46ca-92de-cd40f602e208\\secrets.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{DD9A3328-765F-04F2-300C-E5A4C4528F11}|TudasterAdmin\\TudasterAdmin.csproj|c:\\users\\bartahunor\\documents\\github\\2027_13.s1d_4_vizsgaremek\\tudasteradmin\\tudasteradmin\\processing\\draftmodels.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{DD9A3328-765F-04F2-300C-E5A4C4528F11}|TudasterAdmin\\TudasterAdmin.csproj|solutionrelative:tudasteradmin\\processing\\draftmodels.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
@@ -17,10 +24,6 @@
     {
       "AbsoluteMoniker": "D:0:0:{DD9A3328-765F-04F2-300C-E5A4C4528F11}|TudasterAdmin\\TudasterAdmin.csproj|c:\\users\\bartahunor\\documents\\github\\2027_13.s1d_4_vizsgaremek\\tudasteradmin\\tudasteradmin\\mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{DD9A3328-765F-04F2-300C-E5A4C4528F11}|TudasterAdmin\\TudasterAdmin.csproj|solutionrelative:tudasteradmin\\mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{DD9A3328-765F-04F2-300C-E5A4C4528F11}|TudasterAdmin\\TudasterAdmin.csproj|c:\\users\\bartahunor\\documents\\github\\2027_13.s1d_4_vizsgaremek\\tudasteradmin\\tudasteradmin\\processing\\geminiservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{DD9A3328-765F-04F2-300C-E5A4C4528F11}|TudasterAdmin\\TudasterAdmin.csproj|solutionrelative:tudasteradmin\\processing\\geminiservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{DD9A3328-765F-04F2-300C-E5A4C4528F11}|TudasterAdmin\\TudasterAdmin.csproj|c:\\users\\bartahunor\\documents\\github\\2027_13.s1d_4_vizsgaremek\\tudasteradmin\\tudasteradmin\\drafteditorwindow.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -41,9 +44,6 @@
     {
       "AbsoluteMoniker": "D:0:0:{DD9A3328-765F-04F2-300C-E5A4C4528F11}|TudasterAdmin\\TudasterAdmin.csproj|c:\\users\\bartahunor\\documents\\github\\2027_13.s1d_4_vizsgaremek\\tudasteradmin\\tudasteradmin\\processing\\aiexammapper.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{DD9A3328-765F-04F2-300C-E5A4C4528F11}|TudasterAdmin\\TudasterAdmin.csproj|solutionrelative:tudasteradmin\\processing\\aiexammapper.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\BartaHunor\\AppData\\Roaming\\Microsoft\\UserSecrets\\bc11a4cc-92d0-46ca-92de-cd40f602e208\\secrets.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{DD9A3328-765F-04F2-300C-E5A4C4528F11}|TudasterAdmin\\TudasterAdmin.csproj|c:\\users\\bartahunor\\documents\\github\\2027_13.s1d_4_vizsgaremek\\tudasteradmin\\tudasteradmin\\taskwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -104,7 +104,7 @@
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 10,
+              "DocumentIndex": 2,
               "Title": "secrets.json",
               "DocumentMoniker": "C:\\Users\\BartaHunor\\AppData\\Roaming\\Microsoft\\UserSecrets\\bc11a4cc-92d0-46ca-92de-cd40f602e208\\secrets.json",
               "RelativeDocumentMoniker": "..\\..\\..\\..\\AppData\\Roaming\\Microsoft\\UserSecrets\\bc11a4cc-92d0-46ca-92de-cd40f602e208\\secrets.json",
@@ -112,11 +112,12 @@
               "RelativeToolTip": "..\\..\\..\\..\\AppData\\Roaming\\Microsoft\\UserSecrets\\bc11a4cc-92d0-46ca-92de-cd40f602e208\\secrets.json",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAA7AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2026-11-17T09:47:41.417Z"
+              "WhenOpened": "2026-11-17T09:47:41.417Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 6,
               "Title": "DraftEditorWindow.cs",
               "DocumentMoniker": "C:\\Users\\BartaHunor\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\DraftEditorWindow.cs",
               "RelativeDocumentMoniker": "TudasterAdmin\\DraftEditorWindow.cs",
@@ -128,15 +129,16 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 1,
               "Title": "GeminiService.cs",
               "DocumentMoniker": "C:\\Users\\BartaHunor\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\Processing\\GeminiService.cs",
               "RelativeDocumentMoniker": "TudasterAdmin\\Processing\\GeminiService.cs",
               "ToolTip": "C:\\Users\\BartaHunor\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\Processing\\GeminiService.cs",
               "RelativeToolTip": "TudasterAdmin\\Processing\\GeminiService.cs",
-              "ViewState": "AgIAAOAAAAAAAAAAAAAiwPEAAAA7AAAAAAAAAA==",
+              "ViewState": "AgIAALMAAAAAAAAAAAAAAKgAAAAmAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-10-20T08:43:54.99Z"
+              "WhenOpened": "2026-10-20T08:43:54.99Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
@@ -146,7 +148,7 @@
               "RelativeDocumentMoniker": "TudasterAdmin\\Processing\\JsonToPostgresql.cs",
               "ToolTip": "C:\\Users\\BartaHunor\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\Processing\\JsonToPostgresql.cs",
               "RelativeToolTip": "TudasterAdmin\\Processing\\JsonToPostgresql.cs",
-              "ViewState": "AgIAAJwAAAAAAAAAAAAowLIAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAPMAAAAAAAAAAAAAAKcBAABMAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-11-18T06:38:56.732Z",
               "EditorCaption": ""
@@ -160,12 +162,11 @@
               "ToolTip": "C:\\Users\\BartaHunor\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\TaskDetailsWindow.xaml",
               "RelativeToolTip": "TudasterAdmin\\TaskDetailsWindow.xaml",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
-              "WhenOpened": "2026-09-16T06:53:25.485Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-16T06:53:25.485Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 8,
               "Title": "UiKit.cs",
               "DocumentMoniker": "C:\\Users\\BartaHunor\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\UiKit.cs",
               "RelativeDocumentMoniker": "TudasterAdmin\\UiKit.cs",
@@ -177,7 +178,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 5,
               "Title": "MainWindow.xaml.cs",
               "DocumentMoniker": "C:\\Users\\BartaHunor\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\MainWindow.xaml.cs",
               "RelativeDocumentMoniker": "TudasterAdmin\\MainWindow.xaml.cs",
@@ -185,12 +186,11 @@
               "RelativeToolTip": "TudasterAdmin\\MainWindow.xaml.cs",
               "ViewState": "AgIAAFYAAAAAAAAAAAAQwFsAAAAIAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-10-20T08:54:23.055Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-10-20T08:54:23.055Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 4,
               "Title": "ApiConfig.cs",
               "DocumentMoniker": "C:\\Users\\BartaHunor\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\ApiConfig.cs",
               "RelativeDocumentMoniker": "TudasterAdmin\\ApiConfig.cs",
@@ -198,12 +198,11 @@
               "RelativeToolTip": "TudasterAdmin\\ApiConfig.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAEAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-09-25T09:57:17.73Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-25T09:57:17.73Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 3,
               "Title": "DraftModels.cs",
               "DocumentMoniker": "C:\\Users\\BartaHunor\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\Processing\\DraftModels.cs",
               "RelativeDocumentMoniker": "TudasterAdmin\\Processing\\DraftModels.cs",
@@ -211,12 +210,11 @@
               "RelativeToolTip": "TudasterAdmin\\Processing\\DraftModels.cs",
               "ViewState": "AgIAAFMAAAAAAAAAAAAAACYAAAA7AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-10-21T09:16:14.454Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-10-21T09:16:14.454Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
+              "DocumentIndex": 9,
               "Title": "SolutionImporter.cs",
               "DocumentMoniker": "C:\\Users\\BartaHunor\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\Processing\\SolutionImporter.cs",
               "RelativeDocumentMoniker": "TudasterAdmin\\Processing\\SolutionImporter.cs",
@@ -252,7 +250,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 7,
               "Title": "UiStyles.cs",
               "DocumentMoniker": "C:\\Users\\BartaHunor\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\UiStyles.cs",
               "RelativeDocumentMoniker": "TudasterAdmin\\UiStyles.cs",
@@ -264,7 +262,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 9,
+              "DocumentIndex": 10,
               "Title": "AiExamMapper.cs",
               "DocumentMoniker": "C:\\Users\\BartaHunor\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\Processing\\AiExamMapper.cs",
               "RelativeDocumentMoniker": "TudasterAdmin\\Processing\\AiExamMapper.cs",
@@ -283,8 +281,7 @@
               "ToolTip": "C:\\Users\\BartaHunor\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\MainWindow.xaml",
               "RelativeToolTip": "TudasterAdmin\\MainWindow.xaml",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
-              "WhenOpened": "2026-09-15T08:20:15.617Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-15T08:20:15.617Z"
             },
             {
               "$type": "Document",
@@ -331,8 +328,7 @@
               "ToolTip": "C:\\Users\\BartaHunor\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\LoginWindow.xaml",
               "RelativeToolTip": "TudasterAdmin\\LoginWindow.xaml",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
-              "WhenOpened": "2026-09-15T08:40:55.819Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-15T08:40:55.819Z"
             },
             {
               "$type": "Document",
@@ -355,8 +351,7 @@
               "ToolTip": "C:\\Users\\BartaHunor\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\App.xaml",
               "RelativeToolTip": "TudasterAdmin\\App.xaml",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
-              "WhenOpened": "2026-09-15T08:22:28.793Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-15T08:22:28.793Z"
             },
             {
               "$type": "Document",
@@ -379,8 +374,7 @@
               "ToolTip": "C:\\Users\\BartaHunor\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\TaskWindow.xaml",
               "RelativeToolTip": "TudasterAdmin\\TaskWindow.xaml",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
-              "WhenOpened": "2026-09-15T09:22:18.32Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-15T09:22:18.32Z"
             }
           ]
         }
