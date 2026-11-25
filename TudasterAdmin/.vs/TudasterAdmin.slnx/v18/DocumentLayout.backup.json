@@ -7,16 +7,20 @@
       "RelativeMoniker": "D:0:0:{DD9A3328-765F-04F2-300C-E5A4C4528F11}|TudasterAdmin\\TudasterAdmin.csproj|solutionrelative:tudasteradmin\\processing\\jsontopostgresql.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
+      "AbsoluteMoniker": "D:0:0:{DD9A3328-765F-04F2-300C-E5A4C4528F11}|TudasterAdmin\\TudasterAdmin.csproj|c:\\users\\bartahunor\\documents\\github\\2027_13.s1d_4_vizsgaremek\\tudasteradmin\\tudasteradmin\\processing\\draftmodels.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{DD9A3328-765F-04F2-300C-E5A4C4528F11}|TudasterAdmin\\TudasterAdmin.csproj|solutionrelative:tudasteradmin\\processing\\draftmodels.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{DD9A3328-765F-04F2-300C-E5A4C4528F11}|TudasterAdmin\\TudasterAdmin.csproj|c:\\users\\bartahunor\\documents\\github\\2027_13.s1d_4_vizsgaremek\\tudasteradmin\\tudasteradmin\\apiconfig.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{DD9A3328-765F-04F2-300C-E5A4C4528F11}|TudasterAdmin\\TudasterAdmin.csproj|solutionrelative:tudasteradmin\\apiconfig.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{DD9A3328-765F-04F2-300C-E5A4C4528F11}|TudasterAdmin\\TudasterAdmin.csproj|c:\\users\\bartahunor\\documents\\github\\2027_13.s1d_4_vizsgaremek\\tudasteradmin\\tudasteradmin\\mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{DD9A3328-765F-04F2-300C-E5A4C4528F11}|TudasterAdmin\\TudasterAdmin.csproj|solutionrelative:tudasteradmin\\mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{DD9A3328-765F-04F2-300C-E5A4C4528F11}|TudasterAdmin\\TudasterAdmin.csproj|c:\\users\\bartahunor\\documents\\github\\2027_13.s1d_4_vizsgaremek\\tudasteradmin\\tudasteradmin\\processing\\geminiservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{DD9A3328-765F-04F2-300C-E5A4C4528F11}|TudasterAdmin\\TudasterAdmin.csproj|solutionrelative:tudasteradmin\\processing\\geminiservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{DD9A3328-765F-04F2-300C-E5A4C4528F11}|TudasterAdmin\\TudasterAdmin.csproj|c:\\users\\bartahunor\\documents\\github\\2027_13.s1d_4_vizsgaremek\\tudasteradmin\\tudasteradmin\\processing\\draftmodels.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{DD9A3328-765F-04F2-300C-E5A4C4528F11}|TudasterAdmin\\TudasterAdmin.csproj|solutionrelative:tudasteradmin\\processing\\draftmodels.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{DD9A3328-765F-04F2-300C-E5A4C4528F11}|TudasterAdmin\\TudasterAdmin.csproj|c:\\users\\bartahunor\\documents\\github\\2027_13.s1d_4_vizsgaremek\\tudasteradmin\\tudasteradmin\\drafteditorwindow.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -69,10 +73,6 @@
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\KeseruFruzsina\\AppData\\Roaming\\Microsoft\\UserSecrets\\bc11a4cc-92d0-46ca-92de-cd40f602e208\\secrets.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{DD9A3328-765F-04F2-300C-E5A4C4528F11}|TudasterAdmin\\TudasterAdmin.csproj|c:\\users\\bartahunor\\documents\\github\\2027_13.s1d_4_vizsgaremek\\tudasteradmin\\tudasteradmin\\apiconfig.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{DD9A3328-765F-04F2-300C-E5A4C4528F11}|TudasterAdmin\\TudasterAdmin.csproj|solutionrelative:tudasteradmin\\apiconfig.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{DD9A3328-765F-04F2-300C-E5A4C4528F11}|TudasterAdmin\\TudasterAdmin.csproj|c:\\users\\bartahunor\\documents\\github\\2027_13.s1d_4_vizsgaremek\\tudasteradmin\\tudasteradmin\\loginwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
       "RelativeMoniker": "D:0:0:{DD9A3328-765F-04F2-300C-E5A4C4528F11}|TudasterAdmin\\TudasterAdmin.csproj|solutionrelative:tudasteradmin\\loginwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
     },
@@ -100,35 +100,11 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 5,
+          "SelectedChildIndex": 3,
           "Children": [
             {
               "$type": "Document",
               "DocumentIndex": 10,
-              "Title": "TaskWindow.xaml.cs",
-              "DocumentMoniker": "C:\\Users\\BartaHunor\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\TaskWindow.xaml.cs",
-              "RelativeDocumentMoniker": "TudasterAdmin\\TaskWindow.xaml.cs",
-              "ToolTip": "C:\\Users\\BartaHunor\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\TaskWindow.xaml.cs",
-              "RelativeToolTip": "TudasterAdmin\\TaskWindow.xaml.cs",
-              "ViewState": "AgIAABkAAAAAAAAAAAAgwDcAAAARAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-09-15T09:22:29.424Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 7,
-              "Title": "SolutionImporter.cs",
-              "DocumentMoniker": "C:\\Users\\BartaHunor\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\Processing\\SolutionImporter.cs",
-              "RelativeDocumentMoniker": "TudasterAdmin\\Processing\\SolutionImporter.cs",
-              "ToolTip": "C:\\Users\\BartaHunor\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\Processing\\SolutionImporter.cs",
-              "RelativeToolTip": "TudasterAdmin\\Processing\\SolutionImporter.cs",
-              "ViewState": "AgIAAAMAAAAAAAAAAAAAABoAAAAOAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-11-10T09:43:16.422Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 9,
               "Title": "secrets.json",
               "DocumentMoniker": "C:\\Users\\BartaHunor\\AppData\\Roaming\\Microsoft\\UserSecrets\\bc11a4cc-92d0-46ca-92de-cd40f602e208\\secrets.json",
               "RelativeDocumentMoniker": "..\\..\\..\\..\\AppData\\Roaming\\Microsoft\\UserSecrets\\bc11a4cc-92d0-46ca-92de-cd40f602e208\\secrets.json",
@@ -140,7 +116,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 5,
               "Title": "DraftEditorWindow.cs",
               "DocumentMoniker": "C:\\Users\\BartaHunor\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\DraftEditorWindow.cs",
               "RelativeDocumentMoniker": "TudasterAdmin\\DraftEditorWindow.cs",
@@ -148,12 +124,11 @@
               "RelativeToolTip": "TudasterAdmin\\DraftEditorWindow.cs",
               "ViewState": "AgIAABUCAAAAAAAAAAAqwDkCAAAJAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-10-21T09:39:13.344Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-10-21T09:39:13.344Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 4,
               "Title": "GeminiService.cs",
               "DocumentMoniker": "C:\\Users\\BartaHunor\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\Processing\\GeminiService.cs",
               "RelativeDocumentMoniker": "TudasterAdmin\\Processing\\GeminiService.cs",
@@ -161,8 +136,7 @@
               "RelativeToolTip": "TudasterAdmin\\Processing\\GeminiService.cs",
               "ViewState": "AgIAAOAAAAAAAAAAAAAiwPEAAAA7AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-10-20T08:43:54.99Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-10-20T08:43:54.99Z"
             },
             {
               "$type": "Document",
@@ -172,14 +146,14 @@
               "RelativeDocumentMoniker": "TudasterAdmin\\Processing\\JsonToPostgresql.cs",
               "ToolTip": "C:\\Users\\BartaHunor\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\Processing\\JsonToPostgresql.cs",
               "RelativeToolTip": "TudasterAdmin\\Processing\\JsonToPostgresql.cs",
-              "ViewState": "AgIAAJ4AAAAAAAAAAAAowKoAAABCAAAAAAAAAA==",
+              "ViewState": "AgIAAJwAAAAAAAAAAAAowLIAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-11-18T06:38:56.732Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 13,
+              "DocumentIndex": 14,
               "Title": "TaskDetailsWindow.xaml",
               "DocumentMoniker": "C:\\Users\\BartaHunor\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\TaskDetailsWindow.xaml",
               "RelativeDocumentMoniker": "TudasterAdmin\\TaskDetailsWindow.xaml",
@@ -191,7 +165,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 7,
               "Title": "UiKit.cs",
               "DocumentMoniker": "C:\\Users\\BartaHunor\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\UiKit.cs",
               "RelativeDocumentMoniker": "TudasterAdmin\\UiKit.cs",
@@ -203,7 +177,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 3,
               "Title": "MainWindow.xaml.cs",
               "DocumentMoniker": "C:\\Users\\BartaHunor\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\MainWindow.xaml.cs",
               "RelativeDocumentMoniker": "TudasterAdmin\\MainWindow.xaml.cs",
@@ -216,20 +190,57 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 2,
+              "Title": "ApiConfig.cs",
+              "DocumentMoniker": "C:\\Users\\BartaHunor\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\ApiConfig.cs",
+              "RelativeDocumentMoniker": "TudasterAdmin\\ApiConfig.cs",
+              "ToolTip": "C:\\Users\\BartaHunor\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\ApiConfig.cs",
+              "RelativeToolTip": "TudasterAdmin\\ApiConfig.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAEAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-25T09:57:17.73Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
               "Title": "DraftModels.cs",
               "DocumentMoniker": "C:\\Users\\BartaHunor\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\Processing\\DraftModels.cs",
               "RelativeDocumentMoniker": "TudasterAdmin\\Processing\\DraftModels.cs",
-              "ToolTip": "C:\\Users\\BartaHunor\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\Processing\\DraftModels.cs",
-              "RelativeToolTip": "TudasterAdmin\\Processing\\DraftModels.cs",
-              "ViewState": "AgIAAG0AAAAAAAAAAAAvwIkAAAAsAAAAAAAAAA==",
+              "ToolTip": "C:\\Users\\BartaHunor\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\Processing\\DraftModels.cs*",
+              "RelativeToolTip": "TudasterAdmin\\Processing\\DraftModels.cs*",
+              "ViewState": "AgIAAFMAAAAAAAAAAAAAACYAAAA7AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-10-21T09:16:14.454Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "SolutionImporter.cs",
+              "DocumentMoniker": "C:\\Users\\BartaHunor\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\Processing\\SolutionImporter.cs",
+              "RelativeDocumentMoniker": "TudasterAdmin\\Processing\\SolutionImporter.cs",
+              "ToolTip": "C:\\Users\\BartaHunor\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\Processing\\SolutionImporter.cs",
+              "RelativeToolTip": "TudasterAdmin\\Processing\\SolutionImporter.cs",
+              "ViewState": "AgIAAAMAAAAAAAAAAAAAABoAAAAOAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-11-10T09:43:16.422Z"
+            },
+            {
+              "$type": "Document",
               "DocumentIndex": 11,
+              "Title": "TaskWindow.xaml.cs",
+              "DocumentMoniker": "C:\\Users\\BartaHunor\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\TaskWindow.xaml.cs",
+              "RelativeDocumentMoniker": "TudasterAdmin\\TaskWindow.xaml.cs",
+              "ToolTip": "C:\\Users\\BartaHunor\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\TaskWindow.xaml.cs",
+              "RelativeToolTip": "TudasterAdmin\\TaskWindow.xaml.cs",
+              "ViewState": "AgIAABkAAAAAAAAAAAAgwDcAAAARAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-15T09:22:29.424Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
               "Title": "PdfPageContent.cs",
               "DocumentMoniker": "C:\\Users\\BartaHunor\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\Processing\\PdfPageContent.cs",
               "RelativeDocumentMoniker": "TudasterAdmin\\Processing\\PdfPageContent.cs",
@@ -241,7 +252,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 6,
               "Title": "UiStyles.cs",
               "DocumentMoniker": "C:\\Users\\BartaHunor\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\UiStyles.cs",
               "RelativeDocumentMoniker": "TudasterAdmin\\UiStyles.cs",
@@ -253,7 +264,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
+              "DocumentIndex": 9,
               "Title": "AiExamMapper.cs",
               "DocumentMoniker": "C:\\Users\\BartaHunor\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\Processing\\AiExamMapper.cs",
               "RelativeDocumentMoniker": "TudasterAdmin\\Processing\\AiExamMapper.cs",
@@ -265,7 +276,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 12,
+              "DocumentIndex": 13,
               "Title": "MainWindow.xaml",
               "DocumentMoniker": "C:\\Users\\BartaHunor\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\MainWindow.xaml",
               "RelativeDocumentMoniker": "TudasterAdmin\\MainWindow.xaml",
@@ -277,7 +288,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 15,
+              "DocumentIndex": 16,
               "Title": "PdfTextExtractor.cs",
               "DocumentMoniker": "C:\\Users\\BartaHunor\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\Processing\\PdfTextExtractor.cs",
               "RelativeDocumentMoniker": "TudasterAdmin\\Processing\\PdfTextExtractor.cs",
@@ -289,7 +300,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 14,
+              "DocumentIndex": 15,
               "Title": "TaskDetailsWindow.xaml.cs",
               "DocumentMoniker": "C:\\Users\\BartaHunor\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\TaskDetailsWindow.xaml.cs",
               "RelativeDocumentMoniker": "TudasterAdmin\\TaskDetailsWindow.xaml.cs",
@@ -301,7 +312,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 16,
+              "DocumentIndex": 17,
               "Title": "secrets.json",
               "DocumentMoniker": "C:\\Users\\KeseruFruzsina\\AppData\\Roaming\\Microsoft\\UserSecrets\\bc11a4cc-92d0-46ca-92de-cd40f602e208\\secrets.json",
               "RelativeDocumentMoniker": "..\\..\\..\\..\\..\\KeseruFruzsina\\AppData\\Roaming\\Microsoft\\UserSecrets\\bc11a4cc-92d0-46ca-92de-cd40f602e208\\secrets.json",
@@ -310,18 +321,6 @@
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAEAAAAKAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
               "WhenOpened": "2026-10-21T09:01:31.78Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 17,
-              "Title": "ApiConfig.cs",
-              "DocumentMoniker": "C:\\Users\\BartaHunor\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\ApiConfig.cs",
-              "RelativeDocumentMoniker": "TudasterAdmin\\ApiConfig.cs",
-              "ToolTip": "C:\\Users\\BartaHunor\\Documents\\GitHub\\2027_13.S1D_4_vizsgaremek\\TudasterAdmin\\TudasterAdmin\\ApiConfig.cs",
-              "RelativeToolTip": "TudasterAdmin\\ApiConfig.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAEAAAABAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-09-25T09:57:17.73Z"
             },
             {
               "$type": "Document",

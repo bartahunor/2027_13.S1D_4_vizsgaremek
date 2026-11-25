@@ -39,6 +39,9 @@ namespace TudasterAdmin.Processing
         public List<DraftTask> Tasks { get; set; } = new();
         public List<string> Warnings { get; set; } = new();
 
+        [System.Text.Json.Serialization.JsonIgnore]
+        public int? EvId { get; set; }
+
         [JsonIgnore]
         public string Title
         {

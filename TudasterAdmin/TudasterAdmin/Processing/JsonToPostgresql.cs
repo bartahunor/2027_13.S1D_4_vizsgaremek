@@ -10,6 +10,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Linq;
 
 namespace TudasterAdmin.Processing
 {
@@ -21,6 +22,11 @@ namespace TudasterAdmin.Processing
         public string? Kep { get; set; }
     }
 
+    internal sealed class EvUploadResponse
+    {
+        public int Id { get; set; }
+    }
+
     /// <summary>Egy forrás feltöltésének eredménye.</summary>
     /// <param name="Key">A forrás kulcsa a JSON-ban (pl. "f1").</param>
     /// <param name="Id">A forrasok tábla új sorának azonosítója, siker esetén.</param>
@@ -29,6 +35,8 @@ namespace TudasterAdmin.Processing
     {
         public bool Success => Error == null;
     }
+
+
 
     internal class JsonToPostgresql
     {
@@ -112,6 +120,101 @@ namespace TudasterAdmin.Processing
             SessionStore.AccessToken ?? "";
 
         /// <summary>
+        /// A feladatok SourceKey értékét (pl. "f3") lecseréli a forrás adatbázis-azonosítójára.
+        /// Csak a sikeresen feltöltött forrásokat cseréli; a többi feladat érintetlen marad.
+        /// </summary>
+        public static int ApplySourceIds(DraftExam exam, List<SourceUploadResult> results)
+        {
+            var map = results
+                .Where(r => r.Success)
+                .ToDictionary(r => r.Key, r => r.Id!);
+
+            int replaced = 0;
+            foreach (var task in exam.Tasks)
+            {
+                if (string.IsNullOrWhiteSpace(task.SourceKey)) continue;
+
+                if (map.TryGetValue(task.SourceKey, out var id))
+                {
+                    Log($"Feladat {task.Number}{task.PartLabel}: {task.SourceKey} -> {id}");
+                    task.SourceKey = id;
+                    replaced++;
+                }
+                else
+                {
+                    Log($"Feladat {task.Number}{task.PartLabel}: nincs azonosító a(z) \"{task.SourceKey}\" kulcshoz");
+                }
+            }
+            return replaced;
+        }
+
+        private static string GetEvUploadUrl() =>
+            $"{ApiConfig.BackendApiUrl}/adminroutes/evupload";
+
+        /// <summary>"Középszint" -> "kozep", "Emelt szint" -> "emelt".</summary>
+        public static string LevelToDb(string level)
+        {
+            if (string.IsNullOrWhiteSpace(level))
+                throw new ArgumentException("A feladatsor szintje üres.", nameof(level));
+
+            // ékezetek nélküli, kisbetűs alak (ugyanaz a trükk, mint a FolderName-nél)
+            string decomposed = level.Trim().ToLowerInvariant().Normalize(NormalizationForm.FormD);
+            var sb = new StringBuilder(decomposed.Length);
+            foreach (char c in decomposed)
+                if (CharUnicodeInfo.GetUnicodeCategory(c) != UnicodeCategory.NonSpacingMark)
+                    sb.Append(c);
+            string s = sb.ToString();
+
+            if (s.StartsWith("kozep")) return "kozep";
+            if (s.StartsWith("emelt")) return "emelt";
+
+            throw new ArgumentException($"Ismeretlen szint: \"{level}\".", nameof(level));
+        }
+
+        /// <summary>Felviszi az évet és a szintet, a kapott id-t az exam.EvId-ba menti.</summary>
+        public static async Task UploadEvAsync(DraftExam exam, string endpointUrl, string accessToken)
+        {
+            if (exam.Year is not int year)
+                throw new InvalidDataException("A feladatsor éve hiányzik, nem tölthető fel.");
+
+            string szint = LevelToDb(exam.Level);
+            Log($"Év feltöltése: {exam.Year}, szint: \"{exam.Level}\" -> \"{szint}\"");
+
+            var json = JsonSerializer.Serialize(new { ev = exam.Year, szint });
+            using var request = new HttpRequestMessage(HttpMethod.Post, endpointUrl)
+            {
+                Content = new StringContent(json, Encoding.UTF8, "application/json")
+            };
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+
+            Log($"POST {endpointUrl} {json}");
+            using var response = await Http.SendAsync(request);
+            string body = await response.Content.ReadAsStringAsync();
+            Log($"Válasz: HTTP {(int)response.StatusCode}, törzs: {body}");
+
+            if (!response.IsSuccessStatusCode)
+            {
+                string detail = ReadServerError(body) ?? (body.Length > 300 ? body[..300] + "…" : body);
+                throw new HttpRequestException(
+                    $"Az év feltöltése sikertelen (HTTP {(int)response.StatusCode}): {detail}");
+            }
+
+            EvUploadResponse? parsed;
+            try { parsed = JsonSerializer.Deserialize<EvUploadResponse>(body, Opts); }
+            catch (JsonException ex)
+            {
+                throw new InvalidDataException($"Az év feltöltésének válasza nem értelmezhető: {ex.Message}", ex);
+            }
+
+            if (parsed == null || parsed.Id <= 0)
+                throw new InvalidDataException("Az év feltöltésének válasza nem tartalmaz azonosítót.");
+
+            exam.EvId = parsed.Id;
+            Log($"Év azonosító: {exam.EvId}");
+        }
+
+
+        /// <summary>
         /// Háttérszálon elindítja a feltöltést, a végén összesítő ablakot mutat.
         /// A felületet nem blokkolja, és minden hibát megjelenít.
         /// </summary>
@@ -122,7 +225,11 @@ namespace TudasterAdmin.Processing
                 try
                 {
                     var results = await UploadAllAsync(
+
                         exam, exam.Subject, jsonDirectory, GetSourceUploadUrl(), GetAccessToken());
+
+                    int replaced = ApplySourceIds(exam, results);
+                    Log($"{replaced} feladatnál lett kicserélve a SourceKey.");
 
                     ShowOnUi(() => ShowUploadSummary(exam, results));
                 }
@@ -214,6 +321,9 @@ namespace TudasterAdmin.Processing
                 Log("HIBA: hiányzik a bejelentkezési token.");
                 throw new ArgumentException("Hiányzik a bejelentkezési token.", nameof(accessToken));
             }
+
+            // év + szint: előbb ez, mert a feladatok ev_id-ja erre épül
+            await UploadEvAsync(exam, GetEvUploadUrl(), accessToken);
 
             Func<MultipartFormDataContent, Task<SourceUploadResponse>> send =
                 form => PostFormAsync(endpointUrl, accessToken, form);
