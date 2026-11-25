@@ -6,6 +6,7 @@ import { getForrasKepUrl } from "../../lib/supabaseStorage";
 import { taskTypes, fallbackType } from "../ui/tasktypes/tasktypes.js";
 import Skeleton from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
+import {useRef } from "react";
 
 
 // Alapértelmezett serializer: a szöveget trimeli, az üreset null-ra alakítja,
@@ -46,6 +47,7 @@ function PracticePage() {
     const [elapsedSeconds, setElapsedSeconds] = useState(0);
 
     const [testId, setTestId] = useState(null);
+
 
     const navigate = useNavigate();
 
@@ -159,6 +161,13 @@ function PracticePage() {
         };
     }, [subject, level, year, topic]);
 
+
+    const answerAreaRef = useRef(null);
+
+    useEffect(() => {
+        window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+        answerAreaRef.current?.scrollTo({ top: 0, behavior: "instant" });
+    }, [currentTaskIndex]);
     if (!hasValidParams) return null;
     if (loading) {
         return (
@@ -475,6 +484,7 @@ function PracticePage() {
 
                         {/* FELADAT */}
                         <div
+                            ref={answerAreaRef}
                             className="
                             flex-grow min-w-0
                             space-y-4
