@@ -285,4 +285,36 @@ router.post('/sourceupload', requireAdmin, (req, res, next) => {
   }
 })
 
+// Év + szint felvétele (pl. { "ev": 2024, "szint": "emelt" }). Visszaadja az ev tábla id-ját.
+// Ha ugyanilyen év és szint már van, a meglévő id-t adja vissza.
+router.post('/evupload', requireAdmin, async (req, res, next) => {
+  try {
+    const ev = Number(req.body?.ev)
+    const szint = typeof req.body?.szint === 'string' ? req.body.szint.trim() : ''
+
+    if (!Number.isInteger(ev) || ev < 1900 || ev > 2100) {
+      return res.status(400).json({ error: 'Az év érvénytelen.' })
+    }
+    if (!szint) {
+      return res.status(400).json({ error: 'A szint megadása kötelező.' })
+    }
+
+    const [existing] = await sql`
+      select id from ev where ev = ${ev} and szint = ${szint} limit 1
+    `
+    if (existing) {
+      return res.json({ id: existing.id })
+    }
+
+    const [row] = await sql`
+      insert into ev (ev, szint)
+      values (${ev}, ${szint})
+      returning id
+    `
+    res.status(201).json({ id: row.id })
+  } catch (err) {
+    next(err)
+  }
+})
+
 export default router
