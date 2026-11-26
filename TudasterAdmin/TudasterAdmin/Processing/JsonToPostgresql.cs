@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Linq;
 
+
 namespace TudasterAdmin.Processing
 {
     /// <summary>A /sourceupload végpont sikeres válasza: { id, kep }.</summary>
@@ -214,59 +215,7 @@ namespace TudasterAdmin.Processing
         }
 
 
-        //Postgresql sorok leképezése
-        private static string SqlText(string? s) =>
-            s == null ? "null" : "'" + s.Replace("'", "''") + "'";
-
-        private static string SqlInt(int? n) =>
-            n.HasValue ? n.Value.ToString(CultureInfo.InvariantCulture) : "null";
-
-        /// <summary>Egy feladat INSERT sora. Most még csak a közös mezők vannak benne.</summary>
-        private static string BuildTaskSql(DraftExam exam, DraftTask task)
-        {
-            if (exam.EvId is not int evId)
-                throw new InvalidOperationException("Hiányzik az ev_id, előbb fel kell tölteni az évet.");
-
-            // a SourceKey ekkorra már a forrás adatbázis-azonosítója (ApplySourceIds után)
-            int? forrasId = null;
-            if (!string.IsNullOrWhiteSpace(task.SourceKey))
-            {
-                if (!int.TryParse(task.SourceKey, out int parsed))
-                    throw new InvalidOperationException(
-                        $"A(z) {task.Number}{task.PartLabel} feladat forrása nincs feltöltve (\"{task.SourceKey}\").");
-                forrasId = parsed;
-            }
-
-            string valaszok, helyes;
-            switch (task.TypeName)
-            {
-                case "rovid_valasz":
-                    valaszok = "null";
-                    helyes = "null";
-                    break;
-
-                // további típusok ide jönnek: case "...": ...
-
-                default:
-                    throw new NotSupportedException(
-                        $"A(z) {task.Number}{task.PartLabel} feladat típusa még nincs kezelve: \"{task.TypeName}\".");
-            }
-
-            // oszlop -> SQL-literál; a típusfüggő mezők később ide jönnek
-            var cols = new List<(string Name, string Value)>
-            {
-                ("temakor_id", SqlInt(task.TopicId)),
-                ("forras_id",  SqlInt(forrasId)),
-                ("kerdes",     SqlText(task.Question)),
-                ("pont",       SqlInt(task.Points)),
-                ("ev_id",      SqlInt(evId)),
-                ("tipus_id",   $"(select id from feladat_tipusok where nev = {SqlText(task.TypeName)})"),
-                ("valaszok",        valaszok),
-                ("helyes_valaszok", helyes),
-            };
-
-            return $"({string.Join(", ", cols.Select(c => c.Value))})";
-        }
+        
 
 
         /// <summary>
@@ -408,21 +357,14 @@ namespace TudasterAdmin.Processing
                 if (!result.Success) break;
             }
 
+            
+
             if (results.Count == total && results.All(r => r.Success))
             {
                 int replaced = ApplySourceIds(exam, results);
                 Log($"{replaced} feladatnál lett kicserélve a SourceKey.");
 
-                var rows = exam.Tasks.Select(t => BuildTaskSql(exam, t)).ToList();
-                if (rows.Count > 0)
-                {
-                    string taskSql =
-                        "insert into feladatok (temakor_id, forras_id, kerdes, pont, ev_id, tipus_id, valaszok, helyes_valaszok) values\n" +
-                        string.Join(",\n", rows) +
-                        "\nreturning id;";
-
-                    Log($"Feladatok SQL-je ({rows.Count} sor):\n{taskSql}");
-                }
+                // ide jön a JSON elküldése az API-nak
             }
             else
             {

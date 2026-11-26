@@ -317,4 +317,154 @@ router.post('/evupload', requireAdmin, async (req, res, next) => {
   }
 })
 
+
+
+
+//Feladatok feltöltés 
+class HibasAdat extends Error {}
+
+const ellenoriz = (feltetel, uzenet) => {
+  if (!feltetel) throw new HibasAdat(uzenet)
+}
+
+const szovegLista = (lista, hely) => {
+  ellenoriz(Array.isArray(lista) && lista.every(x => typeof x === 'string'),
+    `${hely}: hibás lista.`)
+  return lista.map(x => x.trim())
+}
+
+const sorszam = (ertek, max, hely) => {
+  const s = ertek.replace(/\.+$/, '')
+  const n = Number(s)
+  ellenoriz(/^\d+$/.test(s) && n >= 1 && n <= max, `${hely}: hibás helyes válasz "${ertek}".`)
+  return String(n)
+}
+
+const pontos = s => s.replace(/\.+$/, '') + '.'
+
+// típusfüggő mezők
+function valaszMezok(task, hely) {
+  if (task.TypeName === 'tablazatos_feladat') {
+    return { valaszok: null, helyes: null }
+  }
+
+  const opciok = szovegLista(task.Options ?? [], hely)
+  const megoldasok = szovegLista(task.CorrectAnswers ?? [], hely)
+
+  switch (task.TypeName) {
+    case 'rovid_valasz': {
+      const jok = megoldasok.filter(Boolean)
+      ellenoriz(jok.length > 0, `${hely}: nincs helyes válasz.`)
+      return { valaszok: null, helyes: [jok.join('/')] }
+    }
+    case 'tobb_opcio':
+    case 'tobb_valasz': {
+      ellenoriz(opciok.length >= 2, `${hely}: nincs elég válaszlehetőség.`)
+      const helyes = [...new Set(megoldasok.map(a => sorszam(a, opciok.length, hely)))]
+      ellenoriz(helyes.length > 0, `${hely}: nincs helyes válasz.`)
+      ellenoriz(task.TypeName !== 'tobb_opcio' || megoldasok.length === 1,
+        `${hely}: pontosan egy helyes válasz kell.`)
+      return { valaszok: opciok, helyes }
+    }
+    case 'sorba_rendezos': {
+      const elemek = opciok.map(pontos)
+      const sorrend = megoldasok.map(pontos)
+      ellenoriz(elemek.length >= 2 &&
+        JSON.stringify([...elemek].sort()) === JSON.stringify([...sorrend].sort()),
+        `${hely}: a sorrend nem egyezik a lehetőségekkel.`)
+      return { valaszok: elemek, helyes: sorrend }
+    }
+    default:
+      throw new HibasAdat(`${hely}: ismeretlen típus "${task.TypeName}".`)
+  }
+}
+
+async function tablazatMentes(tx, feladatId, task, hely) {
+  const { TableColumns: fejlec, TableCells: cellak } = task
+  ellenoriz(Array.isArray(fejlec) && fejlec.length > 0 &&
+    Array.isArray(cellak) && cellak.length > 0, `${hely}: hiányos táblázat.`)
+
+  const nevek = szovegLista(fejlec, hely)
+  const oszlopSorok = nevek.map((nev, i) => ({
+    feladat_id: feladatId,
+    oszlop_sorszam: i + 1,
+    oszlop_nev: nev
+  }))
+
+  const cellaSorok = cellak.map(c => {
+    ellenoriz(c && Number.isInteger(c.Row) && c.Row >= 1 &&
+      Number.isInteger(c.Column) && c.Column >= 1 && c.Column <= nevek.length &&
+      typeof c.Visible === 'boolean' &&
+      (c.Value == null || typeof c.Value === 'string'), `${hely}: hibás cella.`)
+
+    return {
+      feladat_id: feladatId,
+      sor_sorszam: c.Row,
+      oszlop_sorszam: c.Column,
+      ertek: c.Value?.trim() ? c.Value : null,
+      lathato: c.Visible
+    }
+  })
+
+  await tx`insert into tablazatos_feladat_oszlopok ${tx(oszlopSorok)}`
+  await tx`insert into tablazatos_feladat_cellak ${tx(cellaSorok)}`
+}
+
+router.post('/tasks-upload', requireAdmin, async (req, res, next) => {
+  try {
+    const { EvId, Tasks } = req.body ?? {}
+    ellenoriz(Number.isInteger(EvId), 'Hiányzik az EvId.')
+    ellenoriz(Array.isArray(Tasks) && Tasks.length > 0, 'Nincs feltöltendő feladat.')
+
+    const idk = await sql.begin(async tx => {
+      const tipusok = await tx`select id, nev from feladat_tipusok`
+      const tipusIdk = new Map(tipusok.map(t => [t.nev, t.id]))
+      const ujIdk = []
+
+      for (const task of Tasks) {
+        ellenoriz(task, 'Üres feladat a listában.')
+        const hely = `${task.Number}${task.PartLabel ?? ''} feladat`
+
+        ellenoriz(Number.isInteger(task.TopicId), `${hely}: hiányzik a témakör.`)
+        ellenoriz(Number.isInteger(task.Points), `${hely}: hiányzik a pontszám.`)
+        ellenoriz(typeof task.Question === 'string' && task.Question.trim(),
+          `${hely}: hiányzik a kérdés.`)
+        ellenoriz(tipusIdk.has(task.TypeName), `${hely}: ismeretlen típus.`)
+
+        let forrasId = null
+        if (task.SourceKey != null && String(task.SourceKey).trim()) {
+          forrasId = Number(task.SourceKey)
+          ellenoriz(Number.isInteger(forrasId), `${hely}: a forrás nincs feltöltve.`)
+        }
+
+        const { valaszok, helyes } = valaszMezok(task, hely)
+
+        const [uj] = await tx`
+          insert into feladatok
+            (temakor_id, forras_id, kerdes, pont, ev_id, tipus_id, valaszok, helyes_valaszok)
+          values
+            (${task.TopicId}, ${forrasId}, ${task.Question}, ${task.Points}, ${EvId},
+             ${tipusIdk.get(task.TypeName)}, ${valaszok}, ${helyes})
+          returning id
+        `
+
+        if (task.TypeName === 'tablazatos_feladat') {
+          await tablazatMentes(tx, uj.id, task, hely)
+        }
+
+        ujIdk.push(uj.id)
+      }
+
+      return ujIdk
+    })
+
+    res.status(201).json({ darab: idk.length, idk })
+  } catch (err) {
+    if (err instanceof HibasAdat || /^(22|23)/.test(err.code ?? '')) {
+      return res.status(400).json({ hiba: err.message })
+    }
+    next(err)
+  }
+})
+
 export default router
